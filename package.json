@@ -6,7 +6,8 @@
   "scripts": {
     "refresh:data": "node scripts/scrape-aniimo.js",
     "test": "node tests/optimizer.test.js",
-    "serve": "python3 -m http.server 4173"
+    "serve": "python3 -m http.server 4173",
+    "wrap:data": "node scripts/wrap-data.js"
   },
   "engines": {
     "node": ">=18"

@@ -34,27 +34,32 @@ The `.nojekyll` file keeps Pages from applying Jekyll processing.
 
 ## Data
 
-Primary data is generated from:
+### Aniimo work abilities (generated)
 
-- <https://aniimo.gg/homeland/work/>
+`npm run refresh:data` runs `scripts/scrape-aniimo.js`, which builds `data/aniimo.json` and `data/aniimo-data.js` from:
 
-Cross-reference and category references:
+1. <https://aniimo.gg/homeland/work/>: every Aniimo and its Homeland work ability levels.
+2. Each species page on aniimo.gg (for example <https://aniimo.gg/aniimo/glacy/>): the Forms strip gives the real form names (regional forms such as "Snowfield Form" and "Nighttime Form", and Prismana). Each form page adds its own ability levels. Prismana forms are stored as `name: "Prismana <Species>"`, `form: "Prismana"`.
+3. <https://backup.hideoutgacha.com/games/aniimo/homeland-abilities>: a cross-check for Prismana breeds. It fills in any Prismana form aniimo.gg does not list and records mismatches under `scrape.hideoutPrismana`.
+4. `data/aniimo-overrides.json`: manual, user-confirmed values, merged last so they always win. Records are matched by `species` + `form`.
 
-- <https://backup.hideoutgacha.com/games/aniimo/homeland-abilities>
-- <https://aniimo.io/en/guide/homeland>
+aniimo.gg also lists copies of some Aniimo under 9-digit IDs (for example `glynsera-101330001`). Their internal editor names show they are tower climb, shrine puzzle, tutorial, NPC and test entities, not collectible forms. The scraper leaves them out and lists their IDs in `scrape.internalVariantsExcluded`. To keep them, set `INCLUDE_INTERNAL_VARIANTS=1`.
 
-Run:
+### Buildings, crops and Homeland capacity (hand-curated)
+
+- `data/buildings.json`: real facility names, the work ability each one needs, slots, unlock RV level and placement limits. Each entry has `source` and `verified` fields.
+- `data/crops.json`: Farmland and Woodland crops with grow times (`cycleMinutes`) and yields. The top-level `actionDurationSeconds` (6 s) is an estimate and is flagged `actionDurationVerified: false`.
+- `data/homeland.json`: Aniimo capacity for each RV level and details of the Homebuilding Zone.
+
+Sources: <https://aniimo.gg/homeland/rv/>, <https://aniimo.gg/homeland/furniture/functional-facilities/>, <https://aniimo.gg/homeland/plots/>, <https://aniimotools.dev/systems/homeland/stations/> and <https://aniimotools.dev/systems/homeland/rv-levels/>.
+
+After editing any of these JSON files, regenerate the JS wrappers:
 
 ```bash
-npm run refresh:data
+node scripts/wrap-data.js
 ```
 
-This regenerates:
-
-- `data/aniimo.json`
-- `data/aniimo-data.js`
-
-The JS wrapper exists so the app can still work when opened from `file://` in browsers that block local JSON `fetch`.
+The JS wrappers let the app work when opened from `file://`, since some browsers block local JSON `fetch`.
 
 ## Weekly Refresh
 
@@ -66,7 +71,7 @@ The JS wrapper exists so the app can still work when opened from `file://` in br
 
 If GitHub Pages is configured from `main` and `/root`, those commits will refresh the deployed app.
 
-## Optimizer Model
+## Optimiser Model
 
 Continuous work:
 
@@ -78,7 +83,7 @@ Intermittent work:
 
 - Farmland and Woodland are modeled as shared workloads.
 - Load is calculated as `plots * action_seconds / cycle_seconds * overhead_multiplier`.
-- One Aniimo can cover multiple intermittent skills only when the setting is enabled and combined load stays within the utilization cap.
+- One Aniimo can cover multiple intermittent skills only when the setting is enabled and combined load stays within the "keep farm helpers at most this busy" cap.
 - Aniimo assigned to continuous work are not reused for intermittent work by default.
 
 Capability targets:
@@ -89,9 +94,10 @@ Capability targets:
 
 ## Assumptions
 
-- Farmland and Woodland default to a representative 5 second action and 20 minute cycle.
-- Travel/pathfinding is represented by an editable overhead multiplier.
-- Facility counts and continuous job requirements are a starter model and should be updated as exact game data improves.
+- Farm/woodland action time comes from `data/crops.json` (currently an estimated 6 seconds per plot, flagged unverified); crop growth time is chosen in Settings.
+- Walking between plots is represented by the "Walking time allowance" advanced setting.
+- Facilities come from `data/buildings.json`, sourced from aniimo.gg and aniimotools.dev; entries marked `verified: false` (e.g. hauler count) are estimates.
+- Aniimo capacity per RV level comes from `data/homeland.json`; Homebuilding Zone Aniimo are assumed to share the same RV spaces.
 - Game mechanics and data may change. Verify against current in-game behavior.
 
 ## Tests

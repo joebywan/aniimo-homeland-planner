@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "notes": [
+    "Manual Homeland work ability values merged LAST by scripts/scrape-aniimo.js, so they win over anything scraped.",
+    "Match is by species + form. If no scraped record matches, a new record is created.",
+    "skills replaces the whole ability set for that record (unlisted abilities become 0).",
+    "Prismana records display as 'Prismana <Species>' with form 'Prismana'."
+  ],
+  "overrides": [
+    {
+      "species": "Glynsera",
+      "form": "Prismana",
+      "skills": { "Ice": 4, "Light": 3, "Hauling": 4 },
+      "notes": "User-confirmed in-game values. Also matches aniimo.gg and Hideout Guides."
+    },
+    {
+      "species": "Glacy",
+      "form": "Prismana",
+      "skills": { "Water": 4, "Light": 3, "Hauling": 4 },
+      "notes": "User-confirmed in-game values (reported as 'Gracy'; no Aniimo by that name exists, and these values match Prismana Glacy on aniimo.gg and Hideout Guides)."
+    },
+    {
+      "species": "Stellarys",
+      "form": "Prismana",
+      "skills": { "Ice": 3, "Dark": 4, "Leisure": 4 },
+      "notes": "User-confirmed in-game values. Also matches Hideout Guides."
+    }
+  ]
+}

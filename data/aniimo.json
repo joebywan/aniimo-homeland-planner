@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T04:17:39.188Z",
+  "generatedAt": "2026-09-28T04:58:35.243Z",
   "skills": [
     "Fire",
     "Grass",
@@ -18,19 +18,20 @@
   ],
   "sources": [
     {
-      "name": "Beskor Aniimo Homeland Work Abilities",
+      "name": "aniimo.gg – Homeland work abilities",
       "url": "https://aniimo.gg/homeland/work/",
-      "notes": "Primary normalized source. The page is static-rendered and lists the 13 Homeland work abilities with linked Aniimo and ability levels."
+      "notes": "Our main list of every Aniimo and its Homeland ability levels, including regional forms and Prismana, taken from the game's own files."
     },
     {
-      "name": "Hideout Guides Aniimo Homeland Worker Abilities",
+      "name": "Hideout Guides – Homeland worker abilities",
       "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities",
-      "notes": "Cross-reference source for level 3+ workers and Prismana entries; not used as the primary scrape because it omits lower-level workers."
+      "notes": "A second list we compare against to catch mistakes, and to fill in any Prismana Aniimo missing from aniimo.gg."
     },
     {
-      "name": "Aniimo Homeland Guide",
-      "url": "https://aniimo.io/en/guide/homeland",
-      "notes": "Reference for the 13 ability categories and plain-language job descriptions."
+      "name": "Player corrections",
+      "kind": "override",
+      "url": "data/aniimo-overrides.json",
+      "notes": "Corrections checked in-game by players. These replace the values above where they differ."
     }
   ],
   "scrape": {
@@ -102,12 +103,115 @@
         "parsedCount": 2
       }
     ],
-    "recordCount": 179
+    "recordCount": 227,
+    "formPagesAdded": 120,
+    "internalVariantsExcluded": [
+      "bolty-102210001",
+      "bolty-102210002",
+      "bonesky-101310001",
+      "bonesky-101310002",
+      "budclaw-101610001",
+      "bulbly-101410001",
+      "celestis-100110001",
+      "celestis-100110002",
+      "celestis-100110003",
+      "celestis-100110004",
+      "chirpi-101810002",
+      "chirpi-101810004",
+      "cozite-104310002",
+      "emberpup-100510001",
+      "emberpup-100510002",
+      "emberpup-100510003",
+      "emberpup-100510005",
+      "fenrier-101320001",
+      "flameruff-100520001",
+      "flameruff-100520002",
+      "flameruff-100520003",
+      "flutternym-102310001",
+      "geoclaw-101630001",
+      "glacy-100430001",
+      "glynsera-101330001",
+      "gracewing-102320001",
+      "gracewing-102320002",
+      "helgon-100230001",
+      "helgon-100230002",
+      "helmut-100210001",
+      "helmut-100210002",
+      "helmut-100210003",
+      "helmut-100210004",
+      "helmut-100210005",
+      "helmut-100210006",
+      "helmut-100210101",
+      "hexxin-102030001",
+      "iris-102110001",
+      "jawling-100240001",
+      "leafy-100450001",
+      "leafy-100450002",
+      "luminelle-101430001",
+      "magmarex-102830001",
+      "minespine-102850001",
+      "minespine-102850002",
+      "nimbi-102610001",
+      "nimbi-102610002",
+      "nimbi-102610003",
+      "nimbi-102610004",
+      "nimbi-102610005",
+      "panpanta-101740001",
+      "pawney-100260001",
+      "pebbling-102810001",
+      "popota-101720001",
+      "popota-101720002",
+      "pranky-100420001",
+      "pranky-100420002",
+      "scorchhowl-100530001",
+      "scorchhowl-100530002",
+      "shelly-101910001",
+      "shelly-101910002",
+      "shelly-101910003",
+      "sherro-101940001",
+      "skippy-100410001",
+      "skippy-100410002",
+      "sparki-103310004",
+      "stellarys-100120001",
+      "susuta-101710001",
+      "susuta-101710002",
+      "thunderfeather-sparrow-100720001",
+      "tuckin-102070001",
+      "turbo-102620001",
+      "turbo-102620002",
+      "wisptis-100310001",
+      "wisptis-100310002"
+    ],
+    "internalVariantsNote": "aniimo.gg lists 9-digit-ID copies of some Aniimo (tower climb, shrine puzzle, tutorial, NPC and test entities, per their internal editor names). They are not collectible forms and are excluded. Set INCLUDE_INTERNAL_VARIANTS=1 to keep them.",
+    "hideoutPrismana": {
+      "listed": 27,
+      "added": [
+        "Glameep",
+        "Minespine",
+        "Tuckin"
+      ],
+      "mismatches": [
+        {
+          "name": "Pawney",
+          "skills": [
+            "Artisanship: aniimo.gg 0 vs hideout 3"
+          ]
+        }
+      ],
+      "error": null
+    },
+    "overridesApplied": [
+      "Prismana Glynsera (Prismana)",
+      "Prismana Glacy (Prismana)",
+      "Prismana Stellarys (Prismana)"
+    ],
+    "fetchFailures": []
   },
   "aniimo": [
     {
       "id": "bailite",
       "name": "Bailite",
+      "species": "Bailite",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10433.webp?v=44",
       "skills": {
@@ -133,6 +237,7 @@
     {
       "id": "baleetle",
       "name": "Baleetle",
+      "species": "Baleetle",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10451.webp?v=44",
       "skills": {
@@ -156,8 +261,35 @@
       }
     },
     {
+      "id": "baleetle-1045101",
+      "name": "Baleetle",
+      "species": "Baleetle",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10451.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 1,
+        "Lightning": 0,
+        "Ice": 1,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 1,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/baleetle-1045101/"
+      }
+    },
+    {
       "id": "besauce",
       "name": "Besauce",
+      "species": "Besauce",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10122.webp?v=44",
       "skills": {
@@ -183,6 +315,7 @@
     {
       "id": "blazen",
       "name": "Blazen",
+      "species": "Blazen",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10222.webp?v=44",
       "skills": {
@@ -206,8 +339,61 @@
       }
     },
     {
+      "id": "blazen-1022202",
+      "name": "Blazen",
+      "species": "Blazen",
+      "form": "Mountain Woods Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10222.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 3,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/blazen-1022202/"
+      }
+    },
+    {
+      "id": "blazen-1022201",
+      "name": "Prismana Blazen",
+      "species": "Blazen",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10222.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 4,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/blazen-1022201/"
+      }
+    },
+    {
       "id": "bolty",
       "name": "Bolty",
+      "species": "Bolty",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10221.webp?v=44",
       "skills": {
@@ -231,9 +417,10 @@
       }
     },
     {
-      "id": "bolty-102210001",
+      "id": "bolty-1022102",
       "name": "Bolty",
-      "form": "Variant 102210001",
+      "species": "Bolty",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10221.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -251,38 +438,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "bolty-102210002",
-      "name": "Bolty",
-      "form": "Variant 102210002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10221.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 1,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/bolty-1022102/"
       }
     },
     {
       "id": "bonesky",
       "name": "Bonesky",
+      "species": "Bonesky",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10131.webp?v=44",
       "skills": {
@@ -306,9 +469,10 @@
       }
     },
     {
-      "id": "bonesky-101310001",
+      "id": "bonesky-1013102",
       "name": "Bonesky",
-      "form": "Variant 101310001",
+      "species": "Bonesky",
+      "form": "Nighttime Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10131.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -316,9 +480,9 @@
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
+        "Ice": 1,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 1,
         "Light": 0,
         "Hauling": 1,
         "Artisanship": 0,
@@ -326,38 +490,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "bonesky-101310002",
-      "name": "Bonesky",
-      "form": "Variant 101310002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10131.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/bonesky-1013102/"
       }
     },
     {
       "id": "bouldus",
       "name": "Bouldus",
+      "species": "Bouldus",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10454.webp?v=44",
       "skills": {
@@ -381,8 +521,35 @@
       }
     },
     {
+      "id": "bouldus-1045401",
+      "name": "Bouldus",
+      "species": "Bouldus",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10454.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 3,
+        "Lightning": 0,
+        "Ice": 2,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/bouldus-1045401/"
+      }
+    },
+    {
       "id": "budclaw",
       "name": "Budclaw",
+      "species": "Budclaw",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10161.webp?v=44",
       "skills": {
@@ -406,15 +573,16 @@
       }
     },
     {
-      "id": "budclaw-101610001",
+      "id": "budclaw-1016103",
       "name": "Budclaw",
-      "form": "Variant 101610001",
+      "species": "Budclaw",
+      "form": "Bay Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10161.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
         "Water": 0,
-        "Earth": 0,
+        "Earth": 1,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
@@ -426,13 +594,66 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/budclaw-1016103/"
+      }
+    },
+    {
+      "id": "budclaw-1016102",
+      "name": "Budclaw",
+      "species": "Budclaw",
+      "form": "Beach Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10161.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 1,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 1,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/budclaw-1016102/"
+      }
+    },
+    {
+      "id": "budclaw-1016101",
+      "name": "Budclaw",
+      "species": "Budclaw",
+      "form": "Mudflat Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10161.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 1,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 1,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/budclaw-1016101/"
       }
     },
     {
       "id": "budsquire",
       "name": "Budsquire",
+      "species": "Budsquire",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10321.webp?v=44",
       "skills": {
@@ -456,8 +677,35 @@
       }
     },
     {
+      "id": "budsquire-1032103",
+      "name": "Budsquire",
+      "species": "Budsquire",
+      "form": "Towerwood Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10321.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 1,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/budsquire-1032103/"
+      }
+    },
+    {
       "id": "bulbly",
       "name": "Bulbly",
+      "species": "Bulbly",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10141.webp?v=44",
       "skills": {
@@ -481,33 +729,9 @@
       }
     },
     {
-      "id": "bulbly-101410001",
-      "name": "Bulbly",
-      "form": "Variant 101410001",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10141.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 1,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
       "id": "butterfly-wing-sprite",
       "name": "Butterfly Wing Sprite",
+      "species": "Butterfly Wing Sprite",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10083.webp?v=44",
       "skills": {
@@ -533,6 +757,7 @@
     {
       "id": "celestis",
       "name": "Celestis",
+      "species": "Celestis",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10011.webp?v=44",
       "skills": {
@@ -544,106 +769,6 @@
         "Ice": 0,
         "Wind": 0,
         "Dark": 1,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "celestis-100110001",
-      "name": "Celestis",
-      "form": "Variant 100110001",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10011.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 1,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "celestis-100110002",
-      "name": "Celestis",
-      "form": "Variant 100110002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10011.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "celestis-100110003",
-      "name": "Celestis",
-      "form": "Variant 100110003",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10011.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "celestis-100110004",
-      "name": "Celestis",
-      "form": "Variant 100110004",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10011.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
         "Light": 0,
         "Hauling": 0,
         "Artisanship": 0,
@@ -658,6 +783,7 @@
     {
       "id": "chirpi",
       "name": "Chirpi",
+      "species": "Chirpi",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10181.webp?v=44",
       "skills": {
@@ -681,14 +807,15 @@
       }
     },
     {
-      "id": "chirpi-101810002",
+      "id": "chirpi-1018101",
       "name": "Chirpi",
-      "form": "Variant 101810002",
+      "species": "Chirpi",
+      "form": "Beach Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10181.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 1,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
@@ -701,18 +828,19 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/chirpi-1018101/"
       }
     },
     {
-      "id": "chirpi-101810004",
+      "id": "chirpi-1018103",
       "name": "Chirpi",
-      "form": "Variant 101810004",
+      "species": "Chirpi",
+      "form": "Highland Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10181.webp?v=44",
       "skills": {
         "Fire": 0,
-        "Grass": 0,
+        "Grass": 1,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
@@ -726,13 +854,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/chirpi-1018103/"
       }
     },
     {
       "id": "coraliz",
       "name": "Coraliz",
+      "species": "Coraliz",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10383.webp?v=44",
       "skills": {
@@ -758,6 +887,7 @@
     {
       "id": "cornet",
       "name": "Cornet",
+      "species": "Cornet",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10185.webp?v=44",
       "skills": {
@@ -781,34 +911,88 @@
       }
     },
     {
-      "id": "cozite",
-      "name": "Cozite",
-      "form": "Base",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10431.webp?v=44",
+      "id": "cornet-1018501",
+      "name": "Cornet",
+      "species": "Cornet",
+      "form": "Beach Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10185.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
-        "Earth": 1,
+        "Water": 2,
+        "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 3,
         "Dark": 0,
         "Light": 0,
-        "Hauling": 1,
+        "Hauling": 0,
         "Artisanship": 0,
         "Leisure": 0,
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/cornet-1018501/"
       }
     },
     {
-      "id": "cozite-104310002",
+      "id": "cornet-1018503",
+      "name": "Cornet",
+      "species": "Cornet",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10185.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 2,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/cornet-1018503/"
+      }
+    },
+    {
+      "id": "cornet-1018502",
+      "name": "Prismana Cornet",
+      "species": "Cornet",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10185.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 3,
+        "Ice": 0,
+        "Wind": 4,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/cornet-1018502/"
+      }
+    },
+    {
+      "id": "cozite",
       "name": "Cozite",
-      "form": "Variant 104310002",
+      "species": "Cozite",
+      "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10431.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -833,6 +1017,7 @@
     {
       "id": "cubbo",
       "name": "Cubbo",
+      "species": "Cubbo",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10501.webp?v=44",
       "skills": {
@@ -858,6 +1043,7 @@
     {
       "id": "dazmand",
       "name": "Dazmand",
+      "species": "Dazmand",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10474.webp?v=44",
       "skills": {
@@ -883,6 +1069,7 @@
     {
       "id": "dewy",
       "name": "Dewy",
+      "species": "Dewy",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10351.webp?v=44",
       "skills": {
@@ -908,6 +1095,7 @@
     {
       "id": "dreaple",
       "name": "Dreaple",
+      "species": "Dreaple",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10263.webp?v=44",
       "skills": {
@@ -933,6 +1121,7 @@
     {
       "id": "eklue",
       "name": "Eklue",
+      "species": "Eklue",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10443.webp?v=44",
       "skills": {
@@ -958,6 +1147,7 @@
     {
       "id": "eko",
       "name": "Eko",
+      "species": "Eko",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10441.webp?v=44",
       "skills": {
@@ -983,6 +1173,7 @@
     {
       "id": "emberpup",
       "name": "Emberpup",
+      "species": "Emberpup",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10051.webp?v=44",
       "skills": {
@@ -1006,9 +1197,36 @@
       }
     },
     {
-      "id": "emberpup-100510001",
+      "id": "emberpup-1005101",
       "name": "Emberpup",
-      "form": "Variant 100510001",
+      "species": "Emberpup",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10051.webp?v=44",
+      "skills": {
+        "Fire": 1,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 1,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 1,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/emberpup-1005101/"
+      }
+    },
+    {
+      "id": "emberpup-1005104",
+      "name": "Emberpup",
+      "species": "Emberpup",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10051.webp?v=44",
       "skills": {
         "Fire": 1,
@@ -1026,88 +1244,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "emberpup-100510002",
-      "name": "Emberpup",
-      "form": "Variant 100510002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10051.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "emberpup-100510003",
-      "name": "Emberpup",
-      "form": "Variant 100510003",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10051.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "emberpup-100510005",
-      "name": "Emberpup",
-      "form": "Variant 100510005",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10051.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/emberpup-1005104/"
       }
     },
     {
       "id": "erlath",
       "name": "Erlath",
+      "species": "Erlath",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10483.webp?v=44",
       "skills": {
@@ -1133,6 +1277,7 @@
     {
       "id": "fahloo",
       "name": "Fahloo",
+      "species": "Fahloo",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10481.webp?v=44",
       "skills": {
@@ -1158,6 +1303,7 @@
     {
       "id": "fenmane",
       "name": "Fenmane",
+      "species": "Fenmane",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10293.webp?v=44",
       "skills": {
@@ -1181,8 +1327,35 @@
       }
     },
     {
+      "id": "fenmane-1029301",
+      "name": "Prismana Fenmane",
+      "species": "Fenmane",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10293.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 4,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 3,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/fenmane-1029301/"
+      }
+    },
+    {
       "id": "fennelun",
       "name": "Fennelun",
+      "species": "Fennelun",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10373.webp?v=44",
       "skills": {
@@ -1208,6 +1381,7 @@
     {
       "id": "fenrier",
       "name": "Fenrier",
+      "species": "Fenrier",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10132.webp?v=44",
       "skills": {
@@ -1231,9 +1405,10 @@
       }
     },
     {
-      "id": "fenrier-101320001",
+      "id": "fenrier-1013202",
       "name": "Fenrier",
-      "form": "Variant 101320001",
+      "species": "Fenrier",
+      "form": "Nighttime Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10132.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -1243,7 +1418,7 @@
         "Lightning": 0,
         "Ice": 2,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 1,
         "Light": 0,
         "Hauling": 2,
         "Artisanship": 0,
@@ -1251,13 +1426,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/fenrier-1013202/"
       }
     },
     {
       "id": "fentuft",
       "name": "Fentuft",
+      "species": "Fentuft",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10291.webp?v=44",
       "skills": {
@@ -1283,6 +1459,7 @@
     {
       "id": "flamerion",
       "name": "Flamerion",
+      "species": "Flamerion",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10333.webp?v=44",
       "skills": {
@@ -1306,8 +1483,87 @@
       }
     },
     {
+      "id": "flamerion-1033302",
+      "name": "Flamerion",
+      "species": "Flamerion",
+      "form": "Forest Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10333.webp?v=44",
+      "skills": {
+        "Fire": 3,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flamerion-1033302/"
+      }
+    },
+    {
+      "id": "flamerion-1033301",
+      "name": "Flamerion",
+      "species": "Flamerion",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10333.webp?v=44",
+      "skills": {
+        "Fire": 3,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flamerion-1033301/"
+      }
+    },
+    {
+      "id": "flamerion-1033303",
+      "name": "Flamerion",
+      "species": "Flamerion",
+      "form": "Sea of Flowers Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10333.webp?v=44",
+      "skills": {
+        "Fire": 3,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flamerion-1033303/"
+      }
+    },
+    {
       "id": "flameruff",
       "name": "Flameruff",
+      "species": "Flameruff",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10052.webp?v=44",
       "skills": {
@@ -1331,15 +1587,16 @@
       }
     },
     {
-      "id": "flameruff-100520001",
+      "id": "flameruff-1005201",
       "name": "Flameruff",
-      "form": "Variant 100520001",
+      "species": "Flameruff",
+      "form": "Highland Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10052.webp?v=44",
       "skills": {
-        "Fire": 0,
+        "Fire": 2,
         "Grass": 0,
         "Water": 0,
-        "Earth": 0,
+        "Earth": 1,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
@@ -1351,39 +1608,15 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flameruff-1005201/"
       }
     },
     {
-      "id": "flameruff-100520002",
+      "id": "flameruff-1005204",
       "name": "Flameruff",
-      "form": "Variant 100520002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10052.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 2,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "flameruff-100520003",
-      "name": "Flameruff",
-      "form": "Variant 100520003",
+      "species": "Flameruff",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10052.webp?v=44",
       "skills": {
         "Fire": 2,
@@ -1401,13 +1634,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flameruff-1005204/"
       }
     },
     {
       "id": "floret",
       "name": "Floret",
+      "species": "Floret",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10161.webp?v=44",
       "skills": {
@@ -1433,6 +1667,7 @@
     {
       "id": "flutternym",
       "name": "Flutternym",
+      "species": "Flutternym",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10231.webp?v=44",
       "skills": {
@@ -1456,18 +1691,19 @@
       }
     },
     {
-      "id": "flutternym-102310001",
+      "id": "flutternym-1023103",
       "name": "Flutternym",
-      "form": "Variant 102310001",
+      "species": "Flutternym",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10231.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
         "Water": 0,
-        "Earth": 0,
+        "Earth": 1,
         "Lightning": 0,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 1,
         "Dark": 0,
         "Light": 0,
         "Hauling": 0,
@@ -1476,13 +1712,66 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flutternym-1023103/"
+      }
+    },
+    {
+      "id": "flutternym-1023102",
+      "name": "Flutternym",
+      "species": "Flutternym",
+      "form": "Nighttime Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10231.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 1,
+        "Dark": 1,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flutternym-1023102/"
+      }
+    },
+    {
+      "id": "flutternym-1023101",
+      "name": "Flutternym",
+      "species": "Flutternym",
+      "form": "Sea of Flowers Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10231.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 1,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/flutternym-1023101/"
       }
     },
     {
       "id": "forest-cloak-butterfly",
       "name": "Forest Cloak Butterfly",
+      "species": "Forest Cloak Butterfly",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10082.webp?v=44",
       "skills": {
@@ -1508,6 +1797,7 @@
     {
       "id": "fragrancier",
       "name": "Fragrancier",
+      "species": "Fragrancier",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10352.webp?v=44",
       "skills": {
@@ -1533,6 +1823,7 @@
     {
       "id": "fulmintis",
       "name": "Fulmintis",
+      "species": "Fulmintis",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10033.webp?v=44",
       "skills": {
@@ -1556,8 +1847,35 @@
       }
     },
     {
+      "id": "fulmintis-1003305",
+      "name": "Prismana Fulmintis",
+      "species": "Fulmintis",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10033.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 4,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/fulmintis-1003305/"
+      }
+    },
+    {
       "id": "gachapus",
       "name": "Gachapus",
+      "species": "Gachapus",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10623.webp?v=44",
       "skills": {
@@ -1583,6 +1901,7 @@
     {
       "id": "geoclaw",
       "name": "Geoclaw",
+      "species": "Geoclaw",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10163.webp?v=44",
       "skills": {
@@ -1606,33 +1925,9 @@
       }
     },
     {
-      "id": "geoclaw-101630001",
-      "name": "Geoclaw",
-      "form": "Variant 101630001",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10163.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 3,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
       "id": "geodeback",
       "name": "Geodeback",
+      "species": "Geodeback",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10284.webp?v=44",
       "skills": {
@@ -1658,6 +1953,7 @@
     {
       "id": "glacy",
       "name": "Glacy",
+      "species": "Glacy",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10043.webp?v=44",
       "skills": {
@@ -1681,17 +1977,18 @@
       }
     },
     {
-      "id": "glacy-100430001",
+      "id": "glacy-1004301",
       "name": "Glacy",
-      "form": "Variant 100430001",
+      "species": "Glacy",
+      "form": "Sea of Flowers Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10043.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 3,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
+        "Ice": 2,
         "Wind": 0,
         "Dark": 0,
         "Light": 0,
@@ -1701,13 +1998,93 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/glacy-1004301/"
+      }
+    },
+    {
+      "id": "glacy-1004302",
+      "name": "Glacy",
+      "species": "Glacy",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10043.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 3,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 2,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/glacy-1004302/"
+      }
+    },
+    {
+      "id": "glacy-1004303",
+      "name": "Prismana Glacy",
+      "species": "Glacy",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10043.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 4,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Manual override (data/aniimo-overrides.json)",
+        "url": "",
+        "notes": "User-confirmed in-game values (reported as 'Gracy'; no Aniimo by that name exists, and these values match Prismana Glacy on aniimo.gg and Hideout Guides)."
+      }
+    },
+    {
+      "id": "glameep-prismana",
+      "name": "Prismana Glameep",
+      "species": "Glameep",
+      "form": "Prismana",
+      "image": "",
+      "skills": {
+        "Fire": 0,
+        "Grass": 4,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Hideout Guides Aniimo Homeland Worker Abilities",
+        "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities"
       }
     },
     {
       "id": "glynsera",
       "name": "Glynsera",
+      "species": "Glynsera",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10133.webp?v=44",
       "skills": {
@@ -1731,9 +2108,10 @@
       }
     },
     {
-      "id": "glynsera-101330001",
+      "id": "glynsera-1013302",
       "name": "Glynsera",
-      "form": "Variant 101330001",
+      "species": "Glynsera",
+      "form": "Nighttime Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10133.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -1741,9 +2119,9 @@
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
+        "Ice": 3,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 2,
         "Light": 0,
         "Hauling": 3,
         "Artisanship": 0,
@@ -1751,13 +2129,41 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/glynsera-1013302/"
+      }
+    },
+    {
+      "id": "glynsera-1013301",
+      "name": "Prismana Glynsera",
+      "species": "Glynsera",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10133.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 4,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Manual override (data/aniimo-overrides.json)",
+        "url": "",
+        "notes": "User-confirmed in-game values. Also matches aniimo.gg and Hideout Guides."
       }
     },
     {
       "id": "gracewing",
       "name": "Gracewing",
+      "species": "Gracewing",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10232.webp?v=44",
       "skills": {
@@ -1781,13 +2187,66 @@
       }
     },
     {
-      "id": "gracewing-102320001",
+      "id": "gracewing-1023203",
       "name": "Gracewing",
-      "form": "Variant 102320001",
+      "species": "Gracewing",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10232.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
+        "Water": 0,
+        "Earth": 2,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/gracewing-1023203/"
+      }
+    },
+    {
+      "id": "gracewing-1023202",
+      "name": "Gracewing",
+      "species": "Gracewing",
+      "form": "Nighttime Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10232.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 2,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/gracewing-1023202/"
+      }
+    },
+    {
+      "id": "gracewing-1023201",
+      "name": "Gracewing",
+      "species": "Gracewing",
+      "form": "Sea of Flowers Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10232.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 2,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
@@ -1801,38 +2260,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "gracewing-102320002",
-      "name": "Gracewing",
-      "form": "Variant 102320002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10232.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 3,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/gracewing-1023201/"
       }
     },
     {
       "id": "grizbo",
       "name": "Grizbo",
+      "species": "Grizbo",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10503.webp?v=44",
       "skills": {
@@ -1856,8 +2291,35 @@
       }
     },
     {
+      "id": "grizbo-1050301",
+      "name": "Prismana Grizbo",
+      "species": "Grizbo",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10503.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 4,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/grizbo-1050301/"
+      }
+    },
+    {
       "id": "helgon",
       "name": "Helgon",
+      "species": "Helgon",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10023.webp?v=44",
       "skills": {
@@ -1881,34 +2343,10 @@
       }
     },
     {
-      "id": "helgon-100230001",
+      "id": "helgon-1002301",
       "name": "Helgon",
-      "form": "Variant 100230001",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10023.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 3,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "helgon-100230002",
-      "name": "Helgon",
-      "form": "Variant 100230002",
+      "species": "Helgon",
+      "form": "Mountain Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10023.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -1926,13 +2364,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/helgon-1002301/"
       }
     },
     {
       "id": "helion",
       "name": "Helion",
+      "species": "Helion",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10361.webp?v=44",
       "skills": {
@@ -1958,6 +2397,7 @@
     {
       "id": "helmut",
       "name": "Helmut",
+      "species": "Helmut",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
       "skills": {
@@ -1981,9 +2421,10 @@
       }
     },
     {
-      "id": "helmut-100210001",
+      "id": "helmut-1002102",
       "name": "Helmut",
-      "form": "Variant 100210001",
+      "species": "Helmut",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -1993,7 +2434,7 @@
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 1,
         "Light": 0,
         "Hauling": 1,
         "Artisanship": 0,
@@ -2001,14 +2442,15 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/helmut-1002102/"
       }
     },
     {
-      "id": "helmut-100210002",
+      "id": "helmut-1002101",
       "name": "Helmut",
-      "form": "Variant 100210002",
+      "species": "Helmut",
+      "form": "Snowfield Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -2016,9 +2458,9 @@
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
+        "Ice": 1,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 1,
         "Light": 0,
         "Hauling": 1,
         "Artisanship": 0,
@@ -2026,138 +2468,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "helmut-100210003",
-      "name": "Helmut",
-      "form": "Variant 100210003",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "helmut-100210004",
-      "name": "Helmut",
-      "form": "Variant 100210004",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "helmut-100210005",
-      "name": "Helmut",
-      "form": "Variant 100210005",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "helmut-100210006",
-      "name": "Helmut",
-      "form": "Variant 100210006",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "helmut-100210101",
-      "name": "Helmut",
-      "form": "Variant 100210101",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10021.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/helmut-1002101/"
       }
     },
     {
       "id": "helmwhelp",
       "name": "Helmwhelp",
+      "species": "Helmwhelp",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10022.webp?v=44",
       "skills": {
@@ -2181,8 +2499,35 @@
       }
     },
     {
+      "id": "helmwhelp-1002201",
+      "name": "Helmwhelp",
+      "species": "Helmwhelp",
+      "form": "Mountain Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10022.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 2,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 2,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/helmwhelp-1002201/"
+      }
+    },
+    {
       "id": "hexxin",
       "name": "Hexxin",
+      "species": "Hexxin",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10203.webp?v=44",
       "skills": {
@@ -2206,19 +2551,20 @@
       }
     },
     {
-      "id": "hexxin-102030001",
+      "id": "hexxin-1020301",
       "name": "Hexxin",
-      "form": "Variant 102030001",
+      "species": "Hexxin",
+      "form": "Mountain Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10203.webp?v=44",
       "skills": {
         "Fire": 0,
-        "Grass": 0,
+        "Grass": 1,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 2,
         "Light": 0,
         "Hauling": 0,
         "Artisanship": 2,
@@ -2226,13 +2572,40 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/hexxin-1020301/"
+      }
+    },
+    {
+      "id": "hexxin-1020302",
+      "name": "Prismana Hexxin",
+      "species": "Hexxin",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10203.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 4,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/hexxin-1020302/"
       }
     },
     {
       "id": "hummin",
       "name": "Hummin",
+      "species": "Hummin",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10201.webp?v=44",
       "skills": {
@@ -2256,8 +2629,35 @@
       }
     },
     {
+      "id": "hummin-1020101",
+      "name": "Hummin",
+      "species": "Hummin",
+      "form": "Mountain Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10201.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/hummin-1020101/"
+      }
+    },
+    {
       "id": "ignitis",
       "name": "Ignitis",
+      "species": "Ignitis",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10032.webp?v=44",
       "skills": {
@@ -2281,8 +2681,87 @@
       }
     },
     {
+      "id": "ignitis-1003201",
+      "name": "Ignitis",
+      "species": "Ignitis",
+      "form": "Forest Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10032.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 2,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/ignitis-1003201/"
+      }
+    },
+    {
+      "id": "ignitis-1003203",
+      "name": "Ignitis",
+      "species": "Ignitis",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10032.webp?v=44",
+      "skills": {
+        "Fire": 2,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/ignitis-1003203/"
+      }
+    },
+    {
+      "id": "ignitis-1003202",
+      "name": "Prismana Ignitis",
+      "species": "Ignitis",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10032.webp?v=44",
+      "skills": {
+        "Fire": 3,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 4,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/ignitis-1003202/"
+      }
+    },
+    {
       "id": "infergon",
       "name": "Infergon",
+      "species": "Infergon",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10025.webp?v=44",
       "skills": {
@@ -2306,8 +2785,35 @@
       }
     },
     {
+      "id": "infergon-1002503",
+      "name": "Prismana Infergon",
+      "species": "Infergon",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10025.webp?v=44",
+      "skills": {
+        "Fire": 4,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/infergon-1002503/"
+      }
+    },
+    {
       "id": "infergon-boss",
       "name": "Infergon BOSS",
+      "species": "Infergon",
       "form": "BOSS",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_90025.webp?v=44",
       "skills": {
@@ -2333,6 +2839,7 @@
     {
       "id": "inferlupa",
       "name": "Inferlupa",
+      "species": "Inferlupa",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10055.webp?v=44",
       "skills": {
@@ -2356,8 +2863,35 @@
       }
     },
     {
+      "id": "inferlupa-1005503",
+      "name": "Prismana Inferlupa",
+      "species": "Inferlupa",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10055.webp?v=44",
+      "skills": {
+        "Fire": 3,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 4,
+        "Light": 0,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/inferlupa-1005503/"
+      }
+    },
+    {
       "id": "irelia",
       "name": "Irelia",
+      "species": "Irelia",
       "form": "Base",
       "image": "",
       "skills": {
@@ -2383,6 +2917,7 @@
     {
       "id": "iris",
       "name": "Iris",
+      "species": "Iris",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
       "skills": {
@@ -2406,13 +2941,14 @@
       }
     },
     {
-      "id": "iris-102110001",
+      "id": "iris-1021102",
       "name": "Iris",
-      "form": "Variant 102110001",
+      "species": "Iris",
+      "form": "Forest Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
       "skills": {
         "Fire": 0,
-        "Grass": 0,
+        "Grass": 1,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
@@ -2426,13 +2962,144 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/iris-1021102/"
+      }
+    },
+    {
+      "id": "iris-1021103",
+      "name": "Iris",
+      "species": "Iris",
+      "form": "Grassland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/iris-1021103/"
+      }
+    },
+    {
+      "id": "iris-1021101",
+      "name": "Iris",
+      "species": "Iris",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/iris-1021101/"
+      }
+    },
+    {
+      "id": "iris-1021106",
+      "name": "Iris",
+      "species": "Iris",
+      "form": "Mountain Woods Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/iris-1021106/"
+      }
+    },
+    {
+      "id": "iris-1021105",
+      "name": "Iris",
+      "species": "Iris",
+      "form": "Plateau Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/iris-1021105/"
+      }
+    },
+    {
+      "id": "iris-1021104",
+      "name": "Prismana Iris",
+      "species": "Iris",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10211.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 1,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/iris-1021104/"
       }
     },
     {
       "id": "irisal",
       "name": "Irisal",
+      "species": "Irisal",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
       "skills": {
@@ -2456,8 +3123,165 @@
       }
     },
     {
+      "id": "irisal-1021202",
+      "name": "Irisal",
+      "species": "Irisal",
+      "form": "Forest Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/irisal-1021202/"
+      }
+    },
+    {
+      "id": "irisal-1021203",
+      "name": "Irisal",
+      "species": "Irisal",
+      "form": "Grassland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/irisal-1021203/"
+      }
+    },
+    {
+      "id": "irisal-1021201",
+      "name": "Irisal",
+      "species": "Irisal",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/irisal-1021201/"
+      }
+    },
+    {
+      "id": "irisal-1021206",
+      "name": "Irisal",
+      "species": "Irisal",
+      "form": "Mountain Woods Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/irisal-1021206/"
+      }
+    },
+    {
+      "id": "irisal-1021205",
+      "name": "Irisal",
+      "species": "Irisal",
+      "form": "Plateau Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/irisal-1021205/"
+      }
+    },
+    {
+      "id": "irisal-1021204",
+      "name": "Prismana Irisal",
+      "species": "Irisal",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10212.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 4,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 4,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/irisal-1021204/"
+      }
+    },
+    {
       "id": "irisalis",
       "name": "Irisalis",
+      "species": "Irisalis",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10213.webp?v=44",
       "skills": {
@@ -2483,6 +3307,7 @@
     {
       "id": "jabster",
       "name": "Jabster",
+      "species": "Jabster",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10403.webp?v=44",
       "skills": {
@@ -2508,6 +3333,7 @@
     {
       "id": "jawling",
       "name": "Jawling",
+      "species": "Jawling",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10024.webp?v=44",
       "skills": {
@@ -2531,9 +3357,10 @@
       }
     },
     {
-      "id": "jawling-100240001",
+      "id": "jawling-1002401",
       "name": "Jawling",
-      "form": "Variant 100240001",
+      "species": "Jawling",
+      "form": "Mountain Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10024.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -2542,7 +3369,7 @@
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 1,
         "Dark": 0,
         "Light": 0,
         "Hauling": 1,
@@ -2551,13 +3378,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/jawling-1002401/"
       }
     },
     {
       "id": "lavazar",
       "name": "Lavazar",
+      "species": "Lavazar",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10282.webp?v=44",
       "skills": {
@@ -2583,6 +3411,7 @@
     {
       "id": "leaf-hat-firefly",
       "name": "Leaf Hat Firefly",
+      "species": "Leaf Hat Firefly",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10081.webp?v=44",
       "skills": {
@@ -2608,6 +3437,7 @@
     {
       "id": "leafy",
       "name": "Leafy",
+      "species": "Leafy",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10045.webp?v=44",
       "skills": {
@@ -2631,58 +3461,9 @@
       }
     },
     {
-      "id": "leafy-100450001",
-      "name": "Leafy",
-      "form": "Variant 100450001",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10045.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 1,
-        "Water": 1,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 3,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "leafy-100450002",
-      "name": "Leafy",
-      "form": "Variant 100450002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10045.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 3,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
       "id": "little-lightning-chirp",
       "name": "Little Lightning Chirp",
+      "species": "Little Lightning Chirp",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10071.webp?v=44",
       "skills": {
@@ -2708,6 +3489,7 @@
     {
       "id": "luminelle",
       "name": "Luminelle",
+      "species": "Luminelle",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10143.webp?v=44",
       "skills": {
@@ -2731,16 +3513,17 @@
       }
     },
     {
-      "id": "luminelle-101430001",
+      "id": "luminelle-1014301",
       "name": "Luminelle",
-      "form": "Variant 101430001",
+      "species": "Luminelle",
+      "form": "Rainstorm Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10143.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 2,
         "Earth": 0,
-        "Lightning": 0,
+        "Lightning": 3,
         "Ice": 0,
         "Wind": 0,
         "Dark": 0,
@@ -2751,13 +3534,40 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/luminelle-1014301/"
+      }
+    },
+    {
+      "id": "luminelle-1014302",
+      "name": "Prismana Luminelle",
+      "species": "Luminelle",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10143.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 4,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/luminelle-1014302/"
       }
     },
     {
       "id": "lunara",
       "name": "Lunara",
+      "species": "Lunara",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10371.webp?v=44",
       "skills": {
@@ -2783,6 +3593,7 @@
     {
       "id": "magmarex",
       "name": "Magmarex",
+      "species": "Magmarex",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10283.webp?v=44",
       "skills": {
@@ -2806,33 +3617,35 @@
       }
     },
     {
-      "id": "magmarex-102830001",
-      "name": "Magmarex",
-      "form": "Variant 102830001",
+      "id": "magmarex-1028301",
+      "name": "Prismana Magmarex",
+      "species": "Magmarex",
+      "form": "Prismana",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10283.webp?v=44",
       "skills": {
-        "Fire": 3,
+        "Fire": 4,
         "Grass": 0,
         "Water": 0,
-        "Earth": 2,
+        "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 3,
         "Light": 0,
-        "Hauling": 1,
+        "Hauling": 4,
         "Artisanship": 0,
         "Leisure": 0,
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/magmarex-1028301/"
       }
     },
     {
       "id": "malangel",
       "name": "Malangel",
+      "species": "Malangel",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10421.webp?v=44",
       "skills": {
@@ -2858,6 +3671,7 @@
     {
       "id": "malevsera",
       "name": "Malevsera",
+      "species": "Malevsera",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10423.webp?v=44",
       "skills": {
@@ -2883,6 +3697,7 @@
     {
       "id": "melloblum",
       "name": "Melloblum",
+      "species": "Melloblum",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10324.webp?v=44",
       "skills": {
@@ -2906,8 +3721,35 @@
       }
     },
     {
+      "id": "melloblum-1032402",
+      "name": "Prismana Melloblum",
+      "species": "Melloblum",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10324.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 4,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/melloblum-1032402/"
+      }
+    },
+    {
       "id": "minespine",
       "name": "Minespine",
+      "species": "Minespine",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10285.webp?v=44",
       "skills": {
@@ -2931,43 +3773,19 @@
       }
     },
     {
-      "id": "minespine-102850001",
-      "name": "Minespine",
-      "form": "Variant 102850001",
-      "image": "",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 3,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "minespine-102850002",
-      "name": "Minespine",
-      "form": "Variant 102850002",
+      "id": "minespine-prismana",
+      "name": "Prismana Minespine",
+      "species": "Minespine",
+      "form": "Prismana",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10285.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
         "Water": 0,
-        "Earth": 0,
+        "Earth": 3,
         "Lightning": 0,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 3,
         "Dark": 0,
         "Light": 0,
         "Hauling": 3,
@@ -2976,13 +3794,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Hideout Guides Aniimo Homeland Worker Abilities",
+        "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities"
       }
     },
     {
       "id": "nimbi",
       "name": "Nimbi",
+      "species": "Nimbi",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10261.webp?v=44",
       "skills": {
@@ -3006,9 +3825,10 @@
       }
     },
     {
-      "id": "nimbi-102610001",
+      "id": "nimbi-1026102",
       "name": "Nimbi",
-      "form": "Variant 102610001",
+      "species": "Nimbi",
+      "form": "Cloudmist Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10261.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -3017,7 +3837,7 @@
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 1,
         "Dark": 0,
         "Light": 0,
         "Hauling": 0,
@@ -3026,14 +3846,15 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/nimbi-1026102/"
       }
     },
     {
-      "id": "nimbi-102610002",
+      "id": "nimbi-1026105",
       "name": "Nimbi",
-      "form": "Variant 102610002",
+      "species": "Nimbi",
+      "form": "Plateau Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10261.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -3041,8 +3862,8 @@
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
+        "Ice": 1,
+        "Wind": 1,
         "Dark": 0,
         "Light": 0,
         "Hauling": 0,
@@ -3051,23 +3872,24 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/nimbi-1026105/"
       }
     },
     {
-      "id": "nimbi-102610003",
+      "id": "nimbi-1026101",
       "name": "Nimbi",
-      "form": "Variant 102610003",
+      "species": "Nimbi",
+      "form": "Rainstorm Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10261.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
         "Water": 0,
         "Earth": 0,
-        "Lightning": 0,
+        "Lightning": 1,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 1,
         "Dark": 0,
         "Light": 0,
         "Hauling": 0,
@@ -3076,63 +3898,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "nimbi-102610004",
-      "name": "Nimbi",
-      "form": "Variant 102610004",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10261.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "nimbi-102610005",
-      "name": "Nimbi",
-      "form": "Variant 102610005",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10261.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/nimbi-1026101/"
       }
     },
     {
       "id": "panpanta",
       "name": "Panpanta",
+      "species": "Panpanta",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10174.webp?v=44",
       "skills": {
@@ -3156,14 +3929,15 @@
       }
     },
     {
-      "id": "panpanta-101740001",
+      "id": "panpanta-1017401",
       "name": "Panpanta",
-      "form": "Variant 101740001",
+      "species": "Panpanta",
+      "form": "Nighttime Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10174.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 3,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
@@ -3176,13 +3950,40 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/panpanta-1017401/"
+      }
+    },
+    {
+      "id": "panpanta-1017402",
+      "name": "Prismana Panpanta",
+      "species": "Panpanta",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10174.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 4,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 4,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/panpanta-1017402/"
       }
     },
     {
       "id": "pawney",
       "name": "Pawney",
+      "species": "Pawney",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10026.webp?v=44",
       "skills": {
@@ -3206,9 +4007,10 @@
       }
     },
     {
-      "id": "pawney-100260001",
+      "id": "pawney-1002602",
       "name": "Pawney",
-      "form": "Variant 100260001",
+      "species": "Pawney",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10026.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -3220,19 +4022,72 @@
         "Wind": 0,
         "Dark": 3,
         "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 3,
+        "Hauling": 3,
+        "Artisanship": 0,
         "Leisure": 0,
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pawney-1002602/"
+      }
+    },
+    {
+      "id": "pawney-1002601",
+      "name": "Pawney",
+      "species": "Pawney",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10026.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 2,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pawney-1002601/"
+      }
+    },
+    {
+      "id": "pawney-1002603",
+      "name": "Prismana Pawney",
+      "species": "Pawney",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10026.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 4,
+        "Light": 0,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pawney-1002603/"
       }
     },
     {
       "id": "pebbling",
       "name": "Pebbling",
+      "species": "Pebbling",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10281.webp?v=44",
       "skills": {
@@ -3256,33 +4111,9 @@
       }
     },
     {
-      "id": "pebbling-102810001",
-      "name": "Pebbling",
-      "form": "Variant 102810001",
-      "image": "",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 1,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
       "id": "piopiota",
       "name": "Piopiota",
+      "species": "Piopiota",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10173.webp?v=44",
       "skills": {
@@ -3306,8 +4137,35 @@
       }
     },
     {
+      "id": "piopiota-1017301",
+      "name": "Piopiota",
+      "species": "Piopiota",
+      "form": "Nighttime Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10173.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 3,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 2,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/piopiota-1017301/"
+      }
+    },
+    {
       "id": "pomawk",
       "name": "Pomawk",
+      "species": "Pomawk",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10475.webp?v=44",
       "skills": {
@@ -3331,8 +4189,87 @@
       }
     },
     {
+      "id": "pomawk-1047502",
+      "name": "Pomawk",
+      "species": "Pomawk",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10475.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pomawk-1047502/"
+      }
+    },
+    {
+      "id": "pomawk-1047503",
+      "name": "Pomawk",
+      "species": "Pomawk",
+      "form": "Sea of Flowers Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10475.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pomawk-1047503/"
+      }
+    },
+    {
+      "id": "pomawk-1047501",
+      "name": "Pomawk",
+      "species": "Pomawk",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10475.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 2,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pomawk-1047501/"
+      }
+    },
+    {
       "id": "pomegg",
       "name": "Pomegg",
+      "species": "Pomegg",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10471.webp?v=44",
       "skills": {
@@ -3356,8 +4293,87 @@
       }
     },
     {
+      "id": "pomegg-1047102",
+      "name": "Pomegg",
+      "species": "Pomegg",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10471.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 1,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pomegg-1047102/"
+      }
+    },
+    {
+      "id": "pomegg-1047103",
+      "name": "Pomegg",
+      "species": "Pomegg",
+      "form": "Sea of Flowers Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10471.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 1,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pomegg-1047103/"
+      }
+    },
+    {
+      "id": "pomegg-1047101",
+      "name": "Pomegg",
+      "species": "Pomegg",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10471.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 1,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 1,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 1,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pomegg-1047101/"
+      }
+    },
+    {
       "id": "popapus",
       "name": "Popapus",
+      "species": "Popapus",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10621.webp?v=44",
       "skills": {
@@ -3383,6 +4399,7 @@
     {
       "id": "popota",
       "name": "Popota",
+      "species": "Popota",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10172.webp?v=44",
       "skills": {
@@ -3406,9 +4423,10 @@
       }
     },
     {
-      "id": "popota-101720001",
+      "id": "popota-1017201",
       "name": "Popota",
-      "form": "Variant 101720001",
+      "species": "Popota",
+      "form": "Nighttime Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10172.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -3426,38 +4444,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "popota-101720002",
-      "name": "Popota",
-      "form": "Variant 101720002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10172.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 2,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/popota-1017201/"
       }
     },
     {
       "id": "pranky",
       "name": "Pranky",
+      "species": "Pranky",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10042.webp?v=44",
       "skills": {
@@ -3481,39 +4475,15 @@
       }
     },
     {
-      "id": "pranky-100420001",
+      "id": "pranky-1004201",
       "name": "Pranky",
-      "form": "Variant 100420001",
+      "species": "Pranky",
+      "form": "Sea of Flowers Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10042.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 1,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 2,
-        "Artisanship": 0,
-        "Leisure": 0,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "pranky-100420002",
-      "name": "Pranky",
-      "form": "Variant 100420002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10042.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
+        "Water": 2,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
@@ -3526,13 +4496,40 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pranky-1004201/"
+      }
+    },
+    {
+      "id": "pranky-1004202",
+      "name": "Pranky",
+      "species": "Pranky",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10042.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 2,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 1,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 2,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/pranky-1004202/"
       }
     },
     {
       "id": "rookey",
       "name": "Rookey",
+      "species": "Rookey",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10027.webp?v=44",
       "skills": {
@@ -3556,8 +4553,61 @@
       }
     },
     {
+      "id": "rookey-1002702",
+      "name": "Rookey",
+      "species": "Rookey",
+      "form": "Mountain Woods Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10027.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/rookey-1002702/"
+      }
+    },
+    {
+      "id": "rookey-1002701",
+      "name": "Rookey",
+      "species": "Rookey",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10027.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 2,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/rookey-1002701/"
+      }
+    },
+    {
       "id": "scorchhowl",
       "name": "Scorchhowl",
+      "species": "Scorchhowl",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10053.webp?v=44",
       "skills": {
@@ -3581,15 +4631,16 @@
       }
     },
     {
-      "id": "scorchhowl-100530001",
+      "id": "scorchhowl-1005301",
       "name": "Scorchhowl",
-      "form": "Variant 100530001",
+      "species": "Scorchhowl",
+      "form": "Highland Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10053.webp?v=44",
       "skills": {
-        "Fire": 0,
+        "Fire": 3,
         "Grass": 0,
         "Water": 0,
-        "Earth": 0,
+        "Earth": 2,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
@@ -3601,14 +4652,15 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/scorchhowl-1005301/"
       }
     },
     {
-      "id": "scorchhowl-100530002",
+      "id": "scorchhowl-1005304",
       "name": "Scorchhowl",
-      "form": "Variant 100530002",
+      "species": "Scorchhowl",
+      "form": "Mountain Woods Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10053.webp?v=44",
       "skills": {
         "Fire": 3,
@@ -3626,13 +4678,66 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/scorchhowl-1005304/"
+      }
+    },
+    {
+      "id": "scorchhowl-1005302",
+      "name": "Scorchhowl",
+      "species": "Scorchhowl",
+      "form": "Thunderstorm Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10053.webp?v=44",
+      "skills": {
+        "Fire": 3,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 2,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/scorchhowl-1005302/"
+      }
+    },
+    {
+      "id": "scorchhowl-1005303",
+      "name": "Prismana Scorchhowl",
+      "species": "Scorchhowl",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10053.webp?v=44",
+      "skills": {
+        "Fire": 4,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/scorchhowl-1005303/"
       }
     },
     {
       "id": "sheldon",
       "name": "Sheldon",
+      "species": "Sheldon",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10192.webp?v=44",
       "skills": {
@@ -3658,6 +4763,7 @@
     {
       "id": "shelly",
       "name": "Shelly",
+      "species": "Shelly",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10191.webp?v=44",
       "skills": {
@@ -3681,83 +4787,9 @@
       }
     },
     {
-      "id": "shelly-101910001",
-      "name": "Shelly",
-      "form": "Variant 101910001",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10191.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "shelly-101910002",
-      "name": "Shelly",
-      "form": "Variant 101910002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10191.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "shelly-101910003",
-      "name": "Shelly",
-      "form": "Variant 101910003",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10191.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
       "id": "sherro",
       "name": "Sherro",
+      "species": "Sherro",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10194.webp?v=44",
       "skills": {
@@ -3781,16 +4813,17 @@
       }
     },
     {
-      "id": "sherro-101940001",
+      "id": "sherro-1019401",
       "name": "Sherro",
-      "form": "Variant 101940001",
+      "species": "Sherro",
+      "form": "Thunderstorm Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10194.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 3,
         "Earth": 0,
-        "Lightning": 0,
+        "Lightning": 2,
         "Ice": 0,
         "Wind": 0,
         "Dark": 0,
@@ -3801,13 +4834,40 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/sherro-1019401/"
+      }
+    },
+    {
+      "id": "sherro-1019402",
+      "name": "Prismana Sherro",
+      "species": "Sherro",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10194.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 4,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 3,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 4,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/sherro-1019402/"
       }
     },
     {
       "id": "shrubclaw",
       "name": "Shrubclaw",
+      "species": "Shrubclaw",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10162.webp?v=44",
       "skills": {
@@ -3831,8 +4891,87 @@
       }
     },
     {
+      "id": "shrubclaw-1016203",
+      "name": "Shrubclaw",
+      "species": "Shrubclaw",
+      "form": "Bay Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10162.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 3,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/shrubclaw-1016203/"
+      }
+    },
+    {
+      "id": "shrubclaw-1016202",
+      "name": "Shrubclaw",
+      "species": "Shrubclaw",
+      "form": "Beach Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10162.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 3,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/shrubclaw-1016202/"
+      }
+    },
+    {
+      "id": "shrubclaw-1016201",
+      "name": "Shrubclaw",
+      "species": "Shrubclaw",
+      "form": "Mudflat Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10162.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 3,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/shrubclaw-1016201/"
+      }
+    },
+    {
       "id": "skippy",
       "name": "Skippy",
+      "species": "Skippy",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10041.webp?v=44",
       "skills": {
@@ -3856,14 +4995,15 @@
       }
     },
     {
-      "id": "skippy-100410001",
+      "id": "skippy-1004101",
       "name": "Skippy",
-      "form": "Variant 100410001",
+      "species": "Skippy",
+      "form": "Sea of Flowers Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10041.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 1,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
@@ -3876,22 +5016,23 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/skippy-1004101/"
       }
     },
     {
-      "id": "skippy-100410002",
+      "id": "skippy-1004102",
       "name": "Skippy",
-      "form": "Variant 100410002",
+      "species": "Skippy",
+      "form": "Snowfield Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10041.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 1,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
+        "Ice": 1,
         "Wind": 0,
         "Dark": 0,
         "Light": 0,
@@ -3901,13 +5042,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/skippy-1004102/"
       }
     },
     {
       "id": "soleon",
       "name": "Soleon",
+      "species": "Soleon",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10363.webp?v=44",
       "skills": {
@@ -3933,6 +5075,7 @@
     {
       "id": "sparkelf",
       "name": "Sparkelf",
+      "species": "Sparkelf",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_69993.webp?v=44",
       "skills": {
@@ -3956,8 +5099,35 @@
       }
     },
     {
+      "id": "sparkelf-6999301",
+      "name": "Prismana Sparkelf",
+      "species": "Sparkelf",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_69993.webp?v=44",
+      "skills": {
+        "Fire": 4,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/sparkelf-6999301/"
+      }
+    },
+    {
       "id": "sparki",
       "name": "Sparki",
+      "species": "Sparki",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10331.webp?v=44",
       "skills": {
@@ -3981,13 +5151,14 @@
       }
     },
     {
-      "id": "sparki-103310004",
+      "id": "sparki-1033102",
       "name": "Sparki",
-      "form": "Variant 103310004",
+      "species": "Sparki",
+      "form": "Forest Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10331.webp?v=44",
       "skills": {
-        "Fire": 0,
-        "Grass": 2,
+        "Fire": 2,
+        "Grass": 0,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
@@ -4001,13 +5172,66 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/sparki-1033102/"
+      }
+    },
+    {
+      "id": "sparki-1033101",
+      "name": "Sparki",
+      "species": "Sparki",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10331.webp?v=44",
+      "skills": {
+        "Fire": 2,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/sparki-1033101/"
+      }
+    },
+    {
+      "id": "sparki-1033103",
+      "name": "Sparki",
+      "species": "Sparki",
+      "form": "Sea of Flowers Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10331.webp?v=44",
+      "skills": {
+        "Fire": 2,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/sparki-1033103/"
       }
     },
     {
       "id": "squarrel",
       "name": "Squarrel",
+      "species": "Squarrel",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10511.webp?v=44",
       "skills": {
@@ -4033,6 +5257,7 @@
     {
       "id": "squashel",
       "name": "Squashel",
+      "species": "Squashel",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10512.webp?v=44",
       "skills": {
@@ -4058,6 +5283,7 @@
     {
       "id": "stellarys",
       "name": "Stellarys",
+      "species": "Stellarys",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10012.webp?v=44",
       "skills": {
@@ -4081,19 +5307,20 @@
       }
     },
     {
-      "id": "stellarys-100120001",
+      "id": "stellarys-1001201",
       "name": "Stellarys",
-      "form": "Variant 100120001",
+      "species": "Stellarys",
+      "form": "Rainstorm Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10012.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 2,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 3,
         "Light": 0,
         "Hauling": 0,
         "Artisanship": 0,
@@ -4101,13 +5328,41 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/stellarys-1001201/"
+      }
+    },
+    {
+      "id": "stellarys-1001202",
+      "name": "Prismana Stellarys",
+      "species": "Stellarys",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10012.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 3,
+        "Wind": 0,
+        "Dark": 4,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 4,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Manual override (data/aniimo-overrides.json)",
+        "url": "",
+        "notes": "User-confirmed in-game values. Also matches Hideout Guides."
       }
     },
     {
       "id": "susuta",
       "name": "Susuta",
+      "species": "Susuta",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10171.webp?v=44",
       "skills": {
@@ -4131,14 +5386,15 @@
       }
     },
     {
-      "id": "susuta-101710001",
+      "id": "susuta-1017101",
       "name": "Susuta",
-      "form": "Variant 101710001",
+      "species": "Susuta",
+      "form": "Nighttime Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10171.webp?v=44",
       "skills": {
         "Fire": 0,
         "Grass": 0,
-        "Water": 0,
+        "Water": 1,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
@@ -4151,38 +5407,14 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
-      }
-    },
-    {
-      "id": "susuta-101710002",
-      "name": "Susuta",
-      "form": "Variant 101710002",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10171.webp?v=44",
-      "skills": {
-        "Fire": 0,
-        "Grass": 0,
-        "Water": 0,
-        "Earth": 0,
-        "Lightning": 0,
-        "Ice": 0,
-        "Wind": 0,
-        "Dark": 0,
-        "Light": 0,
-        "Hauling": 0,
-        "Artisanship": 0,
-        "Leisure": 1,
-        "Perfumery": 0
-      },
-      "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/susuta-1017101/"
       }
     },
     {
       "id": "thornblade",
       "name": "Thornblade",
+      "species": "Thornblade",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10323.webp?v=44",
       "skills": {
@@ -4206,13 +5438,40 @@
       }
     },
     {
-      "id": "thunderfeather-sparrow",
-      "name": "Thunderfeather Sparrow",
-      "form": "Base",
-      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10072.webp?v=44",
+      "id": "thornblade-1032301",
+      "name": "Thornblade",
+      "species": "Thornblade",
+      "form": "Thunderstorm Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10323.webp?v=44",
       "skills": {
         "Fire": 0,
-        "Grass": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 2,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/thornblade-1032301/"
+      }
+    },
+    {
+      "id": "thornblade-1032303",
+      "name": "Thornblade",
+      "species": "Thornblade",
+      "form": "Towerwood Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10323.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
@@ -4220,20 +5479,47 @@
         "Wind": 0,
         "Dark": 0,
         "Light": 0,
-        "Hauling": 3,
-        "Artisanship": 0,
+        "Hauling": 0,
+        "Artisanship": 3,
         "Leisure": 0,
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/thornblade-1032303/"
       }
     },
     {
-      "id": "thunderfeather-sparrow-100720001",
+      "id": "thornblade-1032302",
+      "name": "Prismana Thornblade",
+      "species": "Thornblade",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10323.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 4,
+        "Water": 3,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 4,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/thornblade-1032302/"
+      }
+    },
+    {
+      "id": "thunderfeather-sparrow",
       "name": "Thunderfeather Sparrow",
-      "form": "Variant 100720001",
+      "species": "Thunderfeather Sparrow",
+      "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10072.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -4258,6 +5544,7 @@
     {
       "id": "tromber",
       "name": "Tromber",
+      "species": "Tromber",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10184.webp?v=44",
       "skills": {
@@ -4281,8 +5568,61 @@
       }
     },
     {
+      "id": "tromber-1018401",
+      "name": "Tromber",
+      "species": "Tromber",
+      "form": "Beach Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10184.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 2,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/tromber-1018401/"
+      }
+    },
+    {
+      "id": "tromber-1018403",
+      "name": "Tromber",
+      "species": "Tromber",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10184.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 2,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/tromber-1018403/"
+      }
+    },
+    {
       "id": "tubster",
       "name": "Tubster",
+      "species": "Tubster",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10187.webp?v=44",
       "skills": {
@@ -4306,8 +5646,61 @@
       }
     },
     {
+      "id": "tubster-1018701",
+      "name": "Tubster",
+      "species": "Tubster",
+      "form": "Beach Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10187.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 2,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/tubster-1018701/"
+      }
+    },
+    {
+      "id": "tubster-1018703",
+      "name": "Tubster",
+      "species": "Tubster",
+      "form": "Highland Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10187.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 2,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/tubster-1018703/"
+      }
+    },
+    {
       "id": "tuckin",
       "name": "Tuckin",
+      "species": "Tuckin",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10207.webp?v=44",
       "skills": {
@@ -4331,15 +5724,16 @@
       }
     },
     {
-      "id": "tuckin-102070001",
+      "id": "tuckin-1020701",
       "name": "Tuckin",
-      "form": "Variant 102070001",
+      "species": "Tuckin",
+      "form": "Mountain Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10207.webp?v=44",
       "skills": {
         "Fire": 0,
-        "Grass": 0,
+        "Grass": 3,
         "Water": 0,
-        "Earth": 0,
+        "Earth": 2,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
@@ -4351,14 +5745,41 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/tuckin-1020701/"
+      }
+    },
+    {
+      "id": "tuckin-prismana",
+      "name": "Prismana Tuckin",
+      "species": "Tuckin",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10207.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 3,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 3,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Hideout Guides Aniimo Homeland Worker Abilities",
+        "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities"
       }
     },
     {
       "id": "tuckin-9020700",
-      "name": "Tuckin",
-      "form": "Variant 9020700",
+      "name": "Tuckin BOSS",
+      "species": "Tuckin",
+      "form": "BOSS",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_90207.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -4383,6 +5804,7 @@
     {
       "id": "turbo",
       "name": "Turbo",
+      "species": "Turbo",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10262.webp?v=44",
       "skills": {
@@ -4406,9 +5828,10 @@
       }
     },
     {
-      "id": "turbo-102620001",
+      "id": "turbo-1026202",
       "name": "Turbo",
-      "form": "Variant 102620001",
+      "species": "Turbo",
+      "form": "Cloudmist Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10262.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -4417,7 +5840,7 @@
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
-        "Wind": 0,
+        "Wind": 3,
         "Dark": 0,
         "Light": 0,
         "Hauling": 0,
@@ -4426,14 +5849,15 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/turbo-1026202/"
       }
     },
     {
-      "id": "turbo-102620002",
+      "id": "turbo-1026205",
       "name": "Turbo",
-      "form": "Variant 102620002",
+      "species": "Turbo",
+      "form": "Plateau Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10262.webp?v=44",
       "skills": {
         "Fire": 0,
@@ -4441,8 +5865,8 @@
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
-        "Ice": 0,
-        "Wind": 1,
+        "Ice": 2,
+        "Wind": 3,
         "Dark": 0,
         "Light": 0,
         "Hauling": 0,
@@ -4451,13 +5875,66 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/turbo-1026205/"
+      }
+    },
+    {
+      "id": "turbo-1026201",
+      "name": "Turbo",
+      "species": "Turbo",
+      "form": "Rainstorm Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10262.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 2,
+        "Ice": 0,
+        "Wind": 3,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 3,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/turbo-1026201/"
+      }
+    },
+    {
+      "id": "turbo-1026204",
+      "name": "Prismana Turbo",
+      "species": "Turbo",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10262.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 0,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 4,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 0,
+        "Artisanship": 0,
+        "Leisure": 4,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/turbo-1026204/"
       }
     },
     {
       "id": "veilfloat",
       "name": "Veilfloat",
+      "species": "Veilfloat",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10142.webp?v=44",
       "skills": {
@@ -4483,6 +5960,7 @@
     {
       "id": "waleetle",
       "name": "Waleetle",
+      "species": "Waleetle",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10453.webp?v=44",
       "skills": {
@@ -4506,8 +5984,61 @@
       }
     },
     {
+      "id": "waleetle-1045301",
+      "name": "Waleetle",
+      "species": "Waleetle",
+      "form": "Snowfield Form",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10453.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 3,
+        "Lightning": 0,
+        "Ice": 2,
+        "Wind": 0,
+        "Dark": 0,
+        "Light": 0,
+        "Hauling": 3,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/waleetle-1045301/"
+      }
+    },
+    {
+      "id": "waleetle-1045302",
+      "name": "Prismana Waleetle",
+      "species": "Waleetle",
+      "form": "Prismana",
+      "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10453.webp?v=44",
+      "skills": {
+        "Fire": 0,
+        "Grass": 0,
+        "Water": 0,
+        "Earth": 4,
+        "Lightning": 0,
+        "Ice": 0,
+        "Wind": 0,
+        "Dark": 3,
+        "Light": 0,
+        "Hauling": 4,
+        "Artisanship": 0,
+        "Leisure": 0,
+        "Perfumery": 0
+      },
+      "source": {
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/waleetle-1045302/"
+      }
+    },
+    {
       "id": "wisptis",
       "name": "Wisptis",
+      "species": "Wisptis",
       "form": "Base",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10031.webp?v=44",
       "skills": {
@@ -4531,19 +6062,20 @@
       }
     },
     {
-      "id": "wisptis-100310001",
+      "id": "wisptis-1003101",
       "name": "Wisptis",
-      "form": "Variant 100310001",
+      "species": "Wisptis",
+      "form": "Forest Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10031.webp?v=44",
       "skills": {
         "Fire": 0,
-        "Grass": 0,
+        "Grass": 1,
         "Water": 0,
         "Earth": 0,
         "Lightning": 0,
         "Ice": 0,
         "Wind": 0,
-        "Dark": 0,
+        "Dark": 1,
         "Light": 0,
         "Hauling": 0,
         "Artisanship": 1,
@@ -4551,17 +6083,18 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/wisptis-1003101/"
       }
     },
     {
-      "id": "wisptis-100310002",
+      "id": "wisptis-1003103",
       "name": "Wisptis",
-      "form": "Variant 100310002",
+      "species": "Wisptis",
+      "form": "Highland Form",
       "image": "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10031.webp?v=44",
       "skills": {
-        "Fire": 0,
+        "Fire": 1,
         "Grass": 0,
         "Water": 0,
         "Earth": 0,
@@ -4576,8 +6109,8 @@
         "Perfumery": 0
       },
       "source": {
-        "name": "Beskor Aniimo Homeland Work Abilities",
-        "url": "https://aniimo.gg/homeland/work/"
+        "name": "Beskor Aniimo page",
+        "url": "https://aniimo.gg/aniimo/wisptis-1003103/"
       }
     }
   ]

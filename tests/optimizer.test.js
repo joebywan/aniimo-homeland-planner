@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { DEFAULT_SKILLS, optimizeWorkforce } = require("../optimizer");
+const { DEFAULT_SKILLS, optimizeWorkforce, recommendSpareSpaces, resolveHomelandCapacity } = require("../optimizer");
 
 function skills(values) {
   return Object.fromEntries(DEFAULT_SKILLS.map((skill) => [skill, Number(values[skill] || 0)]));
@@ -82,7 +82,7 @@ test("multi-skill continuous worker is not double counted", () => {
   });
 
   assert.equal(result.feasible, false);
-  assert.ok(result.missing.some((item) => item.includes("body")));
+  assert.ok(result.missing.some((item) => item.includes("needs 1 more Aniimo")));
 });
 
 test("two copies can fill two simultaneous continuous jobs", () => {
@@ -211,4 +211,132 @@ test("physical jobs can exceed a low capability target", () => {
 
   assert.equal(result.feasible, true);
   assert.equal(result.selectedWorkers.length, 3);
+});
+
+test("planning mode treats unowned Aniimo as unlimited copies", () => {
+  const result = optimize({
+    workers: [aniimo("a", "Aniimo A", { Fire: 2 }), aniimo("b", "Aniimo B", { Water: 1 })],
+    owned: [],
+    buildings: [continuousBuilding("fire", "Fire", 4)],
+    settings: { mode: "theorycraft" },
+  });
+
+  assert.equal(result.feasible, true);
+  assert.equal(result.selectedWorkers.length, 4);
+  assert.ok(result.selectedWorkers.every((worker) => worker.aniimoId === "a"));
+  assert.deepEqual(
+    result.selectedWorkers.map((worker) => worker.copy).sort(),
+    [1, 2, 3, 4],
+    "copies are numbered from 1 without gaps"
+  );
+});
+
+test("planning mode ignores legacy theorycraftCopies setting", () => {
+  const result = optimize({
+    workers: [aniimo("a", "Aniimo A", { Water: 4 })],
+    owned: [],
+    requirements: { Water: 12 },
+    settings: { mode: "theorycraft", theorycraftCopies: 1 },
+  });
+
+  assert.equal(result.feasible, true);
+  assert.equal(result.selectedWorkers.length, 3);
+});
+
+test("owned mode still limits to owned copies", () => {
+  const result = optimize({
+    workers: [aniimo("a", "Aniimo A", { Fire: 2 })],
+    owned: [["a", 2]],
+    buildings: [continuousBuilding("fire", "Fire", 3)],
+  });
+
+  assert.equal(result.feasible, false);
+});
+
+test("capacity resolves from manual override, then RV level data, else unknown", () => {
+  const data = { rvLevels: [{ level: 1, aniimoCapacity: 6 }, { level: 2, aniimoCapacity: null }] };
+  assert.deepEqual(resolveHomelandCapacity(data, 1, null).capacity, 6);
+  assert.equal(resolveHomelandCapacity(data, 1, 9).capacity, 9);
+  assert.equal(resolveHomelandCapacity(data, 2, "").known, false);
+  assert.equal(resolveHomelandCapacity(undefined, 3, null).known, false);
+  assert.equal(resolveHomelandCapacity(undefined, null, 12).capacity, 12);
+});
+
+function spareScenario() {
+  const workers = [
+    aniimo("fire", "Fire Worker", { Fire: 3 }),
+    aniimo("water", "Water Worker", { Water: 2 }),
+    aniimo("hauler1", "Big Hauler", { Hauling: 4 }),
+    aniimo("hauler2", "Small Hauler", { Hauling: 1 }),
+    aniimo("fire2", "Fire Backup", { Fire: 2, Hauling: 2 }),
+    aniimo("plain", "Plain Aniimo", { Leisure: 1 }),
+  ];
+  const result = optimize({
+    workers,
+    owned: workers.map((worker) => [worker.id, 1]),
+    requirements: { Fire: 3, Water: 2 },
+  });
+  return result;
+}
+
+test("spare spaces: backups for single-cover skills, then haulers", () => {
+  const result = spareScenario();
+  assert.equal(result.feasible, true);
+  assert.equal(result.selectedWorkers.length, 2);
+
+  const plan = recommendSpareSpaces({ result, capacity: 5, homebuildingReserve: 0, skills: DEFAULT_SKILLS, mode: "owned" });
+  assert.equal(plan.free, 3);
+  assert.equal(plan.overCapacity, false);
+  assert.ok(plan.fragileSkills.some((item) => item.skill === "Fire"));
+  assert.ok(plan.backups.some((item) => item.aniimoId === "fire2" && item.covers.includes("Fire")));
+  assert.equal(plan.haulers[0].aniimoId, "hauler1");
+  assert.equal(plan.backups.length + plan.haulers.length + plan.unfilled, 3);
+});
+
+test("spare spaces: homebuilding reserve uses preferred skills first", () => {
+  const result = spareScenario();
+  const plan = recommendSpareSpaces({
+    result,
+    capacity: 4,
+    homebuildingReserve: 1,
+    homebuildingZone: { name: "Craft Corner", preferredSkills: ["Leisure"] },
+    skills: DEFAULT_SKILLS,
+    mode: "owned",
+  });
+  assert.equal(plan.homebuilding.name, "Craft Corner");
+  assert.equal(plan.homebuilding.reserved, 1);
+  assert.equal(plan.homebuilding.suggestions[0].aniimoId, "plain");
+  assert.equal(plan.backups.length + plan.haulers.length + plan.unfilled, 1);
+});
+
+test("spare spaces: default zone name and reserve never exceeds free spaces", () => {
+  const result = spareScenario();
+  const plan = recommendSpareSpaces({ result, capacity: 3, homebuildingReserve: 5, skills: DEFAULT_SKILLS, mode: "owned" });
+  assert.equal(plan.homebuilding.name, "Homebuilding Zone");
+  assert.equal(plan.free, 1);
+  assert.equal(plan.homebuilding.reserved, 1);
+  assert.equal(plan.backups.length + plan.haulers.length, 0);
+});
+
+test("spare spaces: warns when minimum workforce exceeds capacity", () => {
+  const result = spareScenario();
+  const plan = recommendSpareSpaces({ result, capacity: 1, skills: DEFAULT_SKILLS, mode: "owned" });
+  assert.equal(plan.overCapacity, true);
+  assert.equal(plan.overBy, 1);
+  assert.equal(plan.free, 0);
+  assert.equal(plan.haulers.length, 0);
+});
+
+test("spare spaces: unknown capacity returns no suggestions", () => {
+  const result = spareScenario();
+  const plan = recommendSpareSpaces({ result, capacity: null, skills: DEFAULT_SKILLS, mode: "owned" });
+  assert.equal(plan.capacityKnown, false);
+  assert.equal(plan.haulers.length, 0);
+});
+
+test("spare spaces: owned mode never suggests unowned Aniimo", () => {
+  const result = spareScenario();
+  result.unusedWorkers.push({ ...result.unusedWorkers[0], workerId: "ghost#1", aniimoId: "ghost", owned: false, skills: skills({ Hauling: 9 }) });
+  const plan = recommendSpareSpaces({ result, capacity: 10, skills: DEFAULT_SKILLS, mode: "owned" });
+  assert.ok(plan.haulers.every((item) => item.aniimoId !== "ghost"));
 });
