@@ -592,6 +592,7 @@
 
   function singular(label) {
     const text = String(label);
+    if (text.endsWith("ies")) return `${text.slice(0, -3)}y`;
     return text.endsWith("s") ? text.slice(0, -1) : text;
   }
 

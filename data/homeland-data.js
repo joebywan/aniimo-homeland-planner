@@ -1,0 +1,149 @@
+window.ANIIMO_HOMELAND_DATA = {
+  "schemaVersion": 1,
+  "rvLevels": [
+    {
+      "level": 1,
+      "aniimoCapacity": 0,
+      "notes": "Aniimo helpers are not available yet; they unlock at RV 2."
+    },
+    {
+      "level": 2,
+      "aniimoCapacity": 8,
+      "notes": "Aniimo can help out; Storage Units (hauling) unlocked."
+    },
+    {
+      "level": 3,
+      "aniimoCapacity": 11,
+      "notes": ""
+    },
+    {
+      "level": 4,
+      "aniimoCapacity": 14,
+      "notes": ""
+    },
+    {
+      "level": 5,
+      "aniimoCapacity": 17,
+      "notes": ""
+    },
+    {
+      "level": 6,
+      "aniimoCapacity": 20,
+      "notes": "Signal Transmitter: Aniimo at RV Parks can go on trips."
+    },
+    {
+      "level": 7,
+      "aniimoCapacity": 22,
+      "notes": "Heat Furnace and Cooling Unit unlocked."
+    },
+    {
+      "level": 8,
+      "aniimoCapacity": 24,
+      "notes": "Homebuilding Zone opens: Aniimo placed there produce Bud Tickets."
+    },
+    {
+      "level": 9,
+      "aniimoCapacity": 26,
+      "notes": "Homebuilding Zone plot 2 purchasable (plots 3-9 at RV 10-16)."
+    },
+    {
+      "level": 10,
+      "aniimoCapacity": 28,
+      "notes": "RV levels 10 and up also require Habitability."
+    },
+    {
+      "level": 11,
+      "aniimoCapacity": 30,
+      "notes": ""
+    },
+    {
+      "level": 12,
+      "aniimoCapacity": 32,
+      "notes": "Power Module: Crackle Generator and E-mode."
+    },
+    {
+      "level": 13,
+      "aniimoCapacity": 34,
+      "notes": ""
+    },
+    {
+      "level": 14,
+      "aniimoCapacity": 36,
+      "notes": ""
+    },
+    {
+      "level": 15,
+      "aniimoCapacity": 38,
+      "notes": ""
+    },
+    {
+      "level": 16,
+      "aniimoCapacity": 40,
+      "notes": ""
+    },
+    {
+      "level": 17,
+      "aniimoCapacity": 42,
+      "notes": ""
+    },
+    {
+      "level": 18,
+      "aniimoCapacity": 43,
+      "notes": ""
+    },
+    {
+      "level": 19,
+      "aniimoCapacity": 44,
+      "notes": ""
+    },
+    {
+      "level": 20,
+      "aniimoCapacity": 45,
+      "notes": "Max RV level."
+    }
+  ],
+  "homebuildingZone": {
+    "name": "Homebuilding Zone",
+    "capacity": null,
+    "preferredSkills": [],
+    "notes": "Opens at RV 8 (quest 'Dream Cottage: Part 2'). Aniimo placed in the Homebuilding Zone continuously produce Bud Tickets, the currency for decorative furniture in the Home Shop (the RV 8 unlock text calls them 'Wish Stars'). Tickets collect in the Bud Ticket Jar (one per Home, 300 Bud Tickets, RV 8), which stops collecting when full. No work ability is involved: wikily.gg lists about 120 Bud Tickets per day per Aniimo for species with very different abilities; Sparkling appearances multiply the yield by 1.5 and other appearance tags (e.g. Prismana) can add bonuses. A community guide says Aniimo here use the same 'place N Aniimo in your Home' slots as workers ('remaining slots can go to the house'). No separate Homebuilding Zone Aniimo limit was found, so capacity is null. The zone has 16 plots (9 purchasable with Bud Tickets at RV 8-16) and a load limit of 400,000."
+  },
+  "sources": [
+    {
+      "name": "Beskor – Homeland RV",
+      "url": "https://aniimo.gg/homeland/rv/",
+      "notes": "Per-level unlock text from the shipped game data: 'You can now place N Aniimo in your Home' for RV 2-20; Homebuilding Zone opens at RV 8."
+    },
+    {
+      "name": "AniimoTools – RV levels",
+      "url": "https://aniimotools.dev/systems/homeland/rv-levels/",
+      "notes": "Same per-level capacities, plus costs and prerequisites."
+    },
+    {
+      "name": "Beskor – Homeland Plots & Levels",
+      "url": "https://aniimo.gg/homeland/plots/",
+      "notes": "Homebuilding Zone: 16 plots, load limit 400,000, plot purchase costs in Bud Tickets."
+    },
+    {
+      "name": "Beskor – Bud Ticket item",
+      "url": "https://aniimo.gg/aniimo/item/bud-ticket/",
+      "notes": "'Use in Home Shop to purchase decorative furniture. Aniimo placed in the Homebuilding Zone will produce this item.'"
+    },
+    {
+      "name": "aniimo.guide – Homeland building tools",
+      "url": "https://aniimo.guide/en/guides/homeland-building-tools",
+      "notes": "Bud Ticket Jar stops collecting when full; appearance tags give a Bud Ticket production speed bonus."
+    },
+    {
+      "name": "wikily.gg – Aniimo homeland pages",
+      "url": "https://wikily.gg/aniimo/aniilog/stellarys/homeland",
+      "notes": "~120 Bud Tickets/day per Aniimo; Sparkling x1.5."
+    },
+    {
+      "name": "Steam community RV / Homeland guide",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3806795108",
+      "notes": "'Remaining slots can go to the house to generate Bud Tickets' (Homebuilding Zone shares the RV Aniimo cap)."
+    }
+  ],
+  "verified": true
+};
