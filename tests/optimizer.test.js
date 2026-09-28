@@ -17,6 +17,7 @@ const {
   planningCopyCap,
   recommendSpareSpaces,
   resolveHomelandCapacity,
+  summariseRecommendations,
   summarizeShortfalls,
 } = require("../optimizer");
 const cropsData = require("../data/crops.json");
@@ -1244,4 +1245,142 @@ test("processor options: a plan with room but an unstaffable building is never r
   assert.equal(options.noneFit, false);
   const plan = options.options[options.selectedIndex].plan;
   assert.ok(plan.fullShortfalls.lines.some((line) => line.includes("Tidewhisper Sandcastle")), plan.fullShortfalls.lines.join(" | "));
+});
+
+test("choose these: the player's plan as requirements, split by target personality", () => {
+  const options = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 0 });
+  const result = options.options[options.selectedIndex].plan.full;
+  const { lines } = summariseRecommendations(result, playerInput.aniimo, { skills: playerInput.skills });
+  // Every Aniimo in the plan is on exactly one line.
+  assert.equal(lines.reduce((sum, line) => sum + line.count, 0), result.selectedWorkers.length);
+  assert.equal(lines.flatMap((line) => line.examples).length, result.selectedWorkers.length);
+
+  // The Fire workers (Heat Furnace and the Fire processors) need only Fire 3: one requirement, recommended
+  // as Magmarex or Scorchhowl (Highland Form) together (identical profiles), with fallback tiers after.
+  const fire = lines.filter((line) => line.essential.length === 1 && line.essential[0].skill === "Fire");
+  assert.equal(fire.reduce((sum, line) => sum + line.count, 0), 4);
+  assert.equal(new Set(fire.map((line) => line.group)).size, 1);
+  for (const line of fire) {
+    assert.equal(line.essential[0].level, 3);
+    assert.deepEqual(line.headline.names, ["Magmarex", "Scorchhowl (Highland Form)"]);
+    assert.match(line.text.headline, /^\d× Magmarex or Scorchhowl \(Highland Form\)$/);
+    assert.equal(line.text.abilities, "Fire 3 essential · Earth 2, Hauling 3 bonus");
+    assert.ok(line.fallbacks.length >= 2, line.text.alsoFine);
+    assert.ok(line.fallbacks.some((tier) => tier.mustOnly), line.text.alsoFine);
+    assert.match(line.text.alsoFine, /^Also fine: .*Fire 3 only: Flamerion \(any form\), Sparkelf/);
+    const species = new Set([...line.headline.aniimoIds, ...line.fallbacks.flatMap((tier) => tier.aniimoIds)].map((id) => playerInput.aniimo.find((entry) => entry.id === id).species));
+    for (const name of ["Scorchhowl", "Magmarex", "Infergon", "Flamerion", "Sparkelf"]) assert.ok(species.has(name), name);
+  }
+  // One line per target personality, never two lines with the same one.
+  const personalities = fire.map((line) => line.personality || "none");
+  assert.equal(new Set(personalities).size, fire.length, personalities.join(", "));
+  assert.ok(fire.some((line) => !line.personality && line.jobs.fullTime.some((job) => job.name === "Heat Furnace")));
+  assert.ok(fire.some((line) => line.personality === "Practical"));
+  // The Fire processors' shares are dealt so the Practical buildings sit together.
+  const practical = fire.find((line) => line.personality === "Practical");
+  assert.deepEqual(practical.personalityBuildings.slice().sort(), ["Chimney Kiln", "Claw Game Cooker"]);
+
+  // Identical requirement, one personality: never split (all five Mines on one line).
+  const mines = lines.filter((line) => line.jobs.fullTime.some((job) => job.name === "Mine"));
+  assert.equal(mines.length, 1);
+  assert.equal(mines[0].count, 5);
+
+  // Family-only building: the species is named with the reason.
+  const dewy = lines.find((line) => line.jobs.fullTime.some((job) => job.name === "Dewy House"));
+  assert.deepEqual(dewy.headline.names, ["Fragrancier"]);
+  assert.equal(dewy.reason, "Only the Fragrancier family can work the Dewy House.");
+  assert.deepEqual(dewy.species, ["Fragrancier", "Dewy"]);
+  // Plenty of every target to spare in this plan: no extra ability is a must-have.
+  assert.ok(lines.every((line) => line.essential.every((item) => !item.forTarget)));
+});
+
+test("choose these: farm-step abilities are only must-haves when nobody else in the team can take them", () => {
+  const options = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 0 });
+  const result = options.options[options.selectedIndex].plan.full;
+  const { lines, farmSteps } = summariseRecommendations(result, playerInput.aniimo, { skills: playerInput.skills });
+  const loads = new Map(result.intermittentAssignments.map((item) => [item.worker.workerId, item.tasks.reduce((sum, task) => sum + task.load, 0)]));
+  const lineOf = new Map(lines.flatMap((line) => line.examples.map((worker) => [worker.workerId, line])));
+  for (const line of lines) {
+    for (const item of line.essential.filter((entry) => entry.farmSteps)) {
+      assert.ok(farmSteps.skills.includes(item.skill) && !farmSteps.covered.includes(item.skill), item.skill);
+      // Genuinely required: no other part-time Aniimo with spare time must have that ability.
+      for (const [workerId, load] of loads) {
+        if (line.examples.some((worker) => worker.workerId === workerId) || load > 1 - 1e-6) continue;
+        assert.ok(!lineOf.get(workerId).essential.some((entry) => entry.skill === item.skill), `${item.skill} could move to ${workerId}`);
+      }
+    }
+  }
+
+  // A synthetic team: A does a Fire processor and, in its spare time, an Earth farm step; B has Earth and room.
+  const worker = (id, values) => ({ workerId: `${id}#1`, aniimoId: id, name: id, form: "Base", species: id, skills: skills(values) });
+  const a = worker("Alpha", { Fire: 3, Earth: 1, Hauling: 3 });
+  const b = worker("Beta", { Earth: 3 });
+  const pool = [a, b, worker("Gamma", { Fire: 3 })].map((entry) => ({ ...entry, id: entry.aniimoId }));
+  const kiln = { kind: "processor", buildingId: "kiln", buildingName: "Kiln", skill: "Fire", minLevel: 1, personalityBonus: "Practical" };
+  const mill = { kind: "processor", buildingId: "mill", buildingName: "Mill", skill: "Earth", minLevel: 1 };
+  const farm = { kind: "farm", buildingId: "farmland", buildingName: "Farmland", skill: "Earth" };
+  const team = (millLoad) => ({
+    selectedWorkers: [a, b],
+    continuousAssignments: [],
+    intermittentAssignments: [
+      { worker: a, tasks: [{ ...kiln, load: 0.75 }, { ...farm, load: 0.1 }] },
+      { worker: b, tasks: [{ ...mill, load: millLoad }] },
+    ],
+    skillCoverage: DEFAULT_SKILLS.map((skill) => ({ skill, required: 0, available: 0 })),
+    diagnostics: { settings: { maxUtilizationPercent: 50 } },
+  });
+  const roomy = summariseRecommendations(team(0.5), pool);
+  const alpha = roomy.lines.find((line) => line.examples[0].aniimoId === "Alpha");
+  assert.deepEqual(alpha.essential.map((item) => item.skill), ["Fire"]);
+  assert.equal(alpha.reason, null);
+  assert.deepEqual(roomy.farmSteps.covered, ["Earth"]);
+  assert.equal(roomy.farmSteps.note, "Farm steps (Earth) need no extra ability: the team already covers them.");
+  // B fully booked: A's Earth is needed for the farm step after all.
+  const busy = summariseRecommendations(team(1), pool);
+  const alphaBusy = busy.lines.find((line) => line.examples[0].aniimoId === "Alpha");
+  assert.deepEqual(alphaBusy.essential, [
+    { skill: "Fire", level: 3, forTarget: false, farmSteps: false },
+    { skill: "Earth", level: 1, forTarget: false, farmSteps: true },
+  ]);
+  assert.match(alphaBusy.text.abilities, /Earth for farm steps/);
+  assert.equal(busy.farmSteps.note, "");
+});
+
+test("choose these: an extra ability an Estimated Require target depends on is a must-have", () => {
+  const fireOnly = { ...aniimo("fire_only", "Fireonly", { Fire: 3, Hauling: 3 }), species: "Fireonly" };
+  const fireEarth = { ...aniimo("fire_earth", "Fireearth", { Fire: 3, Earth: 2 }), species: "Fireearth" };
+  const pool = [fireOnly, fireEarth];
+  const result = optimizeWorkforce({
+    aniimo: pool,
+    skills: DEFAULT_SKILLS,
+    requirements: skills({ Earth: 2 }),
+    buildings: [continuousBuilding("furnace", "Fire")],
+    buildingState: {},
+    settings: { mode: "pool", beamWidth: 200, maxSearchWorkers: 5 },
+  });
+  assert.equal(result.selectedWorkers.length, 1);
+  const { lines } = summariseRecommendations(result, pool);
+  assert.equal(lines.length, 1);
+  assert.deepEqual(lines[0].essential, [
+    { skill: "Fire", level: 3, forTarget: false, farmSteps: false },
+    { skill: "Earth", level: 2, forTarget: true, farmSteps: false },
+  ]);
+  assert.equal(lines[0].text.abilities, "Fire 3 + Earth 2 essential (Earth 2 needed for the Earth target)");
+  assert.equal(lines[0].text.headline, "1× Fireearth");
+  // The Fire-only Aniimo would leave the Earth target short, so it's not offered as a fallback.
+  assert.equal(lines[0].fallbacks.length, 0);
+
+  // Without the Earth target, both qualify: the Hauling one is recommended first, the other is a fallback.
+  const free = optimizeWorkforce({
+    aniimo: pool,
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings: [continuousBuilding("furnace", "Fire")],
+    buildingState: {},
+    settings: { mode: "pool", beamWidth: 200, maxSearchWorkers: 5 },
+  });
+  const summary = summariseRecommendations(free, pool).lines;
+  assert.equal(summary[0].text.abilities, "Fire 3 essential · Hauling 3 bonus");
+  assert.deepEqual(summary[0].headline.names, ["Fireonly"]);
+  assert.equal(summary[0].text.alsoFine, "Also fine: Fireearth — Fire 3, Earth 2");
 });
