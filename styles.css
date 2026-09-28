@@ -123,6 +123,7 @@ p {
   background: var(--surface);
   color: var(--ink);
   font-weight: 700;
+  white-space: nowrap;
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
@@ -184,7 +185,7 @@ p {
   border-bottom: 1px solid var(--line);
   background: rgba(245, 248, 246, 0.88);
   position: sticky;
-  top: 89px;
+  top: var(--header-height, 89px);
   z-index: 18;
 }
 
@@ -387,7 +388,6 @@ p {
   white-space: nowrap;
 }
 
-.type-pill,
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -465,21 +465,12 @@ p {
   font-size: 0.86rem;
 }
 
-.assignment-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.assignment-chip {
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: white;
-  padding: 3px 8px;
+.assignment-list {
+  margin: 4px 0 8px;
+  padding-left: 18px;
   color: #425466;
-  font-size: 0.78rem;
-  font-weight: 750;
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .empty-state {
@@ -512,7 +503,16 @@ p {
 }
 
 .is-hidden {
-  display: none;
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .settings-grid {
@@ -560,15 +560,55 @@ legend {
 }
 
 .checkbox-row input,
-.use-checkbox,
-.enabled-checkbox {
+.use-checkbox {
   width: 18px;
   height: 18px;
   accent-color: var(--accent);
 }
 
+.use-checkbox:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* About the data (page footer) */
+.app-footer {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 36px) 32px;
+}
+
+.about-data {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 12px 14px;
+}
+
+.about-data summary {
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.about-intro {
+  margin: 10px 0 12px;
+  font-size: 0.88rem;
+}
+
 .source-list {
   display: grid;
+  gap: 14px;
+}
+
+.source-group h3 {
+  margin-bottom: 8px;
+  color: #45505f;
+}
+
+.source-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 10px;
 }
 
@@ -577,16 +617,64 @@ legend {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfdfd;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .source-item a {
   color: var(--accent-strong);
-  font-weight: 850;
-  text-decoration: none;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.source-item strong {
+  color: var(--ink);
 }
 
 .source-item p {
   font-size: 0.82rem;
+}
+
+.source-item.is-override {
+  border-style: dashed;
+  border-color: rgba(184, 109, 31, 0.45);
+  background: #fffaf3;
+}
+
+.source-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fff0dc;
+  color: #7f4a17;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.source-item.is-override strong {
+  display: block;
+}
+
+/* Gentle, non-error notice (e.g. planning mode with a filled-in roster) */
+.info-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  border: 1px solid rgba(44, 122, 104, 0.28);
+  border-radius: 8px;
+  background: #eef7f3;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.info-panel p {
+  margin: 0;
+  flex: 1 1 260px;
+  color: var(--accent-strong);
 }
 
 .unused-results {
@@ -702,8 +790,26 @@ legend {
 }
 
 .capacity-status.is-unknown {
-  background: #fff8f0;
-  color: #7f4a17;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.heading-sub {
+  margin-top: 2px;
+  font-size: 0.84rem;
+  font-style: italic;
+}
+
+.type-text {
+  color: var(--muted);
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
+.is-unbuilt .building-name strong {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .subsection-title {
@@ -971,7 +1077,7 @@ legend {
   }
 
   .tab-bar {
-    top: 142px;
+    top: var(--header-height, 142px);
   }
 
   .result-grid {
@@ -1006,7 +1112,17 @@ legend {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* On phones the header scrolls away so it doesn't take up a third of the screen. */
+  .app-header {
+    position: static;
+  }
+
+  .header-actions .ghost-button,
+  .header-actions .danger-button {
+    padding: 0 10px;
+  }
+
   .tab-bar {
-    top: 164px;
+    top: 0;
   }
 }

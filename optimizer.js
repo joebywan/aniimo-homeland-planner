@@ -33,7 +33,7 @@
     theorycraftCandidateLimit: 80,
   };
 
-  const DEFAULT_HOMEBUILDING_ZONE_NAME = "homebuilding zone";
+  const DEFAULT_HOMEBUILDING_ZONE_NAME = "Homebuilding Zone";
 
   function clampNumber(value, fallback, min, max) {
     const numeric = Number(value);
@@ -141,7 +141,7 @@
               id: `${building.id}:${unit}:${slot}`,
               buildingId: building.id,
               name: building.name,
-              label: `${building.name} ${state.count > 1 || slots > 1 ? `${unit}.${slot}` : ""}`.trim(),
+              label: `${building.name} ${slots > 1 ? `${unit}.${slot}` : state.count > 1 ? `${unit}` : ""}`.trim(),
               requirements: building.requirements || [],
             });
           }
@@ -590,7 +590,7 @@
     const missing = [];
     for (const row of skillCoverage) {
       if (row.missing > 0) {
-        missing.push(`${row.skill}: ${row.missing} more skill point${row.missing === 1 ? "" : "s"} needed`);
+        missing.push(`${row.skill}: ${row.missing} more ability point${row.missing === 1 ? "" : "s"} needed`);
       }
     }
     for (const job of continuous.unfilled || []) {
@@ -633,7 +633,7 @@
         .filter((skill) => Number(requirements?.[skill] || 0) > 0 && Number(worker.skills?.[skill] || 0) > 0)
         .map((skill) => `${skill} ${worker.skills[skill]}`);
 
-      let primaryAssignment = "Adds skill points";
+      let primaryAssignment = "Boosts your requirement totals";
       const secondaryAssignments = [];
 
       if (continuousJob) {
@@ -644,15 +644,15 @@
 
       if (intermittent) {
         secondaryAssignments.push(
-          ...intermittent.tasks.map((task) => `${task.label} (${formatPercent(task.load)} of its time)`)
+          ...intermittent.tasks.map((task) => `${task.label} – ${formatPercent(task.load)} of the day`)
         );
       }
 
       const reasonParts = [];
       if (continuousJob) reasonParts.push(`works ${continuousJob.label} full time`);
-      if (intermittent) reasonParts.push(`busy about ${formatPercent(intermittent.totalLoad)} of the time on farm jobs`);
+      if (intermittent) reasonParts.push(`busy about ${formatPercent(intermittent.totalLoad)} of the day on farm jobs`);
       if (contributingSkills.length) reasonParts.push(`adds ${contributingSkills.join(", ")}`);
-      if (!reasonParts.length) reasonParts.push("needed to reach your Estimated Require targets");
+      if (!reasonParts.length) reasonParts.push("needed to reach your requirement targets");
 
       return {
         ...worker,
@@ -689,7 +689,7 @@
       rows.push({
         ...group,
         needLabel: `${group.need} Aniimo`,
-        assignedLabel: `${group.assigned}`,
+        assignedLabel: `${group.assigned} Aniimo`,
         status: group.assigned >= group.need ? "OK" : "Missing",
       });
     }
@@ -709,7 +709,7 @@
         type: "Intermittent",
         need: task.load,
         assigned,
-        needLabel: `${formatPercent(task.load)} of one Aniimo`,
+        needLabel: formatPercent(task.load),
         assignedLabel: formatPercent(assigned),
         status: assigned + 0.0001 >= task.load ? "OK" : "Missing",
       });
@@ -1026,7 +1026,7 @@
           pick,
           preferredSkills.length && preferredScore(pick) > 0
             ? `Suits the ${zoneName} (${preferredSkills.filter((skill) => pick.skills?.[skill] > 0).join(", ")})`
-            : `Earns buddy tokens in the ${zoneName}`
+            : `Earns Bud Tickets in the ${zoneName}`
         )
       );
     }

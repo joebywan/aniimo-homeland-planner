@@ -382,23 +382,25 @@ function buildPayload(records, scrape) {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     skills: SKILLS,
+    // Shown to players under "About the data", so keep names and notes in plain English.
     sources: [
       {
-        name: "Beskor Aniimo Homeland Work Abilities",
+        name: "aniimo.gg – Homeland work abilities",
         url: SOURCE_URL,
         notes:
-          "Primary normalised source. Lists the 13 Homeland work abilities with linked Aniimo and ability levels. Collectible forms (regional forms, Prismana) are read from each species page's Forms strip on aniimo.gg.",
+          "Our main list of every Aniimo and its Homeland ability levels, including regional forms and Prismana, taken from the game's own files.",
       },
       {
-        name: "Hideout Guides Aniimo Homeland Worker Abilities",
+        name: "Hideout Guides – Homeland worker abilities",
         url: HIDEOUT_URL,
         notes:
-          "Cross-reference for Prismana breeds (levels 3+ only). Used to fill any Prismana form aniimo.gg does not list, and to flag mismatches.",
+          "A second list we compare against to catch mistakes, and to fill in any Prismana Aniimo missing from aniimo.gg.",
       },
       {
-        name: "Manual overrides",
+        name: "Player corrections",
+        kind: "override",
         url: "data/aniimo-overrides.json",
-        notes: "User-confirmed in-game values, merged last so they always win.",
+        notes: "Corrections checked in-game by players. These replace the values above where they differ.",
       },
     ],
     scrape,

@@ -312,7 +312,7 @@ test("spare spaces: homebuilding reserve uses preferred skills first", () => {
 test("spare spaces: default zone name and reserve never exceeds free spaces", () => {
   const result = spareScenario();
   const plan = recommendSpareSpaces({ result, capacity: 3, homebuildingReserve: 5, skills: DEFAULT_SKILLS, mode: "owned" });
-  assert.equal(plan.homebuilding.name, "homebuilding zone");
+  assert.equal(plan.homebuilding.name, "Homebuilding Zone");
   assert.equal(plan.free, 1);
   assert.equal(plan.homebuilding.reserved, 1);
   assert.equal(plan.backups.length + plan.haulers.length, 0);

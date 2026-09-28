@@ -27,9 +27,9 @@
         </div>
       </div>
       <div class="header-actions">
-        <button type="button" class="ghost-button" id="exportButton" title="Export configuration">Export</button>
-        <button type="button" class="ghost-button" id="importButton" title="Import configuration">Import</button>
-        <button type="button" class="danger-button" id="resetButton" title="Reset local data">Reset</button>
+        <button type="button" class="ghost-button" id="exportButton" title="Save everything you've entered to a file you can keep or move to another device">Save to file</button>
+        <button type="button" class="ghost-button" id="importButton" title="Load a file you saved earlier">Load from file</button>
+        <button type="button" class="danger-button" id="resetButton" title="Clears everything you've entered on this device">Start over</button>
       </div>
     </header>
 
@@ -45,16 +45,17 @@
       <section class="tab-panel is-active" id="tab-requirements" aria-label="Requirements">
         <div class="section-heading">
           <div>
-            <h2>Estimated Require</h2>
+            <h2>Requirements</h2>
+            <p class="heading-sub">From the game's &ldquo;Estimated Require&rdquo; panel</p>
             <p>
               In the game, open your Homeland and find the <strong>Estimated Require</strong> panel. Type each number
-              you see there into the matching row below. The planner then finds Aniimo whose work abilities add up to at
-              least these amounts.
+              you see there into the matching row below. The planner then finds Aniimo whose Homeland abilities add up
+              to at least these amounts.
             </p>
           </div>
           <div class="row-actions">
-            <button type="button" class="secondary-button" id="fillExampleButton" title="Fill in a sample set of numbers so you can try the planner">Fill example values</button>
-            <button type="button" class="danger-button" id="clearRequirementsButton" title="Set every requirement to 0">Clear all</button>
+            <button type="button" class="secondary-button" id="fillExampleButton" title="Fill in a sample set of numbers so you can try the planner">Try example</button>
+            <button type="button" class="ghost-button" id="clearRequirementsButton" title="Set every requirement back to 0">Set all to 0</button>
           </div>
         </div>
         <p id="requirementsHint" class="hint-banner is-hidden"></p>
@@ -63,7 +64,7 @@
             <thead>
               <tr>
                 <th scope="col">Ability</th>
-                <th scope="col" class="numeric-col">Required amount</th>
+                <th scope="col" class="numeric-col">Needed</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -84,17 +85,17 @@
             <label class="setting-row" for="rvLevel">
               <span>RV level</span>
               <span id="rvLevelControl"></span>
-              <small class="setting-help">Your RV level decides how many Aniimo can live in your homeland.</small>
+              <small class="setting-help">Your RV level decides how many Aniimo can live in your Homeland.</small>
             </label>
             <label class="setting-row" for="capacityOverride">
               <span>Aniimo spaces available</span>
-              <input type="number" id="capacityOverride" min="0" max="999" step="1" placeholder="Auto" />
-              <small class="setting-help">The total number of Aniimo your homeland can hold. Leave blank to use your RV level; type a number to override it.</small>
+              <input type="number" id="capacityOverride" min="0" max="999" step="1" placeholder="Auto (from RV level)" />
+              <small class="setting-help">Leave blank to use your RV level. Only type a number if the game shows a different total.</small>
             </label>
             <label class="setting-row" for="homebuildingReserve">
-              <span id="homebuildingReserveLabel">Spaces for the homebuilding zone</span>
+              <span id="homebuildingReserveLabel">Spaces for the Homebuilding Zone</span>
               <input type="number" id="homebuildingReserve" min="0" max="999" step="1" />
-              <small class="setting-help" id="homebuildingReserveHelp">Aniimo in the homebuilding zone earn buddy tokens, which buy decorative items.</small>
+              <small class="setting-help" id="homebuildingReserveHelp">Aniimo in the Homebuilding Zone earn Bud Tickets, which buy decorative furniture. These come out of your total Aniimo spaces.</small>
             </label>
           </div>
           <p id="capacityStatus" class="capacity-status"></p>
@@ -102,15 +103,15 @@
 
         <h3 class="subsection-title">Buildings</h3>
         <p class="subsection-copy">
-          Set how many of each building you have. <strong>Always staffed</strong> buildings need one Aniimo working in
-          them the whole time. <strong>Farm plots</strong> only need help now and then (planting, watering, harvesting),
+          Set how many of each building you have (0 means you haven't built it). <strong>Full-time worker</strong>
+          buildings need one Aniimo working in them the whole time. <strong>Part-time farm work</strong> (Farmland and
+          Woodland plots) only needs help now and then &ndash; loosening soil, planting, watering and harvesting &ndash;
           so a few Aniimo can look after many plots.
         </p>
         <div class="table-shell">
           <table class="data-table" id="buildingTable">
             <thead>
               <tr>
-                <th>Built</th>
                 <th>How many</th>
                 <th>Building</th>
                 <th>Type</th>
@@ -126,15 +127,18 @@
         <div class="section-heading">
           <div>
             <h2>Aniimo You Own</h2>
-            <p>Set how many of each Aniimo you have. Two of the same Aniimo count as two separate workers. Untick "Use" to keep one out of the plan.</p>
+            <p>
+              Set how many of each Aniimo you have. Only Aniimo with a quantity above 0 are used, and two of the same
+              Aniimo count as two separate workers. Untick &ldquo;Include in plan&rdquo; to keep one out.
+            </p>
           </div>
           <div class="filter-strip">
             <label>
               <span>Search</span>
-              <input type="search" id="rosterSearch" placeholder="Name or skill" />
+              <input type="search" id="rosterSearch" placeholder="Aniimo name" />
             </label>
             <label>
-              <span>Skill</span>
+              <span>Ability</span>
               <select id="skillFilter"></select>
             </label>
           </div>
@@ -145,8 +149,8 @@
               <tr>
                 <th>Qty</th>
                 <th>Aniimo</th>
-                <th>Homeland skills</th>
-                <th>Use</th>
+                <th>Homeland abilities</th>
+                <th>Include in plan</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -162,6 +166,7 @@
           </div>
           <button type="button" class="primary-button" id="optimiseButton">Optimise workforce</button>
         </div>
+        <div id="modeNotice" class="info-panel is-hidden"></div>
         <div id="capacityNotice" class="notice-panel is-hidden" role="alert"></div>
         <div id="missingPanel" class="notice-panel is-hidden"></div>
         <div class="result-grid">
@@ -171,14 +176,14 @@
             <div id="workerResults" class="worker-results empty-state">No recommendation yet.</div>
           </section>
           <section class="result-panel">
-            <h3>Skill Coverage</h3>
-            <p class="panel-help">Your Estimated Require targets compared with the recommended team's total skill.</p>
+            <h3>Ability Coverage</h3>
+            <p class="panel-help">Your requirement targets compared with the recommended team's total ability levels.</p>
             <div class="table-shell compact">
               <table class="data-table compact-table" id="coverageTable">
                 <thead>
                   <tr>
-                    <th>Skill</th>
-                    <th>Required</th>
+                    <th>Ability</th>
+                    <th>Needed</th>
                     <th>Team total</th>
                     <th>Status</th>
                   </tr>
@@ -190,16 +195,16 @@
           <section class="result-panel">
             <h3>Building Jobs</h3>
             <p class="panel-help">
-              Who works where. Farm jobs show how much of one Aniimo's time they take, e.g. 50% means half of one
-              Aniimo's day.
+              Who works where. Full-time jobs show a number of Aniimo. Farm jobs show how much of one Aniimo's day
+              they take, e.g. 50% means half of one Aniimo's day.
             </p>
             <div class="table-shell compact">
               <table class="data-table compact-table" id="staffingTable">
                 <thead>
                   <tr>
                     <th>Job</th>
-                    <th>Needed</th>
-                    <th>Covered</th>
+                    <th>Work needed</th>
+                    <th>Work assigned</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -215,7 +220,7 @@
           <section class="result-panel result-panel-wide" id="sparePanel">
             <h3>Using Your Spare Spaces</h3>
             <p class="panel-help">
-              Ideas for the homeland spaces left after the recommended workforce moves in.
+              Ideas for the Homeland spaces left after the recommended workforce moves in.
             </p>
             <div id="spareResults" class="empty-state">Run the optimiser to see suggestions.</div>
           </section>
@@ -233,7 +238,10 @@
         <div class="section-heading">
           <div>
             <h2>Settings</h2>
-            <p>How the optimiser should plan. The defaults are fine for most players.</p>
+            <p>
+              How the planner builds your team. Check the first choice matches how you want to plan; the farm settings
+              can usually stay as they are.
+            </p>
           </div>
         </div>
         <div class="settings-grid">
@@ -244,7 +252,7 @@
                 <input type="radio" name="mode" value="owned" />
                 <span>
                   <strong>Only use Aniimo I own</strong>
-                  <small>Builds the best team from the Aniimo on your Roster tab.</small>
+                  <small>Builds the best team from the Aniimo you've entered on the Roster tab (set their quantities there first).</small>
                 </span>
               </label>
               <label class="choice-card">
@@ -258,50 +266,64 @@
           </fieldset>
 
           <fieldset>
-            <legend>Farm and woodland plots</legend>
+            <legend>Farmland and Woodland plots</legend>
+            <label class="setting-row is-hidden" for="cropSelect" id="cropSelectWrap">
+              <span>Choose your main crop (or type minutes below)</span>
+              <select id="cropSelect"></select>
+              <small class="setting-help" id="cropNote"></small>
+            </label>
             <label class="setting-row" for="cycleDurationMinutes">
-              <span>Typical crop growth time (minutes)</span>
-              <span id="cropSelectWrap" class="is-hidden">
-                <select id="cropSelect" aria-label="Pick a crop to fill in its growth time"></select>
-              </span>
+              <span>Crop growth time (minutes)</span>
               <input type="number" id="cycleDurationMinutes" min="0.1" step="1" />
-              <small class="setting-help">How long your crops/trees usually take between planting and harvest. Shorter growth = farm helpers are busier.</small>
+              <small class="setting-help">
+                Default 20 min is a rough average. If you grow several crops, enter the one you plant most. Faster crops
+                need tending more often, so you'll need more farm helpers.
+              </small>
             </label>
             <label class="checkbox-row">
               <input type="checkbox" id="allowIntermittentMultiSkill" />
               <span>
                 Let one Aniimo cover several farm jobs (e.g. watering and harvesting)
-                <small class="setting-help">Usually on. Turn off if you want each farm helper to stick to one job.</small>
+                <small class="setting-help">Usually on. Turn off to give each farm job its own Aniimo &ndash; needs more Aniimo but is simpler to set up in-game.</small>
               </span>
             </label>
 
             <details class="advanced-settings">
-              <summary>Advanced assumptions</summary>
+              <summary>Advanced farm settings</summary>
               <label class="setting-row" for="overheadMultiplier">
                 <span>Walking time allowance</span>
                 <select id="overheadMultiplier">
-                  <option value="1">None (plots side by side)</option>
-                  <option value="1.25">Some (short walks)</option>
-                  <option value="1.5">Lots (plots spread out)</option>
-                  <option value="2">Very spread out (double time)</option>
+                  <option value="1">None &ndash; plots are next to each other</option>
+                  <option value="1.25">A little</option>
+                  <option value="1.5">A lot</option>
+                  <option value="2">Very spread out (doubles farm time)</option>
                 </select>
                 <small class="setting-help">Extra time farm helpers spend walking between plots. More walking means more helpers are needed.</small>
               </label>
               <label class="setting-row" for="maxUtilizationPercent">
-                <span>Keep farm helpers at most this busy (%)</span>
+                <span>How busy to keep farm helpers (%, 1&ndash;100)</span>
                 <input type="number" id="maxUtilizationPercent" min="1" max="100" step="5" />
-                <small class="setting-help">Leaves spare time for walking and delays. 50% means each helper is only planned to work half the time; lower = more helpers.</small>
+                <small class="setting-help">
+                  How much of each helper's day the planner fills. 50% = half-busy (safe). Raise it to use fewer helpers;
+                  lower it if your farm falls behind. Walking time is already covered by the setting above.
+                </small>
               </label>
             </details>
-          </fieldset>
-
-          <fieldset>
-            <legend>Data Sources</legend>
-            <div id="sourceList" class="source-list"></div>
           </fieldset>
         </div>
       </section>
     </main>
+
+    <footer class="app-footer">
+      <details class="about-data" id="aboutData">
+        <summary>About the data</summary>
+        <p class="about-intro">
+          The planner uses free fan-made references that are built from the game's own files, plus a few corrections
+          checked in-game by players. After a game update some numbers may be out of date until the data is refreshed.
+        </p>
+        <div id="sourceList" class="source-list"></div>
+      </details>
+    </footer>
 
     <input type="file" id="importFile" accept="application/json,.json" hidden />
   </body>

@@ -3,27 +3,32 @@
   "actionDurationSeconds": 6,
   "actionDurationVerified": false,
   "notes": [
-    "Crop names, facility levels, grow times (cycleMinutes) and yields are from the shipped game data as listed by AniimoTools and aniimo.gg (checked 2026-09-28). 'Quick' entries are the RV Ecological Module quick recipes.",
+    "Crop names, facility levels, grow times (cycleMinutes) and yields are from the shipped game data. Every grow time was checked against both AniimoTools (Farmland/Woodland station pages) and aniimo.gg (Production Recipes) on 2026-09-28 and they agree. 'Quick' entries are the RV Ecological Module recipes: much bigger harvests, and some grow longer than the normal crop (Quick Wheat 20 min vs Wheat 4 min; Quick Potato 40 min vs Potato 11 min). Both sites list most crops at 40 min.",
     "actionDurationSeconds is NOT a published game value. 6 s is an estimate: AniimoTools' production simulator shows a 40-minute crop as '40.1 min a batch' and a 4-minute crop as '4.1 min a batch', i.e. about 6 s of Aniimo work per plot per cycle on top of the grow time.",
     "Field work rate (AniimoTools): an Aniimo at the recommended level (Lv 1 for all crops) clears 60 workload/min, Lv 2: 90, Lv 3: 120, Lv 4: 150; x0.2 when the food bowl is empty.",
-    "environment.speedWithout: growth speed multiplier when the needed climate facility is missing (0 = no work at all)."
+    "environment.speedWithout: growth speed multiplier when the needed climate facility is missing (0 = no work at all).",
+    "A crop whose grow time can't be confirmed should set cycleVerified: false (or cycleMinutes: null); the app then shows '(time unknown)' and doesn't fill in minutes. optionNote is a short hint shown after the time in the crop list."
   ],
   "sources": [
     {
       "name": "AniimoTools – Farmland",
-      "url": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "url": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "notes": "Farmland crops, growth times and harvest sizes."
     },
     {
       "name": "AniimoTools – Woodland",
-      "url": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "url": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "notes": "Woodland trees, growth times and harvest sizes."
     },
     {
       "name": "AniimoTools – Production simulator",
-      "url": "https://aniimotools.dev/systems/homeland/production-simulator/"
+      "url": "https://aniimotools.dev/systems/homeland/production-simulator/",
+      "notes": "Used to estimate how long an Aniimo spends on each plot (about 6 seconds)."
     },
     {
-      "name": "Beskor – Production Recipes",
-      "url": "https://aniimo.gg/homeland/recipes/"
+      "name": "aniimo.gg – Production recipes",
+      "url": "https://aniimo.gg/homeland/recipes/",
+      "notes": "A second list of growth times, used to double-check the ones above."
     }
   ],
   "crops": [
@@ -37,7 +42,8 @@
       "yield": 5,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_moondew_radish",
@@ -49,7 +55,8 @@
       "yield": 8,
       "environment": null,
       "unlock": "Recipe Note from Home Season quests (seasonal)",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_waxing_moon_pepper",
@@ -61,7 +68,8 @@
       "yield": 8,
       "environment": null,
       "unlock": "Recipe Note from Home Season quests (seasonal)",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_captain_spud",
@@ -73,7 +81,8 @@
       "yield": 5,
       "environment": null,
       "unlock": "Limited-time collaboration recipe",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_potato",
@@ -85,7 +94,8 @@
       "yield": 2,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_quick_wheat",
@@ -97,7 +107,9 @@
       "yield": 42,
       "environment": null,
       "unlock": "RV Ecological Module Lv 1",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "farmland_rice",
@@ -109,7 +121,8 @@
       "yield": 18,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_soybean",
@@ -121,7 +134,8 @@
       "yield": 16,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_rose",
@@ -137,7 +151,8 @@
         "speedWithout": 0.8
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_cotton",
@@ -149,7 +164,8 @@
       "yield": 7,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_quick_potato",
@@ -161,7 +177,9 @@
       "yield": 46,
       "environment": null,
       "unlock": "RV Ecological Module Lv 3",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "farmland_strawberry",
@@ -177,7 +195,8 @@
         "speedWithout": 0.8
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_lavender",
@@ -193,7 +212,8 @@
         "speedWithout": 0
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_sugarcane",
@@ -209,7 +229,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_ginseng",
@@ -225,7 +246,8 @@
         "speedWithout": 0.8
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_grapes",
@@ -241,7 +263,8 @@
         "speedWithout": 0
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_premium_wheat",
@@ -253,7 +276,8 @@
       "yield": 15,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_quick_rice",
@@ -265,7 +289,9 @@
       "yield": 79,
       "environment": null,
       "unlock": "RV Ecological Module Lv 5",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "farmland_cranberry",
@@ -281,7 +307,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_agave",
@@ -297,7 +324,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true
     },
     {
       "id": "farmland_quick_strawberry",
@@ -313,7 +341,9 @@
         "speedWithout": 0.8
       },
       "unlock": "RV Ecological Module Lv 7",
-      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "woodland_willow_wood",
@@ -326,7 +356,8 @@
       "woodBlocks": 1,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_bamboo",
@@ -339,7 +370,8 @@
       "woodBlocks": 8,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_lemon",
@@ -352,7 +384,8 @@
       "woodBlocks": 8,
       "environment": null,
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_cherry_blossom",
@@ -369,7 +402,8 @@
         "speedWithout": 0.8
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_apple",
@@ -386,7 +420,8 @@
         "speedWithout": 0.8
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_maple_syrup",
@@ -403,7 +438,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_quick_bamboo",
@@ -416,7 +452,9 @@
       "woodBlocks": 21,
       "environment": null,
       "unlock": "RV Ecological Module Lv 2",
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "woodland_palm_bark",
@@ -433,7 +471,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_chestnut",
@@ -450,7 +489,8 @@
         "speedWithout": 0.8
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_walnut",
@@ -467,7 +507,8 @@
         "speedWithout": 0
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_quick_lemon",
@@ -480,7 +521,9 @@
       "woodBlocks": 47,
       "environment": null,
       "unlock": "RV Ecological Module Lv 4",
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "woodland_natural_rubber",
@@ -497,7 +540,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_coconut",
@@ -514,7 +558,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_quick_maple_syrup",
@@ -531,7 +576,9 @@
         "speedWithout": 0.5
       },
       "unlock": "RV Ecological Module Lv 6",
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     },
     {
       "id": "woodland_cocoa",
@@ -548,7 +595,8 @@
         "speedWithout": 0.5
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_orange_flower",
@@ -565,7 +613,8 @@
         "speedWithout": 0
       },
       "unlock": null,
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true
     },
     {
       "id": "woodland_quick_coconut",
@@ -582,7 +631,9 @@
         "speedWithout": 0.5
       },
       "unlock": "RV Ecological Module Lv 8",
-      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/"
+      "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
+      "cycleVerified": true,
+      "optionNote": "bigger harvest"
     }
   ]
 }

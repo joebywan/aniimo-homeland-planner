@@ -10,15 +10,18 @@
   "sources": [
     {
       "name": "AniimoTools – Home stations: who works where",
-      "url": "https://aniimotools.dev/systems/homeland/stations/"
+      "url": "https://aniimotools.dev/systems/homeland/stations/",
+      "notes": "Which ability each building needs, and how Farmland and Woodland work is split into steps."
     },
     {
-      "name": "Beskor – Homeland Furniture & Facilities (functional facilities)",
-      "url": "https://aniimo.gg/homeland/furniture/functional-facilities/"
+      "name": "aniimo.gg – Homeland furniture and facilities",
+      "url": "https://aniimo.gg/homeland/furniture/functional-facilities/",
+      "notes": "Building names, how many Aniimo each one holds (one each) and when they unlock."
     },
     {
-      "name": "Beskor – Homeland Work Abilities",
-      "url": "https://aniimo.gg/homeland/work/"
+      "name": "aniimo.gg – Homeland work abilities",
+      "url": "https://aniimo.gg/homeland/work/",
+      "notes": "The 13 Homeland abilities that buildings ask for."
     }
   ],
   "buildings": [
@@ -785,7 +788,7 @@
     },
     {
       "id": "storage_hauling",
-      "name": "Storage Unit haulers",
+      "name": "Storage Unit",
       "category": "Logistics",
       "behavior": "continuous",
       "countLabel": "haulers",
@@ -807,7 +810,8 @@
         "https://aniimo.gg/homeland/rv/",
         "https://aniimo.gg/homeland/object/storage-unit/"
       ],
-      "verified": false
+      "verified": false,
+      "countHelp": "Storage Units have no worker slot of their own – set “How many” to the number of Aniimo you want hauling."
     }
   ]
 }
