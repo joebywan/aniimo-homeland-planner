@@ -480,7 +480,7 @@
     }
     hint.classList.remove("is-hidden");
     hint.textContent =
-      'All requirements are 0. Type in the numbers from your in-game Estimated Require panel, or press "Try example" to try the planner out.';
+      'All requirements are 0. Type in the numbers from your in-game Estimated Require panel (Aniimo menu, then the ! next to Ability Distribution), or press "Try example" to try the planner out.';
   }
 
   function getHomelandData() {
