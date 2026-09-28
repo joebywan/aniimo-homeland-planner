@@ -23,6 +23,9 @@ jobs:
       - name: Regenerate bundled Aniimo data
         run: node scripts/scrape-aniimo.js
 
+      - name: Check refreshed data
+        run: npm test
+
       - name: Commit data changes
         run: |
           if git diff --quiet -- data/aniimo.json data/aniimo-data.js; then

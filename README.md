@@ -41,18 +41,36 @@ The `.nojekyll` file keeps Pages from applying Jekyll processing.
 
 1. <https://aniimo.gg/homeland/work/>: every Aniimo and its Homeland work ability levels.
 2. Each species page on aniimo.gg (for example <https://aniimo.gg/aniimo/glacy/>): the Forms strip gives the real form names (regional forms such as "Snowfield Form" and "Nighttime Form", and Prismana). Each form page adds its own ability levels. Prismana forms are stored as `name: "Prismana <Species>"`, `form: "Prismana"`.
-3. <https://backup.hideoutgacha.com/games/aniimo/homeland-abilities>: a cross-check for Prismana breeds. It fills in any Prismana form aniimo.gg does not list and records mismatches under `scrape.hideoutPrismana`.
-4. `data/aniimo-overrides.json`: manual, user-confirmed values, merged last so they always win. Records are matched by `species` + `form`.
-5. <https://aniimo.gg/aniilog/>: which species are Legendary. The Aniilog labels Somniwing and Irisalis as "Stage 4", the only Stage 4 species (Game8 and AniimoTools also name these two as the game's Legendary Aniimo). Somniwing has no Homeland work abilities, so only Irisalis appears in the data.
+3. <https://backup.hideoutgacha.com/games/aniimo/homeland-abilities>: a cross-check for Prismana ability levels. Mismatches are recorded under `scrape.hideoutPrismana`. A Prismana form only Hideout lists is not kept (aniimo.gg's Prismana forms match the game's own count of 25).
+4. `data/aniimo-overrides.json`: manual, user-confirmed values, merged last so they always win. Records are matched by `species` + `form`. It also holds `dexNumbers`, `exclusions` and `renames` (below).
+5. <https://aniimo.gg/aniilog/>: the in-game Aniilog. It decides which Aniimo are in the released game, gives each one its number, and marks the Legendary Aniimo (Somniwing and Irisalis are the only Stage 4 species). If the Aniilog can't be read, the refresh stops without writing anything. Released species the work page leaves out (Somniwing) are read from their own page.
+
+#### Aniilog numbers and sort order
+
+Every record has `dexNumber` (the Aniilog number) and `dexLabel` (how it is shown). The number comes from each Aniilog entry's badge on aniimo.gg: `#001` to `#082`, plus special numbers `#10001` Irisalis, `#10002` Dazmand, `#10003` Fulmintis and `#11001` Sparkelf. The starters Lunara and Helion show "Starter" in the Aniilog; their hidden numbers (99996 and 99998, from <https://aniimotools.dev/guides/starters/>) are in `dexNumbers` in the overrides, so they sort last. Records are sorted by number, with each species' forms together: base, regional forms (A to Z), then Prismana. The Available Aniimo tab shows the label before the name ("#015 Glacy"), and typing `15` or `#015` in its search box finds that Aniimo.
+
+#### What is left out, and why
+
+Only Aniimo a player can own are kept. Everything removed is listed with its reason in `scrape.excluded` (9-digit internal copies are in `scrape.internalVariantsExcluded`, and every unnumbered Aniilog entry in `scrape.aniilogUnnumbered`):
+
+- **Aniilog "Secret" entries with no number.** They are in the game files but not in the released game: Little Lightning Chirp, Thunderfeather Sparrow, Leaf Hat Firefly, Forest Cloak Butterfly and Butterfly Wing Sprite (English machine names for datamined species), Jabster, Malangel, Malevsera, Coraliz, Popapus and Gachapus (Popapus and Gachapus lived in the closed beta's Whisperwake Isles, a region not in the game yet). Forest Cloak Butterfly is its own species (game ID 1008200), not Flutternym (#028, 1023100). When one of these gets an Aniilog number, the next refresh adds it automatically.
+- **Boss and NPC entities.** "Infergon BOSS" and "Tuckin BOSS" are the Omega Infergon and Omega Tuckin bosses: Omega bosses can't be caught. (An Alpha you catch is an ordinary member of its species, so there are no separate Alpha records.) Irelia is a story character; the Aniimo you get after her quest is Prismana Iris, which is kept. Floret is a Budclaw quest NPC.
+- **Starter transformations.** Fennelun and Soleon are Lunara's and Helion's temporary battle forms, not separate Aniimo.
+- **Hideout-only Prismana forms.** Prismana Glameep, Prismana Minespine and Prismana Tuckin appear only on Hideout Guides, not in the game data.
+
+Tuckin stays: you get it (and its Mountain Form) by evolving Hummin after beating Omega Tuckin (aniimo.gg's evolution data; Game8 says it can't be caught in the wild).
+
+To leave out another record, add `{ "species": "...", "form": "...", "reason": "..." }` (or `{ "id": "...", "reason": "..." }`) to `exclusions`. To fix a placeholder name, add `{ "from": "...", "to": "...", "reason": "..." }` to `renames` (none are needed at the moment). Renames are listed in `scrape.renamed`.
 
 Each record gets a `category`, which decides whether the planner uses it by default:
 
 | category | what | used by default |
 | --- | --- | --- |
-| `common` | Base and regional forms you can normally catch | yes |
+| `common` | Base and regional forms you can normally catch, and the starters | yes |
 | `prismana` | Prismana forms | only when "Include Prismana forms" (or the row) is ticked |
-| `legendary` | Legendary species (Aniilog Stage 4) | only when "Include legendary Aniimo" (or the row) is ticked |
-| `boss` | BOSS forms and boss/NPC entities (game template ID starting with 9, e.g. Irelia) | only if the row is ticked |
+| `legendary` | Legendary species (Aniilog Stage 4: Somniwing and Irisalis) | only when "Include legendary Aniimo" (or the row) is ticked |
+
+Older saves may have ticks for removed records (for example the old "boss" rows); they are dropped when the save loads.
 
 To correct a category by hand, add `{ "species": "...", "form": "...", "category": "..." }` to `categories` in `data/aniimo-overrides.json` (`form` is optional) and run `npm run refresh:data`.
 
@@ -145,6 +163,7 @@ The tests cover:
 - Multi-skill continuous double-counting
 - Multiple copies (owned mode, kept as a library option) and unlimited copies (pool mode)
 - Available Aniimo pool filtering by category and explicit ticks
+- Aniimo data: no excluded (unreleased, boss or NPC) names, every record has an Aniilog number, records sorted by it with forms grouped; the scraper's Aniilog parsing, exclusions and renames
 - RV placement limits (`maxByRv`) and capacity from the RV level alone
 - Intermittent sharing and overload
 - Fewer-body preference

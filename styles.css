@@ -388,6 +388,13 @@ p {
   font-size: 0.78rem;
 }
 
+.aniimo-title .dex-number {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
 .skill-list,
 .worker-skill-row {
   display: flex;

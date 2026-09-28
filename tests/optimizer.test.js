@@ -16,6 +16,7 @@ const cropsData = require("../data/crops.json");
 const buildingsData = require("../data/buildings.json");
 const homelandData = require("../data/homeland.json");
 const aniimoData = require("../data/aniimo.json");
+const scraper = require("../scripts/scrape-aniimo.js");
 
 function skills(values) {
   return Object.fromEntries(DEFAULT_SKILLS.map((skill) => [skill, Number(values[skill] || 0)]));
@@ -346,6 +347,108 @@ test("real data: default pool has no Prismana, legendary or BOSS records", () =>
   assert.ok(legendary.includes("Irisalis"));
   assert.ok(aniimoData.aniimo.filter((entry) => entry.form === "Prismana").every((entry) => entry.category === "prismana"));
   assert.equal(Object.keys(aniimoData.abilityIcons).join(","), DEFAULT_SKILLS.join(","), "an icon for every ability, in game order");
+});
+
+test("real data: only released Aniimo, no boss/NPC or datamined names", () => {
+  const names = new Set(aniimoData.aniimo.map((entry) => entry.name));
+  const species = new Set(aniimoData.aniimo.map((entry) => entry.species));
+  const excludedNames = [
+    "Butterfly Wing Sprite",
+    "Forest Cloak Butterfly",
+    "Leaf Hat Firefly",
+    "Little Lightning Chirp",
+    "Thunderfeather Sparrow",
+    "Jabster",
+    "Malangel",
+    "Malevsera",
+    "Irelia",
+    "Floret",
+    "Fennelun",
+    "Soleon",
+    "Coraliz",
+    "Popapus",
+    "Gachapus",
+    "Infergon BOSS",
+    "Tuckin BOSS",
+    "Prismana Glameep",
+    "Prismana Minespine",
+    "Prismana Tuckin",
+  ];
+  for (const name of excludedNames) {
+    assert.ok(!names.has(name) && !species.has(name), `${name} is not in the data`);
+  }
+  assert.ok(!aniimoData.aniimo.some((entry) => /boss/i.test(entry.name) || /boss/i.test(entry.form)));
+  assert.ok(!aniimoData.aniimo.some((entry) => entry.category === "boss"));
+  const excludedIds = new Set(aniimoData.scrape.excluded.map((item) => item.id));
+  for (const id of ["irelia", "infergon-boss", "tuckin-9020700", "jabster", "forest-cloak-butterfly"]) {
+    assert.ok(excludedIds.has(id), `${id} is recorded in scrape.excluded`);
+  }
+  assert.ok(aniimoData.scrape.excluded.every((item) => item.reason && item.reason.length > 20), "every exclusion has a reason");
+  // Prismana Iris (the Aniimo from the Irelia quest) is kept; Tuckin evolves from Hummin, so it stays too.
+  assert.ok(aniimoData.aniimo.some((entry) => entry.species === "Iris" && entry.form === "Prismana"));
+  assert.ok(aniimoData.aniimo.some((entry) => entry.species === "Tuckin" && entry.form === "Mountain Form"));
+  assert.ok(aniimoData.aniimo.some((entry) => entry.species === "Somniwing" && entry.category === "legendary"));
+});
+
+test("real data: every record has an Aniilog number and records are sorted by it", () => {
+  const records = aniimoData.aniimo;
+  assert.ok(records.every((entry) => Number.isInteger(entry.dexNumber) && entry.dexNumber > 0), "every record has dexNumber");
+  assert.ok(records.every((entry) => typeof entry.dexLabel === "string" && entry.dexLabel), "every record has dexLabel");
+  for (let index = 1; index < records.length; index += 1) {
+    assert.ok(records[index - 1].dexNumber <= records[index].dexNumber, `${records[index].name} is in Aniilog order`);
+    assert.ok(scraper.compareRecords(records[index - 1], records[index]) < 0, `${records[index].id} sorts after ${records[index - 1].id}`);
+  }
+  const glacy = records.filter((entry) => entry.species === "Glacy");
+  assert.equal(glacy[0].dexLabel, "#015");
+  assert.deepEqual(glacy.map((entry) => entry.form), ["Base", "Sea of Flowers Form", "Snowfield Form", "Prismana"], "base, regional forms, then Prismana");
+  // A species' forms are all together.
+  const seen = new Set();
+  let previous = null;
+  for (const entry of records) {
+    if (entry.species !== previous) {
+      assert.ok(!seen.has(entry.species), `${entry.species} forms are grouped`);
+      seen.add(entry.species);
+      previous = entry.species;
+    }
+  }
+});
+
+test("scraper: Aniilog badges give numbers; Secret entries, bosses and Hideout-only Prismana are excluded", () => {
+  const html = [
+    '{\\"key\\":\\"1004300\\",\\"href\\":\\"/aniimo/aniimo/glacy/\\",\\"name\\":\\"Glacy\\",\\"sub\\":\\"Ice / Water · Stage 3\\",\\"texture\\":\\"https://cdn.beskor.net/aniimo/icons/UI_PetHead_10043.webp\\",\\"badge\\":\\"#015\\",\\"hidden\\":false}',
+    '{\\"key\\":\\"1040300\\",\\"href\\":\\"/aniimo/aniimo/jabster/\\",\\"name\\":\\"Jabster\\",\\"sub\\":\\"Water · Stage 3 · Secret\\",\\"badge\\":\\"Secret\\",\\"hidden\\":true}',
+    '{\\"key\\":\\"1037100\\",\\"href\\":\\"/aniimo/aniimo/lunara/\\",\\"name\\":\\"Lunara\\",\\"sub\\":\\"Holy · Stage 1\\",\\"badge\\":\\"Starter\\",\\"hidden\\":false}',
+  ].join(",");
+  const entries = scraper.parseAniilog(html);
+  assert.deepEqual(
+    entries.map((entry) => [entry.name, entry.dexNumber, entry.badge]),
+    [["Glacy", 15, "#015"], ["Jabster", null, "Secret"], ["Lunara", null, "Starter"]],
+  );
+  assert.equal(entries[0].image, "https://cdn.beskor.net/aniimo/icons/UI_PetHead_10043.webp");
+  assert.equal(scraper.formatDex(15), "#015");
+  assert.equal(scraper.formatDex(10001), "#10001");
+  entries[2].dexNumber = 99996; // from the overrides' dexNumbers
+
+  const records = [
+    { id: "glacy", name: "Glacy", species: "Glacy", form: "Base" },
+    { id: "glacy-1004303", name: "Prismana Glacy", species: "Glacy", form: "Prismana" },
+    { id: "glacy-prismana", name: "Prismana Glacy", species: "Glacy", form: "Prismana", hideoutOnly: true },
+    { id: "glacy-boss", name: "Glacy BOSS", species: "Glacy", form: "BOSS", kind: "boss" },
+    { id: "jabster", name: "Jabster", species: "Jabster", form: "Base" },
+    { id: "irelia", name: "Irelia", species: "Irelia", form: "Base" },
+    { id: "lunara", name: "Lunara", species: "Lunara", form: "Base" },
+  ];
+  const excluded = scraper.excludeUnobtainable(records, entries, [{ species: "Irelia", reason: "Story character." }]);
+  assert.deepEqual(records.map((record) => [record.id, record.dexLabel]), [["glacy", "#015"], ["glacy-1004303", "#015"], ["lunara", "Starter"]]);
+  assert.deepEqual(excluded.map((item) => item.id), ["glacy-boss", "glacy-prismana", "irelia", "jabster"]);
+  assert.equal(excluded.find((item) => item.id === "irelia").reason, "Story character.");
+  assert.match(excluded.find((item) => item.id === "jabster").reason, /Secret/);
+
+  const renamed = scraper.applyRenames(
+    [{ id: "x", name: "Prismana Old", species: "Old", form: "Prismana" }],
+    [{ from: "Old", to: "New", reason: "placeholder name" }],
+  );
+  assert.deepEqual(renamed.map((item) => item.to), ["Prismana New"]);
 });
 
 test("pool mode: optimiser only picks from the filtered pool", () => {
