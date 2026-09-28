@@ -130,6 +130,8 @@
   // fast we only generate as many copies of a form as could ever be useful: the number of bodies
   // that the skills it has could possibly fill, capped at the search depth.
   function planningCopyCap(entry, model, requirements, settings, skills) {
+    // A player only ever has one starter.
+    if (entry?.starter) return 1;
     const maxWorkers = Math.floor(clampNumber(settings.maxSearchWorkers, DEFAULT_SETTINGS.maxSearchWorkers, 1, 80));
     const partTime = partTimeNeedBySkill(model, settings);
     let best = 0;
@@ -217,8 +219,9 @@
       const ownedState = (owned && roster?.[entry.id]) || {};
       if (ownedState.excluded) continue;
 
-      const ownedQuantity = owned ? Math.floor(clampNumber(ownedState.quantity, 0, 0, 99)) : 0;
       // A player only ever has one starter, so it is never duplicated.
+      const ownedMax = entry.starter ? 1 : 99;
+      const ownedQuantity = owned ? Math.floor(clampNumber(ownedState.quantity, 0, 0, ownedMax)) : 0;
       const poolCopies = owned ? 0 : entry.starter ? 1 : copyCapFor ? copyCapFor(entry) : 1;
       const quantity = Math.max(ownedQuantity, poolCopies);
 
@@ -1499,6 +1502,8 @@
         let bestWorker = null;
         for (const candidate of pool) {
           if (candidate.aniimoId === current.aniimoId) continue;
+          // A player only has one starter: never bring in a second.
+          if (candidate.starter && selected.some((worker) => worker.aniimoId === candidate.aniimoId)) continue;
           const key = workerQualityKey(candidate, work, requirements, relevant, skills);
           if (compareQualityKeys(key, bestKey) <= 0) continue;
           if (!canDo(candidate)) continue;
@@ -1653,7 +1658,11 @@
     if (feasible && result.ok) result = improvePlanQuality(result, allWorkers, requirements, skills, model, settings);
     if (result.intermittent?.assignments?.length) result = { ...result, intermittent: concentratePersonalities(result.intermittent) };
     const selectedIds = new Set(result.selectedWorkers.map((worker) => worker.workerId));
-    const unusedWorkers = allWorkers.filter((worker) => !selectedIds.has(worker.workerId));
+    const selectedForms = new Set(result.selectedWorkers.map((worker) => worker.aniimoId));
+    // A player only has one starter, so one already in the plan is never spare.
+    const unusedWorkers = allWorkers.filter(
+      (worker) => !selectedIds.has(worker.workerId) && !(worker.starter && selectedForms.has(worker.aniimoId))
+    );
     if (!isOwnedMode(settings)) {
       // Pool Aniimo are unlimited, so another copy of every form in the plan is always available (e.g.
       // as a backup), even if the search only generated as many copies as the jobs could use.
@@ -2144,8 +2153,12 @@
     // Spare Aniimo to suggest. In owned mode only owned copies; in pool mode (the default) any Aniimo
     // in the player's available pool, suggesting each form at most once to keep the advice readable.
     const ownedMode = input.mode === "owned";
+    // A player only has one starter, so never suggest another copy of one (as a backup, hauler or
+    // Homebuilding Zone pick).
+    const selectedForms = new Set(selected.map((worker) => worker.aniimoId));
     const pool = (result.unusedWorkers || [])
       .filter((worker) => !ownedMode || worker.owned !== false)
+      .filter((worker) => !worker.starter || (!selectedForms.has(worker.aniimoId) && Number(worker.copy || 1) <= 1))
       .slice()
       .sort((a, b) => Number(b.owned !== false) - Number(a.owned !== false));
     const taken = new Set();
@@ -2669,7 +2682,9 @@
     });
     const nextCopy = new Map();
     for (const worker of team) nextCopy.set(worker.aniimoId, Math.max(nextCopy.get(worker.aniimoId) || 1, Number(worker.copy || 1) + 1));
-    const quantityOf = (entry) => (owned ? Math.floor(clampNumber(input.roster?.[entry.id]?.quantity, 0, 0, 99)) : Infinity);
+    // A player only ever has one starter.
+    const quantityOf = (entry) =>
+      owned ? Math.floor(clampNumber(input.roster?.[entry.id]?.quantity, 0, 0, entry.starter ? 1 : 99)) : entry.starter ? 1 : Infinity;
     const taskFit = (worker) => taskSkills.reduce((sum, skill) => sum + Number(worker.skills?.[skill] || 0), 0);
 
     let guard = 0;
