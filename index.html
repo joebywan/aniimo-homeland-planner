@@ -135,8 +135,9 @@
             <h2>Available Aniimo</h2>
             <p>
               The planner can use every Aniimo you can normally catch (base and regional forms), as many of each as it
-              needs. Prismana forms and legendary Aniimo are left out unless you tick them. Untick any Aniimo you
-              don't want suggested.
+              needs. Prismana forms and legendary Aniimo are left out unless you tick them, and so is a lower
+              evolution stage (e.g. a Lumin) when an Aniimo it evolves into (e.g. its Nova) is at least as good at
+              every job. Untick any Aniimo you don't want suggested.
             </p>
           </div>
           <div class="filter-strip">
@@ -151,6 +152,13 @@
           </div>
         </div>
         <div class="pool-toggles" role="group" aria-label="Which groups of Aniimo the planner can use">
+          <fieldset class="toggle-card starter-card">
+            <legend>Your starter</legend>
+            <label><input type="radio" name="starter" value="Lunara" data-starter /> Lunara</label>
+            <label><input type="radio" name="starter" value="Helion" data-starter /> Helion</label>
+            <label><input type="radio" name="starter" value="" data-starter /> Not chosen</label>
+            <small id="starterPrompt">You only get one starter. Choose yours so the planner can use it.</small>
+          </fieldset>
           <label class="toggle-card">
             <input type="checkbox" id="includePrismana" data-pool-toggle="prismana" />
             <span>

@@ -6,6 +6,7 @@ const {
   buildingRole,
   filterAniimoPool,
   isInPool,
+  poolStatus,
   describeCapacityPlan,
   optimizeWorkforce,
   personalityRecommendations,
@@ -343,7 +344,8 @@ test("pool: common in by default, Prismana/legendary/BOSS out, explicit ticks wi
 
 test("real data: default pool has no Prismana, legendary or BOSS records", () => {
   const pool = filterAniimoPool(aniimoData.aniimo, {});
-  assert.ok(pool.length > 150);
+  // Lower evolution stages a higher stage fully covers, and both starters (none chosen), are left out.
+  assert.ok(pool.length > 90);
   assert.ok(pool.every((entry) => entry.category === "common"));
   assert.ok(!pool.some((entry) => /prismana|boss/i.test(entry.form) || entry.species === "Irisalis"));
   const legendary = aniimoData.aniimo.filter((entry) => entry.category === "legendary").map((entry) => entry.species);
@@ -591,8 +593,9 @@ const PLAYER_REQUIREMENTS = {
   Fire: 5, Grass: 5, Water: 8, Earth: 8, Lightning: 2, Ice: 0, Wind: 1, Dark: 5, Light: 1, Hauling: 5, Artisanship: 2,
   Leisure: 2, Perfumery: 1,
 };
+// The player chose Lunara as their starter (the only common Aniimo with Light besides Helion).
 const playerInput = {
-  aniimo: filterAniimoPool(aniimoData.aniimo, {}),
+  aniimo: filterAniimoPool(aniimoData.aniimo, { starter: "Lunara" }),
   catalogue: aniimoData.aniimo,
   skills: aniimoData.skills,
   requirements: PLAYER_REQUIREMENTS,
@@ -639,6 +642,127 @@ test("personalities: every building's bonus matches AniimoTools, none for farms,
     assert.equal(building.personalityBonus, expected[building.id] || null, building.id);
   }
   assert.equal(buildingsData.personalityBonusPercent, 20);
+});
+
+test("starters: only the chosen starter is in the pool; neither until one is chosen", () => {
+  const starters = aniimoData.aniimo.filter((entry) => entry.starter).map((entry) => entry.species).sort();
+  assert.deepEqual(starters, ["Helion", "Lunara"]);
+  const names = (pool) => filterAniimoPool(aniimoData.aniimo, pool).filter((entry) => entry.starter).map((entry) => entry.species);
+  assert.deepEqual(names({}), []);
+  assert.deepEqual(names({ starter: "Lunara" }), ["Lunara"]);
+  assert.deepEqual(names({ starter: "Helion" }), ["Helion"]);
+  // A per-row tick can't bring back the other starter.
+  assert.deepEqual(names({ starter: "Lunara", picks: { helion: true } }), ["Lunara"]);
+  assert.equal(poolStatus(aniimoData.aniimo.find((entry) => entry.id === "helion"), { starter: "Lunara" }).reason, "otherStarter");
+  // The optimiser never suggests the other starter.
+  const lunaraOnly = optimizeWorkforce({ ...playerInput, aniimo: filterAniimoPool(aniimoData.aniimo, { starter: "Lunara" }) });
+  assert.ok(!lunaraOnly.selectedWorkers.some((worker) => worker.species === "Helion"));
+});
+
+test("evolution: a lower stage fully covered by a higher stage of its line is left out, unless ticked", () => {
+  const byId = new Map(aniimoData.aniimo.map((entry) => [entry.id, entry]));
+  const emberpup = byId.get("emberpup");
+  assert.equal(emberpup.evolutionLine, "Emberpup line");
+  assert.equal(emberpup.stage, 1);
+  assert.equal(emberpup.finalStage, 3);
+  assert.equal(emberpup.tierName, "Lumin");
+  assert.equal(byId.get("flameruff").tierName, "Gamma");
+  assert.equal(byId.get("scorchhowl").tierName, "Nova");
+  assert.equal(byId.get("somniwing").tierName, "Legendary");
+  assert.equal(byId.get("lunara").tierName, "Lumin");
+  // Lavazar is not covered by Minespine: they are on different branches of the Pebbling line.
+  assert.ok(!(byId.get("lavazar").dominatedBy || []).includes("minespine"));
+  assert.ok(emberpup.dominatedBy.includes("scorchhowl"));
+  // Every dominated record really is covered in every ability by a higher stage of the same line.
+  for (const entry of aniimoData.aniimo.filter((item) => item.dominatedBy)) {
+    for (const id of entry.dominatedBy) {
+      const higher = byId.get(id);
+      assert.equal(higher.evolutionLine, entry.evolutionLine);
+      assert.equal(higher.form, entry.form);
+      assert.ok(higher.stage > entry.stage);
+      assert.ok(DEFAULT_SKILLS.every((skill) => higher.skills[skill] >= entry.skills[skill]), `${id} covers ${entry.id}`);
+    }
+  }
+  const pool = filterAniimoPool(aniimoData.aniimo, {});
+  assert.ok(!pool.some((entry) => entry.id === "emberpup"));
+  assert.ok(pool.some((entry) => entry.id === "scorchhowl"));
+  assert.equal(poolStatus(emberpup, {}, byId).reason, "dominated");
+  // A tick brings it back; so does leaving out every Aniimo that covers it.
+  assert.ok(filterAniimoPool(aniimoData.aniimo, { picks: { emberpup: true } }).some((entry) => entry.id === "emberpup"));
+  const noHigher = Object.fromEntries(emberpup.dominatedBy.map((id) => [id, false]));
+  assert.ok(filterAniimoPool(aniimoData.aniimo, { picks: noHigher }).some((entry) => entry.id === "emberpup"));
+  // A lower stage with an ability its higher stages lack stays in (none in today's data; see the scraper
+  // test below for the rule).
+  const kept = aniimoData.aniimo.filter((entry) => entry.category === "common" && entry.stage < entry.finalStage && !entry.dominatedBy && !entry.starter);
+  for (const entry of kept) assert.ok(pool.some((item) => item.id === entry.id), entry.id);
+  // The plan never uses a dominated Aniimo by default.
+  const result = playerFullResult(50);
+  assert.ok(!result.selectedWorkers.some((worker) => byId.get(worker.aniimoId).dominatedBy));
+});
+
+test("evolution: scraper parses the aniimo.gg Evolution tree; only an Aniimo's own evolutions can cover it", () => {
+  // Pebbling branches: Lavazar -> Magmarex, and Geodeback -> Minespine.
+  const card = (slug, name, stage) => `<a class="card" href="/aniimo/${slug}/"><img src="${slug}.webp"/><span class="n">${name}</span><span>Stage <!-- -->${stage}</span></a>`;
+  const html =
+    '<h2 class="x">Evolution<span class="y">Pebbling line</span></h2><div><div>' +
+    card("pebbling", "Pebbling", 1) +
+    "<div><div>" + card("lavazar", "Lavazar", 2) + "<div>" + card("magmarex", "Magmarex", 3) + "</div></div>" +
+    "<div>" + card("geodeback", "Geodeback", 2) + "<div>" + card("minespine", "Minespine", 3) + "</div></div></div>" +
+    '</div></div><h2>Family</h2><a href="/aniimo/other/"><span>Other</span>Stage 1</a>';
+  const line = scraper.parseEvolutionLine(html);
+  assert.equal(line.line, "Pebbling line");
+  assert.deepEqual(
+    line.members.map((member) => `${member.name}:${member.stage}<${member.parent || "-"}`),
+    ["Pebbling:1<-", "Lavazar:2<pebbling", "Magmarex:3<lavazar", "Geodeback:2<pebbling", "Minespine:3<geodeback"]
+  );
+  const record = (id, species, form, values) => ({ id, species, form, category: "common", skills: skills(values) });
+  const records = [
+    record("pebbling", "Pebbling", "Base", { Earth: 1 }),
+    record("lavazar", "Lavazar", "Base", { Earth: 1, Fire: 1 }),
+    record("magmarex", "Magmarex", "Base", { Fire: 3 }),
+    record("geodeback", "Geodeback", "Base", { Earth: 2 }),
+    record("minespine", "Minespine", "Base", { Earth: 3, Fire: 2 }),
+    record("pebbling-snow", "Pebbling", "Snowfield Form", { Earth: 1, Ice: 1 }),
+  ];
+  scraper.applyEvolution(records, [line], [{ name: "Pebbling", stage: 1 }]);
+  scraper.markDominated(records);
+  // Lavazar isn't covered by Minespine (another branch), nor by Magmarex (no Earth): it stays.
+  assert.equal(records[1].dominatedBy, undefined);
+  assert.deepEqual(records[0].dominatedBy, ["lavazar", "geodeback", "minespine"]);
+  assert.deepEqual(records[3].dominatedBy, ["minespine"]);
+  // A regional form is only compared with the same regional form of its evolutions.
+  assert.equal(records[5].dominatedBy, undefined);
+  assert.deepEqual(records.map((item) => item.tierName), ["Lumin", "Gamma", "Nova", "Gamma", "Nova", "Lumin"]);
+  assert.equal(records[1].evolvesFrom, "Pebbling");
+  assert.equal(records[1].finalStage, 3);
+});
+
+test("families: restricted buildings only get Aniimo of their families", () => {
+  const dewyHouse = buildingsData.buildings.find((building) => building.id === "dewy_house");
+  assert.deepEqual(dewyHouse.allowedSpecies, ["Fragrancier", "Dewy"]);
+  const restricted = buildingsData.buildings.filter((building) => building.allowedSpecies).map((building) => building.id).sort();
+  assert.deepEqual(restricted, ["dewy_house", "floral_windmill", "nimbus_bed", "starfall_hammock", "tidewhisper_sandcastle"]);
+  // Player's plan: the Dewy House and Tidewhisper Sandcastle get eligible Aniimo only.
+  const result = playerFullResult(50);
+  const sandcastle = buildingsData.buildings.find((building) => building.id === "tidewhisper_sandcastle");
+  for (const assignment of result.continuousAssignments) {
+    const building = buildingsData.buildings.find((item) => item.id === assignment.job.buildingId);
+    if (building.allowedSpecies) assert.ok(building.allowedSpecies.includes(assignment.worker.species), `${assignment.worker.species} at ${building.name}`);
+  }
+  assert.ok(result.continuousAssignments.some((item) => item.job.buildingId === "dewy_house"));
+  assert.ok(result.continuousAssignments.some((item) => item.job.buildingId === sandcastle.id));
+
+  // Synthetic: a Leisure Aniimo outside the family can't take the job, even with a higher level.
+  const house = { ...continuousBuilding("house", "Leisure"), name: "Dewy House", role: "primary", allowedSpecies: ["Dewy"] };
+  const outsider = { ...aniimo("big", "Big", { Leisure: 4 }), species: "Big" };
+  const dewy = { ...aniimo("dewy", "Dewy", { Leisure: 1 }), species: "Dewy" };
+  const withDewy = optimizeWorkforce({ aniimo: [outsider, dewy], skills: DEFAULT_SKILLS, requirements: skills({}), buildings: [house], buildingState: {}, settings: { mode: "pool" } });
+  assert.equal(withDewy.feasible, true);
+  assert.deepEqual(withDewy.continuousAssignments.map((item) => item.worker.species), ["Dewy"]);
+  const without = optimizeWorkforce({ aniimo: [outsider], skills: DEFAULT_SKILLS, requirements: skills({}), buildings: [house], buildingState: {}, settings: { mode: "pool" } });
+  assert.equal(without.feasible, false);
+  const summary = summarizeShortfalls(without, { pool: [outsider], catalogue: [outsider, dewy], skills: DEFAULT_SKILLS });
+  assert.ok(summary.lines.includes("No Aniimo in your pool can work the Dewy House – only Dewy can. Tick one on the Available Aniimo tab."), summary.lines.join(" | "));
 });
 
 test("processors: part-time shares of one Aniimo, shared by Aniimo with the ability", () => {

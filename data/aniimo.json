@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T07:39:49.454Z",
+  "generatedAt": "2026-09-28T10:29:06.379Z",
   "skills": [
     "Fire",
     "Grass",
@@ -90,6 +90,11 @@
       "name": "aniimo.gg – Aniilog",
       "url": "https://aniimo.gg/aniilog/",
       "notes": "The in-game Aniimo index. Gives each Aniimo its Aniilog number (#001 to #082, plus special numbers such as #10001 Irisalis) and decides which Aniimo are in the released game: entries marked \"Secret\" with no number (datamined or not yet released) are left out. Also marks the Legendary Aniimo: Somniwing and Irisalis are the only Stage 4 species."
+    },
+    {
+      "name": "Aniimo official wiki – stages",
+      "url": "https://wiki.aniimo.com/",
+      "notes": "Stage names: stage 1 Lumin, 2 Gamma, 3 Nova (stage 4 is Legendary). Which Aniimo evolve into which comes from the Evolution section of each aniimo.gg page; a lower stage one of its own evolutions matches or beats in every Homeland ability is left out of the planner by default."
     },
     {
       "name": "Player corrections",
@@ -465,6 +470,107 @@
       "Prismana Glacy (Prismana)",
       "Prismana Stellarys (Prismana)"
     ],
+    "evolution": {
+      "withLine": 201,
+      "withoutLine": [
+        "Besauce",
+        "Helion",
+        "Irisalis",
+        "Lunara",
+        "Somniwing",
+        "Sparkelf"
+      ],
+      "tiersSource": "https://wiki.aniimo.com/",
+      "starters": [
+        "lunara",
+        "helion"
+      ],
+      "dominated": [
+        "emberpup",
+        "emberpup-1005101",
+        "emberpup-1005104",
+        "flameruff",
+        "flameruff-1005201",
+        "flameruff-1005204",
+        "celestis",
+        "chirpi",
+        "chirpi-1018101",
+        "chirpi-1018103",
+        "iris",
+        "iris-1021102",
+        "iris-1021103",
+        "iris-1021101",
+        "iris-1021106",
+        "iris-1021105",
+        "iris-1021104",
+        "skippy",
+        "skippy-1004101",
+        "skippy-1004102",
+        "pranky",
+        "pranky-1004201",
+        "pranky-1004202",
+        "nimbi",
+        "nimbi-1026102",
+        "nimbi-1026105",
+        "nimbi-1026101",
+        "hummin",
+        "hummin-1020101",
+        "budclaw",
+        "budclaw-1016103",
+        "budclaw-1016102",
+        "budclaw-1016101",
+        "sparki",
+        "sparki-1033102",
+        "sparki-1033101",
+        "sparki-1033103",
+        "flutternym",
+        "flutternym-1023103",
+        "flutternym-1023102",
+        "flutternym-1023101",
+        "eko",
+        "budsquire",
+        "budsquire-1032103",
+        "pomegg",
+        "pomegg-1047102",
+        "pomegg-1047103",
+        "pomegg-1047101",
+        "dewy",
+        "wisptis",
+        "wisptis-1003101",
+        "wisptis-1003103",
+        "bonesky",
+        "bonesky-1013102",
+        "fenrier",
+        "fenrier-1013202",
+        "bolty",
+        "bolty-1022102",
+        "squarrel",
+        "susuta",
+        "susuta-1017101",
+        "popota",
+        "popota-1017201",
+        "shelly",
+        "sheldon",
+        "baleetle",
+        "baleetle-1045101",
+        "fentuft",
+        "helmut",
+        "helmut-1002102",
+        "helmut-1002101",
+        "jawling",
+        "jawling-1002401",
+        "helmwhelp",
+        "helmwhelp-1002201",
+        "cubbo",
+        "pebbling",
+        "lavazar",
+        "geodeback",
+        "cozite",
+        "bulbly",
+        "veilfloat",
+        "fahloo"
+      ]
+    },
     "fetchFailures": []
   },
   "aniimo": [
@@ -495,7 +601,16 @@
       },
       "dexNumber": 1,
       "dexLabel": "#001",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Emberpup line",
+      "dominatedBy": [
+        "flameruff",
+        "scorchhowl",
+        "inferlupa"
+      ]
     },
     {
       "id": "emberpup-1005101",
@@ -524,7 +639,15 @@
       },
       "dexNumber": 1,
       "dexLabel": "#001",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Emberpup line",
+      "dominatedBy": [
+        "flameruff-1005201",
+        "scorchhowl-1005301"
+      ]
     },
     {
       "id": "emberpup-1005104",
@@ -553,7 +676,15 @@
       },
       "dexNumber": 1,
       "dexLabel": "#001",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Emberpup line",
+      "dominatedBy": [
+        "flameruff-1005204",
+        "scorchhowl-1005304"
+      ]
     },
     {
       "id": "flameruff",
@@ -582,7 +713,16 @@
       },
       "dexNumber": 2,
       "dexLabel": "#002",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Emberpup",
+      "dominatedBy": [
+        "scorchhowl",
+        "inferlupa"
+      ]
     },
     {
       "id": "flameruff-1005201",
@@ -611,7 +751,15 @@
       },
       "dexNumber": 2,
       "dexLabel": "#002",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Emberpup",
+      "dominatedBy": [
+        "scorchhowl-1005301"
+      ]
     },
     {
       "id": "flameruff-1005204",
@@ -640,7 +788,15 @@
       },
       "dexNumber": 2,
       "dexLabel": "#002",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Emberpup",
+      "dominatedBy": [
+        "scorchhowl-1005304"
+      ]
     },
     {
       "id": "scorchhowl",
@@ -669,7 +825,12 @@
       },
       "dexNumber": 3,
       "dexLabel": "#003",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "scorchhowl-1005301",
@@ -698,7 +859,12 @@
       },
       "dexNumber": 3,
       "dexLabel": "#003",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "scorchhowl-1005304",
@@ -727,7 +893,12 @@
       },
       "dexNumber": 3,
       "dexLabel": "#003",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "scorchhowl-1005302",
@@ -756,7 +927,12 @@
       },
       "dexNumber": 3,
       "dexLabel": "#003",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "scorchhowl-1005303",
@@ -785,7 +961,12 @@
       },
       "dexNumber": 3,
       "dexLabel": "#003",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "inferlupa",
@@ -814,7 +995,12 @@
       },
       "dexNumber": 4,
       "dexLabel": "#004",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "inferlupa-1005503",
@@ -843,7 +1029,12 @@
       },
       "dexNumber": 4,
       "dexLabel": "#004",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Emberpup line",
+      "evolvesFrom": "Flameruff"
     },
     {
       "id": "celestis",
@@ -872,7 +1063,14 @@
       },
       "dexNumber": 5,
       "dexLabel": "#005",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Celestis line",
+      "dominatedBy": [
+        "stellarys"
+      ]
     },
     {
       "id": "stellarys",
@@ -901,7 +1099,12 @@
       },
       "dexNumber": 6,
       "dexLabel": "#006",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Celestis line",
+      "evolvesFrom": "Celestis"
     },
     {
       "id": "stellarys-1001201",
@@ -930,7 +1133,12 @@
       },
       "dexNumber": 6,
       "dexLabel": "#006",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Celestis line",
+      "evolvesFrom": "Celestis"
     },
     {
       "id": "stellarys-1001202",
@@ -960,7 +1168,12 @@
       },
       "dexNumber": 6,
       "dexLabel": "#006",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Celestis line",
+      "evolvesFrom": "Celestis"
     },
     {
       "id": "chirpi",
@@ -989,7 +1202,16 @@
       },
       "dexNumber": 7,
       "dexLabel": "#007",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Chirpi line",
+      "dominatedBy": [
+        "tromber",
+        "cornet",
+        "tubster"
+      ]
     },
     {
       "id": "chirpi-1018101",
@@ -1018,7 +1240,16 @@
       },
       "dexNumber": 7,
       "dexLabel": "#007",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Chirpi line",
+      "dominatedBy": [
+        "tromber-1018401",
+        "cornet-1018501",
+        "tubster-1018701"
+      ]
     },
     {
       "id": "chirpi-1018103",
@@ -1047,7 +1278,16 @@
       },
       "dexNumber": 7,
       "dexLabel": "#007",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Chirpi line",
+      "dominatedBy": [
+        "tromber-1018403",
+        "cornet-1018503",
+        "tubster-1018703"
+      ]
     },
     {
       "id": "tromber",
@@ -1076,7 +1316,12 @@
       },
       "dexNumber": 8,
       "dexLabel": "#008",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "tromber-1018401",
@@ -1105,7 +1350,12 @@
       },
       "dexNumber": 8,
       "dexLabel": "#008",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "tromber-1018403",
@@ -1134,7 +1384,12 @@
       },
       "dexNumber": 8,
       "dexLabel": "#008",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "cornet",
@@ -1163,7 +1418,12 @@
       },
       "dexNumber": 9,
       "dexLabel": "#009",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "cornet-1018501",
@@ -1192,7 +1452,12 @@
       },
       "dexNumber": 9,
       "dexLabel": "#009",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "cornet-1018503",
@@ -1221,7 +1486,12 @@
       },
       "dexNumber": 9,
       "dexLabel": "#009",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "cornet-1018502",
@@ -1250,7 +1520,12 @@
       },
       "dexNumber": 9,
       "dexLabel": "#009",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "tubster",
@@ -1279,7 +1554,12 @@
       },
       "dexNumber": 10,
       "dexLabel": "#010",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "tubster-1018701",
@@ -1308,7 +1588,12 @@
       },
       "dexNumber": 10,
       "dexLabel": "#010",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "tubster-1018703",
@@ -1337,7 +1622,12 @@
       },
       "dexNumber": 10,
       "dexLabel": "#010",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Chirpi line",
+      "evolvesFrom": "Chirpi"
     },
     {
       "id": "iris",
@@ -1366,7 +1656,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal"
+      ]
     },
     {
       "id": "iris-1021102",
@@ -1395,7 +1692,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal-1021202"
+      ]
     },
     {
       "id": "iris-1021103",
@@ -1424,7 +1728,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal-1021203"
+      ]
     },
     {
       "id": "iris-1021101",
@@ -1453,7 +1764,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal-1021201"
+      ]
     },
     {
       "id": "iris-1021106",
@@ -1482,7 +1800,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal-1021206"
+      ]
     },
     {
       "id": "iris-1021105",
@@ -1511,7 +1836,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal-1021205"
+      ]
     },
     {
       "id": "iris-1021104",
@@ -1540,7 +1872,14 @@
       },
       "dexNumber": 11,
       "dexLabel": "#011",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Iris line",
+      "dominatedBy": [
+        "irisal-1021204"
+      ]
     },
     {
       "id": "irisal",
@@ -1569,7 +1908,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "irisal-1021202",
@@ -1598,7 +1942,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "irisal-1021203",
@@ -1627,7 +1976,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "irisal-1021201",
@@ -1656,7 +2010,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "irisal-1021206",
@@ -1685,7 +2044,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "irisal-1021205",
@@ -1714,7 +2078,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "irisal-1021204",
@@ -1743,7 +2112,12 @@
       },
       "dexNumber": 12,
       "dexLabel": "#012",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Iris line",
+      "evolvesFrom": "Iris"
     },
     {
       "id": "skippy",
@@ -1772,7 +2146,16 @@
       },
       "dexNumber": 13,
       "dexLabel": "#013",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Skippy line",
+      "dominatedBy": [
+        "pranky",
+        "glacy",
+        "leafy"
+      ]
     },
     {
       "id": "skippy-1004101",
@@ -1801,7 +2184,15 @@
       },
       "dexNumber": 13,
       "dexLabel": "#013",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Skippy line",
+      "dominatedBy": [
+        "pranky-1004201",
+        "glacy-1004301"
+      ]
     },
     {
       "id": "skippy-1004102",
@@ -1830,7 +2221,15 @@
       },
       "dexNumber": 13,
       "dexLabel": "#013",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Skippy line",
+      "dominatedBy": [
+        "pranky-1004202",
+        "glacy-1004302"
+      ]
     },
     {
       "id": "pranky",
@@ -1859,7 +2258,16 @@
       },
       "dexNumber": 14,
       "dexLabel": "#014",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Skippy",
+      "dominatedBy": [
+        "glacy",
+        "leafy"
+      ]
     },
     {
       "id": "pranky-1004201",
@@ -1888,7 +2296,15 @@
       },
       "dexNumber": 14,
       "dexLabel": "#014",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Skippy",
+      "dominatedBy": [
+        "glacy-1004301"
+      ]
     },
     {
       "id": "pranky-1004202",
@@ -1917,7 +2333,15 @@
       },
       "dexNumber": 14,
       "dexLabel": "#014",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Skippy",
+      "dominatedBy": [
+        "glacy-1004302"
+      ]
     },
     {
       "id": "glacy",
@@ -1946,7 +2370,12 @@
       },
       "dexNumber": 15,
       "dexLabel": "#015",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Pranky"
     },
     {
       "id": "glacy-1004301",
@@ -1975,7 +2404,12 @@
       },
       "dexNumber": 15,
       "dexLabel": "#015",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Pranky"
     },
     {
       "id": "glacy-1004302",
@@ -2004,7 +2438,12 @@
       },
       "dexNumber": 15,
       "dexLabel": "#015",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Pranky"
     },
     {
       "id": "glacy-1004303",
@@ -2034,7 +2473,12 @@
       },
       "dexNumber": 15,
       "dexLabel": "#015",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Pranky"
     },
     {
       "id": "leafy",
@@ -2063,7 +2507,12 @@
       },
       "dexNumber": 16,
       "dexLabel": "#016",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Skippy line",
+      "evolvesFrom": "Pranky"
     },
     {
       "id": "nimbi",
@@ -2092,7 +2541,14 @@
       },
       "dexNumber": 17,
       "dexLabel": "#017",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Nimbi line",
+      "dominatedBy": [
+        "turbo"
+      ]
     },
     {
       "id": "nimbi-1026102",
@@ -2121,7 +2577,14 @@
       },
       "dexNumber": 17,
       "dexLabel": "#017",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Nimbi line",
+      "dominatedBy": [
+        "turbo-1026202"
+      ]
     },
     {
       "id": "nimbi-1026105",
@@ -2150,7 +2613,14 @@
       },
       "dexNumber": 17,
       "dexLabel": "#017",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Nimbi line",
+      "dominatedBy": [
+        "turbo-1026205"
+      ]
     },
     {
       "id": "nimbi-1026101",
@@ -2179,7 +2649,14 @@
       },
       "dexNumber": 17,
       "dexLabel": "#017",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Nimbi line",
+      "dominatedBy": [
+        "turbo-1026201"
+      ]
     },
     {
       "id": "turbo",
@@ -2208,7 +2685,12 @@
       },
       "dexNumber": 18,
       "dexLabel": "#018",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Nimbi line",
+      "evolvesFrom": "Nimbi"
     },
     {
       "id": "turbo-1026202",
@@ -2237,7 +2719,12 @@
       },
       "dexNumber": 18,
       "dexLabel": "#018",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Nimbi line",
+      "evolvesFrom": "Nimbi"
     },
     {
       "id": "turbo-1026205",
@@ -2266,7 +2753,12 @@
       },
       "dexNumber": 18,
       "dexLabel": "#018",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Nimbi line",
+      "evolvesFrom": "Nimbi"
     },
     {
       "id": "turbo-1026201",
@@ -2295,7 +2787,12 @@
       },
       "dexNumber": 18,
       "dexLabel": "#018",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Nimbi line",
+      "evolvesFrom": "Nimbi"
     },
     {
       "id": "turbo-1026204",
@@ -2324,7 +2821,12 @@
       },
       "dexNumber": 18,
       "dexLabel": "#018",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Nimbi line",
+      "evolvesFrom": "Nimbi"
     },
     {
       "id": "dreaple",
@@ -2353,7 +2855,12 @@
       },
       "dexNumber": 19,
       "dexLabel": "#019",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Nimbi line",
+      "evolvesFrom": "Nimbi"
     },
     {
       "id": "hummin",
@@ -2382,7 +2889,15 @@
       },
       "dexNumber": 20,
       "dexLabel": "#020",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Hummin line",
+      "dominatedBy": [
+        "hexxin",
+        "tuckin"
+      ]
     },
     {
       "id": "hummin-1020101",
@@ -2411,7 +2926,15 @@
       },
       "dexNumber": 20,
       "dexLabel": "#020",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Hummin line",
+      "dominatedBy": [
+        "hexxin-1020301",
+        "tuckin-1020701"
+      ]
     },
     {
       "id": "hexxin",
@@ -2440,7 +2963,12 @@
       },
       "dexNumber": 21,
       "dexLabel": "#021",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Hummin line",
+      "evolvesFrom": "Hummin"
     },
     {
       "id": "hexxin-1020301",
@@ -2469,7 +2997,12 @@
       },
       "dexNumber": 21,
       "dexLabel": "#021",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Hummin line",
+      "evolvesFrom": "Hummin"
     },
     {
       "id": "hexxin-1020302",
@@ -2498,7 +3031,12 @@
       },
       "dexNumber": 21,
       "dexLabel": "#021",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Hummin line",
+      "evolvesFrom": "Hummin"
     },
     {
       "id": "tuckin",
@@ -2527,7 +3065,12 @@
       },
       "dexNumber": 22,
       "dexLabel": "#022",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Hummin line",
+      "evolvesFrom": "Hummin"
     },
     {
       "id": "tuckin-1020701",
@@ -2556,7 +3099,12 @@
       },
       "dexNumber": 22,
       "dexLabel": "#022",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Hummin line",
+      "evolvesFrom": "Hummin"
     },
     {
       "id": "budclaw",
@@ -2585,7 +3133,14 @@
       },
       "dexNumber": 23,
       "dexLabel": "#023",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Budclaw line",
+      "dominatedBy": [
+        "shrubclaw"
+      ]
     },
     {
       "id": "budclaw-1016103",
@@ -2614,7 +3169,14 @@
       },
       "dexNumber": 23,
       "dexLabel": "#023",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Budclaw line",
+      "dominatedBy": [
+        "shrubclaw-1016203"
+      ]
     },
     {
       "id": "budclaw-1016102",
@@ -2643,7 +3205,14 @@
       },
       "dexNumber": 23,
       "dexLabel": "#023",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Budclaw line",
+      "dominatedBy": [
+        "shrubclaw-1016202"
+      ]
     },
     {
       "id": "budclaw-1016101",
@@ -2672,7 +3241,14 @@
       },
       "dexNumber": 23,
       "dexLabel": "#023",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Budclaw line",
+      "dominatedBy": [
+        "shrubclaw-1016201"
+      ]
     },
     {
       "id": "shrubclaw",
@@ -2701,7 +3277,12 @@
       },
       "dexNumber": 24,
       "dexLabel": "#024",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budclaw line",
+      "evolvesFrom": "Budclaw"
     },
     {
       "id": "shrubclaw-1016203",
@@ -2730,7 +3311,12 @@
       },
       "dexNumber": 24,
       "dexLabel": "#024",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budclaw line",
+      "evolvesFrom": "Budclaw"
     },
     {
       "id": "shrubclaw-1016202",
@@ -2759,7 +3345,12 @@
       },
       "dexNumber": 24,
       "dexLabel": "#024",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budclaw line",
+      "evolvesFrom": "Budclaw"
     },
     {
       "id": "shrubclaw-1016201",
@@ -2788,7 +3379,12 @@
       },
       "dexNumber": 24,
       "dexLabel": "#024",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budclaw line",
+      "evolvesFrom": "Budclaw"
     },
     {
       "id": "geoclaw",
@@ -2817,7 +3413,12 @@
       },
       "dexNumber": 25,
       "dexLabel": "#025",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budclaw line",
+      "evolvesFrom": "Budclaw"
     },
     {
       "id": "sparki",
@@ -2846,7 +3447,14 @@
       },
       "dexNumber": 26,
       "dexLabel": "#026",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Sparki line",
+      "dominatedBy": [
+        "flamerion"
+      ]
     },
     {
       "id": "sparki-1033102",
@@ -2875,7 +3483,14 @@
       },
       "dexNumber": 26,
       "dexLabel": "#026",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Sparki line",
+      "dominatedBy": [
+        "flamerion-1033302"
+      ]
     },
     {
       "id": "sparki-1033101",
@@ -2904,7 +3519,14 @@
       },
       "dexNumber": 26,
       "dexLabel": "#026",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Sparki line",
+      "dominatedBy": [
+        "flamerion-1033301"
+      ]
     },
     {
       "id": "sparki-1033103",
@@ -2933,7 +3555,14 @@
       },
       "dexNumber": 26,
       "dexLabel": "#026",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Sparki line",
+      "dominatedBy": [
+        "flamerion-1033303"
+      ]
     },
     {
       "id": "flamerion",
@@ -2962,7 +3591,12 @@
       },
       "dexNumber": 27,
       "dexLabel": "#027",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Sparki line",
+      "evolvesFrom": "Sparki"
     },
     {
       "id": "flamerion-1033302",
@@ -2991,7 +3625,12 @@
       },
       "dexNumber": 27,
       "dexLabel": "#027",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Sparki line",
+      "evolvesFrom": "Sparki"
     },
     {
       "id": "flamerion-1033301",
@@ -3020,7 +3659,12 @@
       },
       "dexNumber": 27,
       "dexLabel": "#027",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Sparki line",
+      "evolvesFrom": "Sparki"
     },
     {
       "id": "flamerion-1033303",
@@ -3049,7 +3693,12 @@
       },
       "dexNumber": 27,
       "dexLabel": "#027",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Sparki line",
+      "evolvesFrom": "Sparki"
     },
     {
       "id": "flutternym",
@@ -3078,7 +3727,14 @@
       },
       "dexNumber": 28,
       "dexLabel": "#028",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Flutternym line",
+      "dominatedBy": [
+        "gracewing"
+      ]
     },
     {
       "id": "flutternym-1023103",
@@ -3107,7 +3763,14 @@
       },
       "dexNumber": 28,
       "dexLabel": "#028",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Flutternym line",
+      "dominatedBy": [
+        "gracewing-1023203"
+      ]
     },
     {
       "id": "flutternym-1023102",
@@ -3136,7 +3799,14 @@
       },
       "dexNumber": 28,
       "dexLabel": "#028",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Flutternym line",
+      "dominatedBy": [
+        "gracewing-1023202"
+      ]
     },
     {
       "id": "flutternym-1023101",
@@ -3165,7 +3835,14 @@
       },
       "dexNumber": 28,
       "dexLabel": "#028",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Flutternym line",
+      "dominatedBy": [
+        "gracewing-1023201"
+      ]
     },
     {
       "id": "gracewing",
@@ -3194,7 +3871,12 @@
       },
       "dexNumber": 29,
       "dexLabel": "#029",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Flutternym line",
+      "evolvesFrom": "Flutternym"
     },
     {
       "id": "gracewing-1023203",
@@ -3223,7 +3905,12 @@
       },
       "dexNumber": 29,
       "dexLabel": "#029",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Flutternym line",
+      "evolvesFrom": "Flutternym"
     },
     {
       "id": "gracewing-1023202",
@@ -3252,7 +3939,12 @@
       },
       "dexNumber": 29,
       "dexLabel": "#029",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Flutternym line",
+      "evolvesFrom": "Flutternym"
     },
     {
       "id": "gracewing-1023201",
@@ -3281,7 +3973,12 @@
       },
       "dexNumber": 29,
       "dexLabel": "#029",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Flutternym line",
+      "evolvesFrom": "Flutternym"
     },
     {
       "id": "somniwing",
@@ -3310,7 +4007,10 @@
       },
       "dexNumber": 30,
       "dexLabel": "#030",
-      "category": "legendary"
+      "category": "legendary",
+      "stage": 4,
+      "finalStage": 4,
+      "tierName": "Legendary"
     },
     {
       "id": "eko",
@@ -3339,7 +4039,14 @@
       },
       "dexNumber": 31,
       "dexLabel": "#031",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Eko line",
+      "dominatedBy": [
+        "eklue"
+      ]
     },
     {
       "id": "eklue",
@@ -3368,7 +4075,12 @@
       },
       "dexNumber": 32,
       "dexLabel": "#032",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Eko line",
+      "evolvesFrom": "Eko"
     },
     {
       "id": "budsquire",
@@ -3397,7 +4109,15 @@
       },
       "dexNumber": 33,
       "dexLabel": "#033",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Budsquire line",
+      "dominatedBy": [
+        "thornblade",
+        "melloblum"
+      ]
     },
     {
       "id": "budsquire-1032103",
@@ -3426,7 +4146,14 @@
       },
       "dexNumber": 33,
       "dexLabel": "#033",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Budsquire line",
+      "dominatedBy": [
+        "thornblade-1032303"
+      ]
     },
     {
       "id": "thornblade",
@@ -3455,7 +4182,12 @@
       },
       "dexNumber": 34,
       "dexLabel": "#034",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budsquire line",
+      "evolvesFrom": "Budsquire"
     },
     {
       "id": "thornblade-1032301",
@@ -3484,7 +4216,12 @@
       },
       "dexNumber": 34,
       "dexLabel": "#034",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budsquire line",
+      "evolvesFrom": "Budsquire"
     },
     {
       "id": "thornblade-1032303",
@@ -3513,7 +4250,12 @@
       },
       "dexNumber": 34,
       "dexLabel": "#034",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budsquire line",
+      "evolvesFrom": "Budsquire"
     },
     {
       "id": "thornblade-1032302",
@@ -3542,7 +4284,12 @@
       },
       "dexNumber": 34,
       "dexLabel": "#034",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budsquire line",
+      "evolvesFrom": "Budsquire"
     },
     {
       "id": "melloblum",
@@ -3571,7 +4318,12 @@
       },
       "dexNumber": 35,
       "dexLabel": "#035",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budsquire line",
+      "evolvesFrom": "Budsquire"
     },
     {
       "id": "melloblum-1032402",
@@ -3600,7 +4352,12 @@
       },
       "dexNumber": 35,
       "dexLabel": "#035",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Budsquire line",
+      "evolvesFrom": "Budsquire"
     },
     {
       "id": "pomegg",
@@ -3629,7 +4386,14 @@
       },
       "dexNumber": 36,
       "dexLabel": "#036",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Pomegg line",
+      "dominatedBy": [
+        "pomawk"
+      ]
     },
     {
       "id": "pomegg-1047102",
@@ -3658,7 +4422,14 @@
       },
       "dexNumber": 36,
       "dexLabel": "#036",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Pomegg line",
+      "dominatedBy": [
+        "pomawk-1047502"
+      ]
     },
     {
       "id": "pomegg-1047103",
@@ -3687,7 +4458,14 @@
       },
       "dexNumber": 36,
       "dexLabel": "#036",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Pomegg line",
+      "dominatedBy": [
+        "pomawk-1047503"
+      ]
     },
     {
       "id": "pomegg-1047101",
@@ -3716,7 +4494,14 @@
       },
       "dexNumber": 36,
       "dexLabel": "#036",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Pomegg line",
+      "dominatedBy": [
+        "pomawk-1047501"
+      ]
     },
     {
       "id": "pomawk",
@@ -3745,7 +4530,12 @@
       },
       "dexNumber": 37,
       "dexLabel": "#037",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pomegg line",
+      "evolvesFrom": "Pomegg"
     },
     {
       "id": "pomawk-1047502",
@@ -3774,7 +4564,12 @@
       },
       "dexNumber": 37,
       "dexLabel": "#037",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pomegg line",
+      "evolvesFrom": "Pomegg"
     },
     {
       "id": "pomawk-1047503",
@@ -3803,7 +4598,12 @@
       },
       "dexNumber": 37,
       "dexLabel": "#037",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pomegg line",
+      "evolvesFrom": "Pomegg"
     },
     {
       "id": "pomawk-1047501",
@@ -3832,7 +4632,12 @@
       },
       "dexNumber": 37,
       "dexLabel": "#037",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pomegg line",
+      "evolvesFrom": "Pomegg"
     },
     {
       "id": "dewy",
@@ -3861,7 +4666,14 @@
       },
       "dexNumber": 38,
       "dexLabel": "#038",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Dewy line",
+      "dominatedBy": [
+        "fragrancier"
+      ]
     },
     {
       "id": "fragrancier",
@@ -3890,7 +4702,12 @@
       },
       "dexNumber": 39,
       "dexLabel": "#039",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Dewy line",
+      "evolvesFrom": "Dewy"
     },
     {
       "id": "wisptis",
@@ -3919,7 +4736,14 @@
       },
       "dexNumber": 40,
       "dexLabel": "#040",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Wisptis line",
+      "dominatedBy": [
+        "ignitis"
+      ]
     },
     {
       "id": "wisptis-1003101",
@@ -3948,7 +4772,14 @@
       },
       "dexNumber": 40,
       "dexLabel": "#040",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Wisptis line",
+      "dominatedBy": [
+        "ignitis-1003201"
+      ]
     },
     {
       "id": "wisptis-1003103",
@@ -3977,7 +4808,14 @@
       },
       "dexNumber": 40,
       "dexLabel": "#040",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Wisptis line",
+      "dominatedBy": [
+        "ignitis-1003203"
+      ]
     },
     {
       "id": "ignitis",
@@ -4006,7 +4844,12 @@
       },
       "dexNumber": 41,
       "dexLabel": "#041",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Wisptis line",
+      "evolvesFrom": "Wisptis"
     },
     {
       "id": "ignitis-1003201",
@@ -4035,7 +4878,12 @@
       },
       "dexNumber": 41,
       "dexLabel": "#041",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Wisptis line",
+      "evolvesFrom": "Wisptis"
     },
     {
       "id": "ignitis-1003203",
@@ -4064,7 +4912,12 @@
       },
       "dexNumber": 41,
       "dexLabel": "#041",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Wisptis line",
+      "evolvesFrom": "Wisptis"
     },
     {
       "id": "ignitis-1003202",
@@ -4093,7 +4946,12 @@
       },
       "dexNumber": 41,
       "dexLabel": "#041",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Wisptis line",
+      "evolvesFrom": "Wisptis"
     },
     {
       "id": "bonesky",
@@ -4122,7 +4980,15 @@
       },
       "dexNumber": 42,
       "dexLabel": "#042",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Bonesky line",
+      "dominatedBy": [
+        "fenrier",
+        "glynsera"
+      ]
     },
     {
       "id": "bonesky-1013102",
@@ -4151,7 +5017,15 @@
       },
       "dexNumber": 42,
       "dexLabel": "#042",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Bonesky line",
+      "dominatedBy": [
+        "fenrier-1013202",
+        "glynsera-1013302"
+      ]
     },
     {
       "id": "fenrier",
@@ -4180,7 +5054,15 @@
       },
       "dexNumber": 43,
       "dexLabel": "#043",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Bonesky line",
+      "evolvesFrom": "Bonesky",
+      "dominatedBy": [
+        "glynsera"
+      ]
     },
     {
       "id": "fenrier-1013202",
@@ -4209,7 +5091,15 @@
       },
       "dexNumber": 43,
       "dexLabel": "#043",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Bonesky line",
+      "evolvesFrom": "Bonesky",
+      "dominatedBy": [
+        "glynsera-1013302"
+      ]
     },
     {
       "id": "glynsera",
@@ -4238,7 +5128,12 @@
       },
       "dexNumber": 44,
       "dexLabel": "#044",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bonesky line",
+      "evolvesFrom": "Fenrier"
     },
     {
       "id": "glynsera-1013302",
@@ -4267,7 +5162,12 @@
       },
       "dexNumber": 44,
       "dexLabel": "#044",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bonesky line",
+      "evolvesFrom": "Fenrier"
     },
     {
       "id": "glynsera-1013301",
@@ -4297,7 +5197,12 @@
       },
       "dexNumber": 44,
       "dexLabel": "#044",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bonesky line",
+      "evolvesFrom": "Fenrier"
     },
     {
       "id": "bolty",
@@ -4326,7 +5231,14 @@
       },
       "dexNumber": 45,
       "dexLabel": "#045",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Bolty line",
+      "dominatedBy": [
+        "blazen"
+      ]
     },
     {
       "id": "bolty-1022102",
@@ -4355,7 +5267,14 @@
       },
       "dexNumber": 45,
       "dexLabel": "#045",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Bolty line",
+      "dominatedBy": [
+        "blazen-1022202"
+      ]
     },
     {
       "id": "blazen",
@@ -4384,7 +5303,12 @@
       },
       "dexNumber": 46,
       "dexLabel": "#046",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bolty line",
+      "evolvesFrom": "Bolty"
     },
     {
       "id": "blazen-1022202",
@@ -4413,7 +5337,12 @@
       },
       "dexNumber": 46,
       "dexLabel": "#046",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bolty line",
+      "evolvesFrom": "Bolty"
     },
     {
       "id": "blazen-1022201",
@@ -4442,7 +5371,12 @@
       },
       "dexNumber": 46,
       "dexLabel": "#046",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bolty line",
+      "evolvesFrom": "Bolty"
     },
     {
       "id": "squarrel",
@@ -4471,7 +5405,14 @@
       },
       "dexNumber": 47,
       "dexLabel": "#047",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Squarrel line",
+      "dominatedBy": [
+        "squashel"
+      ]
     },
     {
       "id": "squashel",
@@ -4500,7 +5441,12 @@
       },
       "dexNumber": 48,
       "dexLabel": "#048",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Squarrel line",
+      "evolvesFrom": "Squarrel"
     },
     {
       "id": "susuta",
@@ -4529,7 +5475,16 @@
       },
       "dexNumber": 49,
       "dexLabel": "#049",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Susuta line",
+      "dominatedBy": [
+        "popota",
+        "piopiota",
+        "panpanta"
+      ]
     },
     {
       "id": "susuta-1017101",
@@ -4558,7 +5513,16 @@
       },
       "dexNumber": 49,
       "dexLabel": "#049",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Susuta line",
+      "dominatedBy": [
+        "popota-1017201",
+        "piopiota-1017301",
+        "panpanta-1017401"
+      ]
     },
     {
       "id": "popota",
@@ -4587,7 +5551,16 @@
       },
       "dexNumber": 50,
       "dexLabel": "#050",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Susuta",
+      "dominatedBy": [
+        "piopiota",
+        "panpanta"
+      ]
     },
     {
       "id": "popota-1017201",
@@ -4616,7 +5589,16 @@
       },
       "dexNumber": 50,
       "dexLabel": "#050",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Susuta",
+      "dominatedBy": [
+        "piopiota-1017301",
+        "panpanta-1017401"
+      ]
     },
     {
       "id": "piopiota",
@@ -4645,7 +5627,12 @@
       },
       "dexNumber": 51,
       "dexLabel": "#051",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Popota"
     },
     {
       "id": "piopiota-1017301",
@@ -4674,7 +5661,12 @@
       },
       "dexNumber": 51,
       "dexLabel": "#051",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Popota"
     },
     {
       "id": "panpanta",
@@ -4703,7 +5695,12 @@
       },
       "dexNumber": 52,
       "dexLabel": "#052",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Popota"
     },
     {
       "id": "panpanta-1017401",
@@ -4732,7 +5729,12 @@
       },
       "dexNumber": 52,
       "dexLabel": "#052",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Popota"
     },
     {
       "id": "panpanta-1017402",
@@ -4761,7 +5763,12 @@
       },
       "dexNumber": 52,
       "dexLabel": "#052",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Susuta line",
+      "evolvesFrom": "Popota"
     },
     {
       "id": "shelly",
@@ -4790,7 +5797,15 @@
       },
       "dexNumber": 53,
       "dexLabel": "#053",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Shelly line",
+      "dominatedBy": [
+        "sheldon",
+        "sherro"
+      ]
     },
     {
       "id": "sheldon",
@@ -4819,7 +5834,15 @@
       },
       "dexNumber": 54,
       "dexLabel": "#054",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Shelly line",
+      "evolvesFrom": "Shelly",
+      "dominatedBy": [
+        "sherro"
+      ]
     },
     {
       "id": "sherro",
@@ -4848,7 +5871,12 @@
       },
       "dexNumber": 55,
       "dexLabel": "#055",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Shelly line",
+      "evolvesFrom": "Sheldon"
     },
     {
       "id": "sherro-1019401",
@@ -4877,7 +5905,12 @@
       },
       "dexNumber": 55,
       "dexLabel": "#055",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Shelly line",
+      "evolvesFrom": "Sheldon"
     },
     {
       "id": "sherro-1019402",
@@ -4906,7 +5939,12 @@
       },
       "dexNumber": 55,
       "dexLabel": "#055",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Shelly line",
+      "evolvesFrom": "Sheldon"
     },
     {
       "id": "baleetle",
@@ -4935,7 +5973,15 @@
       },
       "dexNumber": 56,
       "dexLabel": "#056",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Baleetle line",
+      "dominatedBy": [
+        "waleetle",
+        "bouldus"
+      ]
     },
     {
       "id": "baleetle-1045101",
@@ -4964,7 +6010,15 @@
       },
       "dexNumber": 56,
       "dexLabel": "#056",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Baleetle line",
+      "dominatedBy": [
+        "waleetle-1045301",
+        "bouldus-1045401"
+      ]
     },
     {
       "id": "waleetle",
@@ -4993,7 +6047,12 @@
       },
       "dexNumber": 57,
       "dexLabel": "#057",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Baleetle line",
+      "evolvesFrom": "Baleetle"
     },
     {
       "id": "waleetle-1045301",
@@ -5022,7 +6081,12 @@
       },
       "dexNumber": 57,
       "dexLabel": "#057",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Baleetle line",
+      "evolvesFrom": "Baleetle"
     },
     {
       "id": "waleetle-1045302",
@@ -5051,7 +6115,12 @@
       },
       "dexNumber": 57,
       "dexLabel": "#057",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Baleetle line",
+      "evolvesFrom": "Baleetle"
     },
     {
       "id": "bouldus",
@@ -5080,7 +6149,12 @@
       },
       "dexNumber": 58,
       "dexLabel": "#058",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Baleetle line",
+      "evolvesFrom": "Baleetle"
     },
     {
       "id": "bouldus-1045401",
@@ -5109,7 +6183,12 @@
       },
       "dexNumber": 58,
       "dexLabel": "#058",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Baleetle line",
+      "evolvesFrom": "Baleetle"
     },
     {
       "id": "fentuft",
@@ -5138,7 +6217,14 @@
       },
       "dexNumber": 59,
       "dexLabel": "#059",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Fentuft line",
+      "dominatedBy": [
+        "fenmane"
+      ]
     },
     {
       "id": "fenmane",
@@ -5167,7 +6253,12 @@
       },
       "dexNumber": 60,
       "dexLabel": "#060",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Fentuft line",
+      "evolvesFrom": "Fentuft"
     },
     {
       "id": "fenmane-1029301",
@@ -5196,7 +6287,12 @@
       },
       "dexNumber": 60,
       "dexLabel": "#060",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Fentuft line",
+      "evolvesFrom": "Fentuft"
     },
     {
       "id": "helmut",
@@ -5225,7 +6321,15 @@
       },
       "dexNumber": 61,
       "dexLabel": "#061",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Helmut line",
+      "dominatedBy": [
+        "pawney",
+        "rookey"
+      ]
     },
     {
       "id": "helmut-1002102",
@@ -5254,7 +6358,15 @@
       },
       "dexNumber": 61,
       "dexLabel": "#061",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Helmut line",
+      "dominatedBy": [
+        "pawney-1002602",
+        "rookey-1002702"
+      ]
     },
     {
       "id": "helmut-1002101",
@@ -5283,7 +6395,15 @@
       },
       "dexNumber": 61,
       "dexLabel": "#061",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Helmut line",
+      "dominatedBy": [
+        "pawney-1002601",
+        "rookey-1002701"
+      ]
     },
     {
       "id": "pawney",
@@ -5312,7 +6432,12 @@
       },
       "dexNumber": 62,
       "dexLabel": "#062",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "pawney-1002602",
@@ -5341,7 +6466,12 @@
       },
       "dexNumber": 62,
       "dexLabel": "#062",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "pawney-1002601",
@@ -5370,7 +6500,12 @@
       },
       "dexNumber": 62,
       "dexLabel": "#062",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "pawney-1002603",
@@ -5399,7 +6534,12 @@
       },
       "dexNumber": 62,
       "dexLabel": "#062",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "rookey",
@@ -5428,7 +6568,12 @@
       },
       "dexNumber": 63,
       "dexLabel": "#063",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "rookey-1002702",
@@ -5457,7 +6602,12 @@
       },
       "dexNumber": 63,
       "dexLabel": "#063",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "rookey-1002701",
@@ -5486,7 +6636,12 @@
       },
       "dexNumber": 63,
       "dexLabel": "#063",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Helmut line",
+      "evolvesFrom": "Helmut"
     },
     {
       "id": "jawling",
@@ -5515,7 +6670,15 @@
       },
       "dexNumber": 64,
       "dexLabel": "#064",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Jawling line",
+      "dominatedBy": [
+        "helmwhelp",
+        "helgon"
+      ]
     },
     {
       "id": "jawling-1002401",
@@ -5544,7 +6707,15 @@
       },
       "dexNumber": 64,
       "dexLabel": "#064",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Jawling line",
+      "dominatedBy": [
+        "helmwhelp-1002201",
+        "helgon-1002301"
+      ]
     },
     {
       "id": "helmwhelp",
@@ -5573,7 +6744,15 @@
       },
       "dexNumber": 65,
       "dexLabel": "#065",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Jawling line",
+      "evolvesFrom": "Jawling",
+      "dominatedBy": [
+        "helgon"
+      ]
     },
     {
       "id": "helmwhelp-1002201",
@@ -5602,7 +6781,15 @@
       },
       "dexNumber": 65,
       "dexLabel": "#065",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Jawling line",
+      "evolvesFrom": "Jawling",
+      "dominatedBy": [
+        "helgon-1002301"
+      ]
     },
     {
       "id": "helgon",
@@ -5631,7 +6818,12 @@
       },
       "dexNumber": 66,
       "dexLabel": "#066",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Jawling line",
+      "evolvesFrom": "Helmwhelp"
     },
     {
       "id": "helgon-1002301",
@@ -5660,7 +6852,12 @@
       },
       "dexNumber": 66,
       "dexLabel": "#066",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Jawling line",
+      "evolvesFrom": "Helmwhelp"
     },
     {
       "id": "infergon",
@@ -5689,7 +6886,12 @@
       },
       "dexNumber": 67,
       "dexLabel": "#067",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Jawling line",
+      "evolvesFrom": "Helmwhelp"
     },
     {
       "id": "infergon-1002503",
@@ -5718,7 +6920,12 @@
       },
       "dexNumber": 67,
       "dexLabel": "#067",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Jawling line",
+      "evolvesFrom": "Helmwhelp"
     },
     {
       "id": "cubbo",
@@ -5747,7 +6954,14 @@
       },
       "dexNumber": 68,
       "dexLabel": "#068",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Cubbo line",
+      "dominatedBy": [
+        "grizbo"
+      ]
     },
     {
       "id": "grizbo",
@@ -5776,7 +6990,12 @@
       },
       "dexNumber": 69,
       "dexLabel": "#069",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Cubbo line",
+      "evolvesFrom": "Cubbo"
     },
     {
       "id": "grizbo-1050301",
@@ -5805,7 +7024,12 @@
       },
       "dexNumber": 69,
       "dexLabel": "#069",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Cubbo line",
+      "evolvesFrom": "Cubbo"
     },
     {
       "id": "pebbling",
@@ -5834,7 +7058,17 @@
       },
       "dexNumber": 70,
       "dexLabel": "#070",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Pebbling line",
+      "dominatedBy": [
+        "lavazar",
+        "magmarex",
+        "geodeback",
+        "minespine"
+      ]
     },
     {
       "id": "lavazar",
@@ -5863,7 +7097,15 @@
       },
       "dexNumber": 71,
       "dexLabel": "#071",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Pebbling line",
+      "evolvesFrom": "Pebbling",
+      "dominatedBy": [
+        "magmarex"
+      ]
     },
     {
       "id": "magmarex",
@@ -5892,7 +7134,12 @@
       },
       "dexNumber": 72,
       "dexLabel": "#072",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pebbling line",
+      "evolvesFrom": "Lavazar"
     },
     {
       "id": "magmarex-1028301",
@@ -5921,7 +7168,12 @@
       },
       "dexNumber": 72,
       "dexLabel": "#072",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pebbling line",
+      "evolvesFrom": "Lavazar"
     },
     {
       "id": "geodeback",
@@ -5950,7 +7202,15 @@
       },
       "dexNumber": 73,
       "dexLabel": "#073",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Pebbling line",
+      "evolvesFrom": "Pebbling",
+      "dominatedBy": [
+        "minespine"
+      ]
     },
     {
       "id": "minespine",
@@ -5979,7 +7239,12 @@
       },
       "dexNumber": 74,
       "dexLabel": "#074",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pebbling line",
+      "evolvesFrom": "Geodeback"
     },
     {
       "id": "cozite",
@@ -6008,7 +7273,14 @@
       },
       "dexNumber": 75,
       "dexLabel": "#075",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Cozite line",
+      "dominatedBy": [
+        "bailite"
+      ]
     },
     {
       "id": "bailite",
@@ -6037,7 +7309,12 @@
       },
       "dexNumber": 76,
       "dexLabel": "#076",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Cozite line",
+      "evolvesFrom": "Cozite"
     },
     {
       "id": "bulbly",
@@ -6066,7 +7343,15 @@
       },
       "dexNumber": 77,
       "dexLabel": "#077",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Bulbly line",
+      "dominatedBy": [
+        "veilfloat",
+        "luminelle"
+      ]
     },
     {
       "id": "veilfloat",
@@ -6095,7 +7380,15 @@
       },
       "dexNumber": 78,
       "dexLabel": "#078",
-      "category": "common"
+      "category": "common",
+      "stage": 2,
+      "finalStage": 3,
+      "tierName": "Gamma",
+      "evolutionLine": "Bulbly line",
+      "evolvesFrom": "Bulbly",
+      "dominatedBy": [
+        "luminelle"
+      ]
     },
     {
       "id": "luminelle",
@@ -6124,7 +7417,12 @@
       },
       "dexNumber": 79,
       "dexLabel": "#079",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bulbly line",
+      "evolvesFrom": "Veilfloat"
     },
     {
       "id": "luminelle-1014301",
@@ -6153,7 +7451,12 @@
       },
       "dexNumber": 79,
       "dexLabel": "#079",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bulbly line",
+      "evolvesFrom": "Veilfloat"
     },
     {
       "id": "luminelle-1014302",
@@ -6182,7 +7485,12 @@
       },
       "dexNumber": 79,
       "dexLabel": "#079",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Bulbly line",
+      "evolvesFrom": "Veilfloat"
     },
     {
       "id": "fahloo",
@@ -6211,7 +7519,14 @@
       },
       "dexNumber": 80,
       "dexLabel": "#080",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 3,
+      "tierName": "Lumin",
+      "evolutionLine": "Fahloo line",
+      "dominatedBy": [
+        "erlath"
+      ]
     },
     {
       "id": "erlath",
@@ -6240,7 +7555,12 @@
       },
       "dexNumber": 81,
       "dexLabel": "#081",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Fahloo line",
+      "evolvesFrom": "Fahloo"
     },
     {
       "id": "besauce",
@@ -6269,7 +7589,10 @@
       },
       "dexNumber": 82,
       "dexLabel": "#082",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova"
     },
     {
       "id": "irisalis",
@@ -6298,7 +7621,10 @@
       },
       "dexNumber": 10001,
       "dexLabel": "#10001",
-      "category": "legendary"
+      "category": "legendary",
+      "stage": 4,
+      "finalStage": 4,
+      "tierName": "Legendary"
     },
     {
       "id": "dazmand",
@@ -6327,7 +7653,12 @@
       },
       "dexNumber": 10002,
       "dexLabel": "#10002",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Pomegg line",
+      "evolvesFrom": "Pomegg"
     },
     {
       "id": "fulmintis",
@@ -6356,7 +7687,12 @@
       },
       "dexNumber": 10003,
       "dexLabel": "#10003",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Wisptis line",
+      "evolvesFrom": "Wisptis"
     },
     {
       "id": "fulmintis-1003305",
@@ -6385,7 +7721,12 @@
       },
       "dexNumber": 10003,
       "dexLabel": "#10003",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova",
+      "evolutionLine": "Wisptis line",
+      "evolvesFrom": "Wisptis"
     },
     {
       "id": "sparkelf",
@@ -6414,7 +7755,10 @@
       },
       "dexNumber": 11001,
       "dexLabel": "#11001",
-      "category": "common"
+      "category": "common",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova"
     },
     {
       "id": "sparkelf-6999301",
@@ -6443,7 +7787,10 @@
       },
       "dexNumber": 11001,
       "dexLabel": "#11001",
-      "category": "prismana"
+      "category": "prismana",
+      "stage": 3,
+      "finalStage": 3,
+      "tierName": "Nova"
     },
     {
       "id": "lunara",
@@ -6472,7 +7819,11 @@
       },
       "dexNumber": 99996,
       "dexLabel": "Starter",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 1,
+      "tierName": "Lumin",
+      "starter": true
     },
     {
       "id": "helion",
@@ -6501,7 +7852,11 @@
       },
       "dexNumber": 99998,
       "dexLabel": "Starter",
-      "category": "common"
+      "category": "common",
+      "stage": 1,
+      "finalStage": 1,
+      "tierName": "Lumin",
+      "starter": true
     }
   ]
 }
