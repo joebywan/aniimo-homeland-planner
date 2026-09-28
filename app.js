@@ -97,6 +97,8 @@
     lastResult: null,
     // lastOptions: planProcessorOptions output (the plan at each processor busy level); optionIndex: shown one.
     lastOptions: null,
+    // lastPool: the Available Aniimo the shown plan was chosen from (for the "Choose these" alternatives).
+    lastPool: null,
     optionIndex: 0,
     planView: "fitted",
     running: false,
@@ -1360,6 +1362,7 @@
     try {
       await waitForPaint();
       const pool = window.AniimoOptimizer.filterAniimoPool(app.data.aniimo.aniimo, app.state.pool);
+      app.lastPool = pool;
       // The search is a heuristic, and a bigger pool can occasionally lead it to a slightly bigger team.
       // Ticking Prismana or legendary Aniimo should never make the plan worse, so the optimiser also tries
       // without them and keeps whichever team is smaller.
@@ -1691,7 +1694,7 @@
           <article class="worker-card">
             <img class="aniimo-head" src="${escapeAttr(worker.image || FALLBACK_MARK)}" alt="" />
             <div>
-              <h4>${escapeHtml(worker.displayName)}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""} ${categoryBadge(worker.category || worker)}${tierBadge(aniimoLookup().get(worker.aniimoId) || worker)}</h4>
+              <h4><span class="example-label">e.g.</span> ${escapeHtml(worker.displayName)}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""} ${categoryBadge(worker.category || worker)}${tierBadge(aniimoLookup().get(worker.aniimoId) || worker)}</h4>
               <p><strong>Main job:</strong> ${escapeHtml(worker.primaryAssignment)}</p>
               ${
                 worker.secondaryAssignments.length
@@ -1707,14 +1710,17 @@
       })
       .join("");
 
-    const groups = chooseGroups(result.selectedWorkers);
+    const pool = app.lastPool || window.AniimoOptimizer.filterAniimoPool(app.data.aniimo.aniimo, app.state.pool);
+    const { lines, farmSteps } = window.AniimoOptimizer.summariseRecommendations(result, pool, { skills: app.data.aniimo.skills });
     container.innerHTML = `
       <div class="choose-block">
         <h4 class="choose-title">Choose these</h4>
-        <ul class="choose-list">${groups.map(chooseItem).join("")}</ul>
+        <p class="choose-help">Any Aniimo with the essential abilities will do; the named ones bring the most useful extras. Personalities are random on each Aniimo – look for the one shown (+${personalityPercent()}% at those buildings).</p>${farmSteps?.note ? `
+        <p class="choose-help">${escapeHtml(farmSteps.note)}</p>` : ""}
+        <ul class="choose-list">${chooseGroups(lines).map(chooseItem).join("")}</ul>
       </div>
       <details class="workforce-details">
-        <summary>Details for each Aniimo (${result.selectedWorkers.length})</summary>
+        <summary>Example Aniimo the planner picked (${result.selectedWorkers.length})</summary>
         <div class="worker-cards">${cards}</div>
       </details>
     `;
@@ -1722,48 +1728,57 @@
     wireImageFallback(container);
   }
 
-  // The plan's Aniimo grouped by form (copies together), in plan order.
-  function chooseGroups(workers) {
+  // Recommendation lines that share a requirement, together (one per target personality inside).
+  function chooseGroups(lines) {
     const groups = new Map();
-    for (const worker of workers) {
-      const group = groups.get(worker.aniimoId) || { worker, count: 0, fullTime: new Map(), partTime: new Map(), boosters: 0 };
-      group.count += 1;
-      const work = worker.work || { fullTime: null, partTime: [] };
-      if (work.fullTime) group.fullTime.set(work.fullTime.name, (group.fullTime.get(work.fullTime.name) || 0) + 1);
-      for (const item of work.partTime || []) group.partTime.set(item.name, (group.partTime.get(item.name) || 0) + item.load);
-      if (!work.fullTime && !(work.partTime || []).length) group.boosters += 1;
-      groups.set(worker.aniimoId, group);
+    for (const line of lines) {
+      if (!groups.has(line.group)) groups.set(line.group, []);
+      groups.get(line.group).push(line);
     }
     return [...groups.values()];
   }
 
-  // "2× Piopiota (Nighttime Form) – Tidewhisper Sandcastle, Well" with portrait, stage and ability levels.
-  function chooseItem(group) {
-    const worker = group.worker;
-    const entry = aniimoLookup().get(worker.aniimoId) || worker;
-    const jobs = [];
-    for (const [name, count] of group.fullTime) jobs.push(`${name}${count > 1 ? ` ×${count}` : ""}`);
-    const partTime = [...group.partTime].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name);
-    if (partTime.length) {
-      const shown = partTime.slice(0, 3).join(", ");
-      const more = partTime.length > 3 ? ` +${partTime.length - 3} more` : "";
-      jobs.push(`part-time: ${shown}${more}`);
-    }
-    if (group.boosters) jobs.push("ability points");
-    const abilities = app.data.aniimo.skills
-      .filter((skill) => Number(worker.skills?.[skill] || 0) > 0)
-      .map((skill) => `<span class="choose-ability" title="${escapeAttr(`${skill} ${worker.skills[skill]}`)}">${abilityIcon(skill, "small")}<span>${Number(worker.skills[skill])}</span></span>`)
+  function chooseAbility(skill, level, extraClass = "") {
+    return `<span class="choose-ability ${extraClass}" title="${escapeAttr(`${skill} ${level}`)}">${abilityIcon(skill, "small")}<span>${escapeHtml(skill)} ${Number(level)}</span></span>`;
+  }
+
+  // "4× Magmarex or Scorchhowl (Highland Form)", the abilities they need and bring, then one row per
+  // target personality ("1× · look for Practical — Chimney Kiln, Claw Game Cooker") and fallback choices.
+  function chooseItem(lines) {
+    const head = lines[0];
+    const count = lines.reduce((sum, line) => sum + line.count, 0);
+    const entry = aniimoLookup().get(head.headline.aniimoIds[0]) || head.examples[0];
+    const image = entry?.image || head.examples[0]?.image || FALLBACK_MARK;
+    const names = head.headline.names;
+    const nameParts = names.map((name) => `<strong>${escapeHtml(name)}</strong>`);
+    const namesJoined = nameParts.length > 1 ? `${nameParts.slice(0, -1).join(", ")} or ${nameParts[nameParts.length - 1]}` : nameParts.join("");
+    const notes = head.essential
+      .filter((item) => item.forTarget || item.farmSteps)
+      .map((item) => (item.forTarget ? `${item.skill} ${item.level} needed for the ${item.skill} target` : `${item.skill} for farm steps`));
+    const essential = head.essential.map((item) => chooseAbility(item.skill, item.level, "is-essential")).join("");
+    const bonus = head.bonus.map((item) => chooseAbility(item.skill, item.level, "is-bonus")).join("");
+    const rows = lines
+      .map((line) => {
+        const personality = line.personality
+          ? `look for <strong>${escapeHtml(line.personality)}</strong>${line.personalityBuildings.length ? ` – ${escapeHtml(line.personalityBuildings.join(", "))}` : ""}`
+          : `<span class="choose-muted">no personality bonus</span>${line.personalityBuildings.length ? ` – ${escapeHtml(line.personalityBuildings.join(", "))}` : ""}`;
+        const others = [...line.jobs.fullTime.map((job) => job.name), ...line.jobs.partTime].filter((name) => !line.personalityBuildings.includes(name));
+        const extra = [line.jobs.fullTime.length ? "" : "part-time", others.length ? `also ${others.join(", ")}` : "", line.jobs.boosters ? "ability points for your targets" : ""].filter(Boolean);
+        const jobs = extra.length ? ` <span class="choose-jobs">(${escapeHtml(extra.join("; "))})</span>` : "";
+        return `<li><span class="choose-count">${line.count}×</span> <span class="choose-role">${personality}</span>${jobs}</li>`;
+      })
       .join("");
-    const full = group.fullTime.size ? "Full time" : "";
-    const title = [full, partTime.length ? `Part-time at ${partTime.join(", ")}` : ""].filter(Boolean).join("; ");
     return `
       <li class="choose-item">
-        <img class="aniimo-head" src="${escapeAttr(worker.image || FALLBACK_MARK)}" alt="" />
+        <img class="aniimo-head" src="${escapeAttr(image)}" alt="" />
         <div class="choose-main">
-          <p class="choose-name">${group.count > 1 ? `<span class="choose-count">${group.count}×</span> ` : ""}<strong>${escapeHtml(worker.displayName)}</strong>${categoryBadge(worker.category || worker)}${tierBadge(entry)}</p>
-          <p class="choose-jobs" title="${escapeAttr(title)}">${escapeHtml(jobs.join(" · "))}</p>
+          <p class="choose-name"><span class="choose-count">${count}×</span> ${namesJoined}</p>
+          <p class="choose-needs"><span class="choose-label">Essential</span>${essential}${bonus ? `<span class="choose-label">Bonus</span>${bonus}` : ""}</p>
+          ${notes.length ? `<p class="choose-note">${escapeHtml(notes.join("; "))}</p>` : ""}
+          ${head.reason ? `<p class="choose-note">${escapeHtml(head.reason)}</p>` : ""}
+          <ul class="choose-roles">${rows}</ul>
+          ${head.text.alsoFine ? `<p class="choose-also">${escapeHtml(head.text.alsoFine)}</p>` : ""}
         </div>
-        <div class="choose-abilities" aria-label="${escapeAttr(app.data.aniimo.skills.filter((skill) => worker.skills?.[skill] > 0).map((skill) => `${skill} ${worker.skills[skill]}`).join(", "))}">${abilities}</div>
       </li>
     `;
   }
