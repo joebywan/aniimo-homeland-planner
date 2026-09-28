@@ -1566,11 +1566,92 @@
     };
   }
 
+  // Personalities speed up work at one building each, so a part-time Aniimo is easiest to find a good
+  // personality for when its work sits at buildings wanting the same one. Aniimo that do processor work
+  // with the same ability at the same level are interchangeable there, so their shares of that work are
+  // re-dealt: buildings grouped by personality (the most work first), each Aniimo filled in turn up to the
+  // share it already had. Every Aniimo's day, every building's total and every farm step stay the same.
+  function concentratePersonalities(intermittent) {
+    const assignments = intermittent?.assignments || [];
+    if (assignments.length < 2) return intermittent;
+    const EPS = 1e-6;
+    const next = assignments.map((item) => ({ ...item, tasks: item.tasks.slice() }));
+    const bySkill = new Map();
+    next.forEach((item, index) => {
+      for (const task of item.tasks) {
+        if (task.kind !== "processor") continue;
+        const key = `${task.skill}|${Number(item.worker.skills?.[task.skill] || 0)}`;
+        if (!bySkill.has(key)) bySkill.set(key, new Set());
+        bySkill.get(key).add(index);
+      }
+    });
+    for (const [key, indexSet] of bySkill) {
+      const indices = [...indexSet];
+      if (indices.length < 2) continue;
+      const skill = key.split("|")[0];
+      const isShared = (task) => task.kind === "processor" && task.skill === skill;
+      const byBuilding = new Map();
+      const capacity = new Map();
+      for (const index of indices) {
+        let load = 0;
+        for (const task of next[index].tasks.filter(isShared)) {
+          const entry = byBuilding.get(task.buildingId) || { template: task, load: 0 };
+          entry.load += task.load;
+          byBuilding.set(task.buildingId, entry);
+          load += task.load;
+        }
+        capacity.set(index, load);
+      }
+      // Every Aniimo must be able to work every one of these buildings (family-only ones may not be shared).
+      const entries = [...byBuilding.values()];
+      if (!indices.every((index) => entries.every((entry) => speciesAllowed(next[index].worker, entry.template)))) continue;
+      const personalityLoad = new Map();
+      for (const entry of entries) {
+        const name = entry.template.personalityBonus || "";
+        personalityLoad.set(name, (personalityLoad.get(name) || 0) + entry.load);
+      }
+      entries.sort((a, b) => {
+        const pa = a.template.personalityBonus || "";
+        const pb = b.template.personalityBonus || "";
+        if (pa !== pb) {
+          if (!pa || !pb) return pa ? -1 : 1;
+          return personalityLoad.get(pb) - personalityLoad.get(pa) || pa.localeCompare(pb);
+        }
+        return b.load - a.load || a.template.buildingName.localeCompare(b.template.buildingName);
+      });
+      const order = indices.slice().sort((a, b) => capacity.get(b) - capacity.get(a) || a - b);
+      const dealt = new Map(order.map((index) => [index, []]));
+      let cursor = 0;
+      let left = entries.length ? entries[0].load : 0;
+      for (const index of order) {
+        let room = capacity.get(index);
+        while (room > EPS && cursor < entries.length) {
+          const take = Math.min(room, left);
+          if (take > EPS) {
+            const template = entries[cursor].template;
+            dealt.get(index).push({ ...template, chunkId: `${template.id || `${template.buildingId}:${template.skill}`}:c${index}`, load: take });
+          }
+          room -= take;
+          left -= take;
+          if (left <= EPS) {
+            cursor += 1;
+            left = cursor < entries.length ? entries[cursor].load : 0;
+          }
+        }
+      }
+      for (const index of order) {
+        next[index].tasks = next[index].tasks.filter((task) => !isShared(task)).concat(dealt.get(index));
+      }
+    }
+    return { ...intermittent, assignments: next };
+  }
+
   function finalizeResult(feasible, result, state, candidates, allWorkers, requirements, skills, model, settings, diagnostics) {
     // The team as the search left it, before the quality pass: a higher processor level is built from it
     // (the search's team shares part-time work more flexibly, so it needs no more Aniimo).
     const searchTeam = result.selectedWorkers.slice();
     if (feasible && result.ok) result = improvePlanQuality(result, allWorkers, requirements, skills, model, settings);
+    if (result.intermittent?.assignments?.length) result = { ...result, intermittent: concentratePersonalities(result.intermittent) };
     const selectedIds = new Set(result.selectedWorkers.map((worker) => worker.workerId));
     const unusedWorkers = allWorkers.filter((worker) => !selectedIds.has(worker.workerId));
     if (!isOwnedMode(settings)) {
@@ -2869,6 +2950,405 @@
       .sort((a, b) => b.weight - a.weight || a.personality.localeCompare(b.personality) || a.skill.localeCompare(b.skill));
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // "Choose these": the plan as requirements rather than exact picks. Each Aniimo in the plan gets a role
+  // requirement – the abilities it must have for the plan to stay valid:
+  //   • the ability it uses at its full-time building, at the level the plan relies on (its own level,
+  //     which the quality pass made the best the pool offers), and each ability its part-time work uses
+  //     (processors at its own level; farm steps at level 1, as a farm action takes the same time at any level);
+  //   • any extra ability an Estimated Require target leans on: one whose loss – swapping this Aniimo for
+  //     one with only its job abilities – would drop a target below what you asked for; and, if the
+  //     recommended Aniimo together would still leave a target short, the Aniimo with the most of it keep it;
+  //   • family-only buildings: only the species allowed there.
+  // Aniimo with the same requirement share a recommendation: the best tier of pool Aniimo that meet it,
+  // ranked by the must-have level, then Hauling (always useful for carrying stock), then other abilities
+  // this plan uses or targets, then total points; identical ability profiles are listed together, with
+  // shorter fallback tiers after. Each Aniimo also gets a target personality – the one wanted where it does
+  // most of its work – and lines are split by it, since that is what you hunt for.
+  //   result: an optimiser result (selectedWorkers, continuousAssignments, intermittentAssignments,
+  //           skillCoverage); pool: the Available Aniimo entries; options: { skills }
+  // Returns { lines: [...] }; the lines' counts add up to the plan size.
+  function summariseRecommendations(result, pool, options = {}) {
+    const skills = options.skills || DEFAULT_SKILLS;
+    const selected = result?.selectedWorkers || [];
+    const level = (entry, skill) => Number(entry?.skills?.[skill] || 0);
+    const skillOrder = (a, b) => skills.indexOf(a) - skills.indexOf(b);
+    const jobOf = new Map((result?.continuousAssignments || []).map((item) => [item.worker.workerId, item.job]));
+    const tasksOf = new Map((result?.intermittentAssignments || []).map((item) => [item.worker.workerId, item.tasks || []]));
+    const required = new Map((result?.skillCoverage || []).map((row) => [row.skill, Number(row.required || 0)]));
+    const target = (skill) => required.get(skill) || 0;
+    const planTotals = new Map(skills.map((skill) => [skill, selected.reduce((sum, worker) => sum + level(worker, skill), 0)]));
+
+    // How much the plan uses each ability: its target plus the work that needs it.
+    const demand = new Map(skills.map((skill) => [skill, target(skill)]));
+    const addDemand = (skill, amount) => {
+      if (skill) demand.set(skill, (demand.get(skill) || 0) + amount);
+    };
+    for (const job of jobOf.values()) for (const requirement of job.requirements || []) addDemand(requirement.skill, 1);
+    for (const tasks of tasksOf.values()) for (const task of tasks) addDemand(task.skill, Number(task.load || 0));
+
+    // 1. Each Aniimo's job abilities, family limits and work per building.
+    const roles = selected.map((worker, index) => {
+      const essential = new Map();
+      const need = (skill, value) => essential.set(skill, Math.max(essential.get(skill) || 0, value));
+      const familyBuildings = [];
+      let species = null;
+      const limit = (allowed, name) => {
+        if (!Array.isArray(allowed) || !allowed.length) return;
+        species = species ? species.filter((item) => allowed.includes(item)) : allowed.slice();
+        if (!familyBuildings.includes(name)) familyBuildings.push(name);
+      };
+      const work = new Map();
+      const addWork = (name, personality, load) => {
+        const entry = work.get(name) || { name, personality: personality || "", load: 0 };
+        entry.load += load;
+        work.set(name, entry);
+      };
+      const job = jobOf.get(worker.workerId);
+      if (job) {
+        const used = (job.requirements || [])
+          .filter((requirement) => level(worker, requirement.skill) >= Number(requirement.minLevel || 1))
+          .sort((a, b) => level(worker, b.skill) - level(worker, a.skill))[0];
+        if (used) need(used.skill, level(worker, used.skill));
+        limit(job.allowedSpecies, job.name);
+        addWork(job.name, job.personalityBonus, 1);
+      }
+      const farmOnly = new Set();
+      for (const task of tasksOf.get(worker.workerId) || []) {
+        if (task.kind !== "processor" && !essential.has(task.skill)) farmOnly.add(task.skill);
+        if (task.kind === "processor") farmOnly.delete(task.skill);
+        need(task.skill, task.kind === "processor" ? level(worker, task.skill) : Math.max(1, Number(task.minLevel || 1)));
+        limit(task.allowedSpecies, task.buildingName);
+        addWork(task.buildingName, task.personalityBonus, Number(task.load || 0));
+      }
+      return { worker, index, essential, forTarget: new Set(), farmOnly, species, familyBuildings, work };
+    });
+
+    // 1b. Farm steps are small shared loads: a worker's farm-step ability is only a must-have if nobody
+    // else in the team could take its share. Check with the part-time flow: this worker without that
+    // ability, every part-time Aniimo keeping its processor work as it is (only farm steps move), within
+    // the farm-helper cap and the rest of each one's day, using only must-have abilities. Dropped abilities
+    // stay dropped for later checks.
+    const settings = { ...DEFAULT_SETTINGS, ...(result?.diagnostics?.settings || {}), ...(options.settings || {}) };
+    const farmCap = farmCapOf(settings);
+    const farmTasks = new Map();
+    for (const tasks of tasksOf.values()) {
+      for (const task of tasks) {
+        if (task.kind === "processor") continue;
+        const key = `${task.buildingId}:${task.skill}`;
+        const entry = farmTasks.get(key) || { ...task, id: key, load: 0 };
+        entry.load += Number(task.load || 0);
+        farmTasks.set(key, entry);
+      }
+    }
+    const teamFarmSkills = [...new Set([...farmTasks.values()].map((task) => task.skill))].sort(skillOrder);
+    if (farmTasks.size) {
+      const partTimers = roles.filter((role) => !jobOf.has(role.worker.workerId));
+      const dropped = new Map(partTimers.map((role) => [role.index, new Set()]));
+      const farmStillFits = () => {
+        const tasks = [...farmTasks.values()];
+        const available = partTimers.map((role) => {
+          const fixed = `__processor_${role.index}`;
+          // Judged on what each Aniimo is required to have (not its bonus abilities), so any Aniimo meeting
+          // the lines below can still cover the farm steps.
+          const skillsNow = { ...Object.fromEntries(role.essential), [fixed]: 1 };
+          for (const skill of dropped.get(role.index)) delete skillsNow[skill];
+          const load = (tasksOf.get(role.worker.workerId) || []).filter((task) => task.kind === "processor").reduce((sum, task) => sum + Number(task.load || 0), 0);
+          if (load > 0) tasks.push({ id: fixed, kind: "processor", skill: fixed, minLevel: 1, load });
+          return { ...role.worker, skills: skillsNow };
+        });
+        return assignPartTimeFlow(available, tasks, farmCap, true).ok;
+      };
+      for (const role of partTimers) {
+        for (const skill of [...role.farmOnly]) {
+          dropped.get(role.index).add(skill);
+          if (farmStillFits()) {
+            role.essential.delete(skill);
+            role.farmOnly.delete(skill);
+          } else {
+            dropped.get(role.index).delete(skill);
+          }
+        }
+      }
+    }
+    const teamFarmCovered = teamFarmSkills.filter((skill) => !roles.some((role) => role.farmOnly.has(skill)));
+
+    // 2a. Extras a single swap would lose a target over.
+    for (const role of roles) {
+      for (const skill of skills) {
+        const extra = level(role.worker, skill) - (role.essential.get(skill) || 0);
+        if (extra <= 0 || target(skill) <= 0) continue;
+        if (planTotals.get(skill) - extra < target(skill)) {
+          role.essential.set(skill, level(role.worker, skill));
+          role.farmOnly.delete(skill);
+          role.forTarget.add(skill);
+        }
+      }
+    }
+
+    const poolEntries = (pool || []).slice();
+    const formsBySpecies = new Map();
+    for (const entry of poolEntries) {
+      const name = entry.species || entry.name;
+      if (!formsBySpecies.has(name)) formsBySpecies.set(name, []);
+      formsBySpecies.get(name).push(entry);
+    }
+    const requirementKey = (role) =>
+      [
+        [...role.essential].sort((a, b) => skillOrder(a[0], b[0])).map(([skill, value]) => `${skill}${value}${role.forTarget.has(skill) ? "*" : ""}`).join("+"),
+        role.species ? role.species.slice().sort().join("/") : "",
+      ].join("|");
+    const profileOf = (entry) => new Map(skills.map((skill) => [skill, level(entry, skill)]));
+
+    // The pool Aniimo meeting a requirement, as tiers of identical ability profiles, best first.
+    function tiersFor(role, examples) {
+      const essential = role.essential;
+      const allowed = role.species;
+      const meets = (entry) =>
+        (!allowed || allowed.includes(entry.species || entry.name)) && [...essential].every(([skill, value]) => level(entry, skill) >= value);
+      const candidates = poolEntries.filter(meets);
+      for (const worker of examples) {
+        if (!candidates.some((entry) => entry.id === worker.aniimoId)) candidates.push({ ...worker, id: worker.aniimoId });
+      }
+      const rank = (entry) => {
+        let must = 0;
+        let useful = 0;
+        let weighted = 0;
+        for (const skill of skills) {
+          const value = level(entry, skill);
+          if (essential.has(skill)) must += value;
+          else if (skill !== "Hauling" && value > 0 && (demand.get(skill) || 0) > 0) {
+            useful += value;
+            weighted += value * demand.get(skill);
+          }
+        }
+        return [must, level(entry, "Hauling"), useful, weighted, totalSkillPower(entry, skills)];
+      };
+      const tierMap = new Map();
+      for (const entry of candidates) {
+        const key = skills.map((skill) => level(entry, skill)).join(",");
+        if (!tierMap.has(key)) tierMap.set(key, { entries: [], rank: rank(entry), profile: profileOf(entry) });
+        tierMap.get(key).entries.push(entry);
+      }
+      return { candidates, tiers: [...tierMap.values()].sort((a, b) => compareQualityKeys(b.rank, a.rank)) };
+    }
+
+    // 2b. If everyone took the recommended (best-tier) Aniimo, would every target still be met? If not,
+    // the Aniimo holding the most of a short ability keep it as a must-have.
+    const bestProfile = new Map();
+    const refreshBest = () => {
+      const byKey = new Map();
+      for (const role of roles) {
+        const key = requirementKey(role);
+        if (!byKey.has(key)) byKey.set(key, tiersFor(role, roles.filter((other) => requirementKey(other) === key).map((other) => other.worker)).tiers[0]);
+        bestProfile.set(role.index, byKey.get(key)?.profile || profileOf(role.worker));
+      }
+    };
+    refreshBest();
+    for (const skill of skills) {
+      if (target(skill) <= 0) continue;
+      let covered = roles.reduce((sum, role) => sum + (bestProfile.get(role.index).get(skill) || 0), 0);
+      if (covered >= target(skill)) continue;
+      const holders = roles
+        .filter((role) => level(role.worker, skill) > (bestProfile.get(role.index).get(skill) || 0))
+        .sort((a, b) => level(b.worker, skill) - level(a.worker, skill) || a.index - b.index);
+      for (const role of holders) {
+        if (covered >= target(skill)) break;
+        covered += level(role.worker, skill) - (bestProfile.get(role.index).get(skill) || 0);
+        role.essential.set(skill, level(role.worker, skill));
+        role.farmOnly.delete(skill);
+        role.forTarget.add(skill);
+      }
+    }
+
+    // 3. Each Aniimo's target personality: the one wanted where it does most of its work.
+    for (const role of roles) {
+      const byPersonality = new Map();
+      for (const item of role.work.values()) {
+        const entry = byPersonality.get(item.personality) || { personality: item.personality, load: 0, top: 0 };
+        entry.load += item.load;
+        entry.top = Math.max(entry.top, item.load);
+        byPersonality.set(item.personality, entry);
+      }
+      const best = [...byPersonality.values()].sort(
+        (a, b) => b.load - a.load || b.top - a.top || (a.personality ? 0 : 1) - (b.personality ? 0 : 1) || a.personality.localeCompare(b.personality)
+      )[0];
+      role.personality = best ? best.personality : "";
+    }
+
+    // 4. Requirement groups, then one line per target personality within each.
+    const groups = new Map();
+    for (const role of roles) {
+      const key = requirementKey(role);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(role);
+    }
+    const abilityList = (map) =>
+      [...map].filter(([, value]) => value > 0).sort((a, b) => skillOrder(a[0], b[0])).map(([skill, value]) => `${skill} ${value}`).join(", ");
+    const joinOr = (names) => (names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`);
+
+    const lines = [];
+    let groupOrder = 0;
+    for (const members of groups.values()) {
+      const first = members[0];
+      const essential = first.essential;
+      const allowed = first.species;
+      const { candidates, tiers } = tiersFor(first, members.map((role) => role.worker));
+
+      // Names for a tier, collapsing forms: "Flamerion (any form)", "Scorchhowl (other forms)".
+      const named = new Set();
+      const tierNames = (entries) => {
+        const bySpecies = new Map();
+        for (const entry of entries) {
+          const name = entry.species || entry.name;
+          if (!bySpecies.has(name)) bySpecies.set(name, []);
+          bySpecies.get(name).push(entry);
+        }
+        const names = [];
+        for (const [name, forms] of [...bySpecies].sort((a, b) => a[0].localeCompare(b[0]))) {
+          const all = formsBySpecies.get(name) || forms;
+          const earlier = all.filter((entry) => named.has(entry.id));
+          if (forms.length >= all.length) names.push(all.length > 1 ? `${name} (any form)` : displayWorkerName(forms[0]));
+          else if (earlier.length && earlier.length + forms.length >= all.length) names.push(`${name} (other forms)`);
+          else if (forms.length === 1) names.push(displayWorkerName(forms[0]));
+          else names.push(`${name} (${forms.map((entry) => entry.form || "Base").join(", ")})`);
+        }
+        for (const entry of entries) named.add(entry.id);
+        return names;
+      };
+      const best = tiers[0];
+      const headlineNames = tierNames(best.entries);
+      const bonus = new Map([...best.profile].filter(([skill, value]) => value > 0 && !essential.has(skill)));
+      // A fallback that would leave a target short if it replaced one of these Aniimo isn't offered.
+      const keepsTargets = (profile) =>
+        members.every((role) =>
+          skills.every((skill) => target(skill) <= 0 || planTotals.get(skill) - level(role.worker, skill) + (profile.get(skill) || 0) >= target(skill))
+        );
+      const fallbacks = tiers
+        .slice(1)
+        .filter((tier) => keepsTargets(tier.profile))
+        .map((tier) => ({
+          names: tierNames(tier.entries),
+          abilities: abilityList(tier.profile),
+          mustOnly: [...tier.profile].every(([skill, value]) => value <= 0 || essential.has(skill)),
+          aniimoIds: tier.entries.map((entry) => entry.id),
+        }));
+
+      // Why a specific species is named.
+      let reason = null;
+      const speciesNames = [...new Set(candidates.map((entry) => entry.species || entry.name))];
+      if (allowed) {
+        const line = candidates.find((entry) => entry.evolutionLine)?.evolutionLine;
+        const family = speciesNames.length === 1 ? speciesNames[0] : line ? line.replace(/ line$/, "") : allowed[0];
+        reason = `Only the ${family} family can work the ${first.familyBuildings.join(" and ")}.`;
+      } else if (speciesNames.length === 1) {
+        reason = `Only ${speciesNames[0]} has ${abilityList(essential)} among your Available Aniimo.`;
+      }
+
+      const essentialText = [...essential].sort((a, b) => skillOrder(a[0], b[0])).map(([skill, value]) => `${skill} ${value}`).join(" + ");
+      const targetNotes = [
+        ...[...first.forTarget].sort(skillOrder).map((skill) => `${skill} ${essential.get(skill)} needed for the ${skill} target`),
+        ...[...first.farmOnly].sort(skillOrder).map((skill) => `${skill} for farm steps`),
+      ];
+      const abilitiesText = [
+        `${essentialText} essential${targetNotes.length ? ` (${targetNotes.join("; ")})` : ""}`,
+        bonus.size ? `${abilityList(bonus)} bonus` : "",
+      ].filter(Boolean).join(" · ");
+      const shownFallbacks = fallbacks.slice(0, 4);
+      const fallbackParts = shownFallbacks.map((tier) => (tier.mustOnly ? `${essentialText} only: ${tier.names.join(", ")}` : `${tier.names.join(", ")} — ${tier.abilities}`));
+      if (fallbacks.length > shownFallbacks.length) fallbackParts.push(`+${fallbacks.length - shownFallbacks.length} more`);
+
+      const byPersonality = new Map();
+      for (const role of members) {
+        if (!byPersonality.has(role.personality)) byPersonality.set(role.personality, []);
+        byPersonality.get(role.personality).push(role);
+      }
+      const groupIndex = groupOrder;
+      groupOrder += 1;
+      for (const [personality, split] of byPersonality) {
+        // Where they work: full-time buildings, then part-time ones by share of the day.
+        const fullTime = new Map();
+        const partTime = new Map();
+        let boosters = 0;
+        const personalityBuildings = new Map();
+        for (const role of split) {
+          const job = jobOf.get(role.worker.workerId);
+          if (job) fullTime.set(job.name, (fullTime.get(job.name) || 0) + 1);
+          for (const task of tasksOf.get(role.worker.workerId) || []) {
+            partTime.set(task.buildingName, (partTime.get(task.buildingName) || 0) + Number(task.load || 0));
+          }
+          if (!role.work.size) boosters += 1;
+          for (const item of role.work.values()) {
+            if (item.personality === personality) personalityBuildings.set(item.name, (personalityBuildings.get(item.name) || 0) + item.load);
+          }
+        }
+        const partTimeNames = [...partTime].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name);
+        const jobParts = [...fullTime].map(([name, count]) => `${name}${count > 1 ? ` ×${count}` : ""}`);
+        if (partTimeNames.length) jobParts.push(`part-time: ${partTimeNames.join(", ")}`);
+        if (boosters) jobParts.push("ability points for your targets");
+        const buildings = [...personalityBuildings].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name);
+        const personalityText = personality
+          ? `look for ${personality} — ${buildings.join(", ")}`
+          : buildings.length
+            ? `no personality bonus — ${buildings.join(", ")}`
+            : "no personality bonus";
+
+        lines.push({
+          count: split.length,
+          essential: [...essential].sort((a, b) => skillOrder(a[0], b[0])).map(([skill, value]) => ({ skill, level: value, forTarget: first.forTarget.has(skill), farmSteps: first.farmOnly.has(skill) })),
+          species: allowed ? allowed.slice() : null,
+          reason,
+          headline: { names: headlineNames, aniimoIds: best.entries.map((entry) => entry.id), abilities: abilityList(best.profile) },
+          bonus: [...bonus].sort((a, b) => skillOrder(a[0], b[0])).map(([skill, value]) => ({ skill, level: value })),
+          fallbacks,
+          personality: personality || null,
+          personalityBuildings: buildings,
+          jobs: { fullTime: [...fullTime].map(([name, count]) => ({ name, count })), partTime: partTimeNames, boosters },
+          examples: split.map((role) => role.worker),
+          group: groupIndex,
+          groupCount: members.length,
+          firstIndex: split[0].index,
+          text: {
+            headline: `${split.length}× ${joinOr(headlineNames)}`,
+            personality: personalityText,
+            abilities: abilitiesText,
+            jobs: jobParts.join(" · "),
+            alsoFine: fallbackParts.length ? `Also fine: ${fallbackParts.join(" · ")}` : "",
+            examples: `e.g. ${[...new Set(split.map((role) => displayWorkerName(role.worker)))].join(", ")}`,
+          },
+        });
+      }
+    }
+
+    // Requirement groups stay together: full-time groups first, bigger groups first, then plan order;
+    // within a group, the most Aniimo first.
+    const groupFirst = new Map();
+    for (const line of lines) {
+      const current = groupFirst.get(line.group);
+      if (!current) groupFirst.set(line.group, { fullTime: line.jobs.fullTime.length > 0, count: line.groupCount, index: line.firstIndex });
+      else {
+        current.fullTime = current.fullTime || line.jobs.fullTime.length > 0;
+        current.index = Math.min(current.index, line.firstIndex);
+      }
+    }
+    lines.sort((a, b) => {
+      const ga = groupFirst.get(a.group);
+      const gb = groupFirst.get(b.group);
+      return (
+        (gb.fullTime ? 1 : 0) - (ga.fullTime ? 1 : 0) ||
+        gb.count - ga.count ||
+        ga.index - gb.index ||
+        b.count - a.count ||
+        (a.personality ? 0 : 1) - (b.personality ? 0 : 1) ||
+        a.firstIndex - b.firstIndex
+      );
+    });
+    const farmNote = teamFarmCovered.length
+      ? `Farm steps (${teamFarmCovered.join(", ")}) need no extra ability: the team already covers them.`
+      : "";
+    return { lines, farmSteps: { skills: teamFarmSkills, covered: teamFarmCovered, note: farmNote } };
+  }
+
   return {
     DEFAULT_SKILLS,
     DEFAULT_SETTINGS,
@@ -2894,6 +3374,7 @@
     planningCopyCap,
     recommendSpareSpaces,
     resolveHomelandCapacity,
+    summariseRecommendations,
     summarizeShortfalls,
   };
 });

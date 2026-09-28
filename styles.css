@@ -1673,10 +1673,18 @@ kbd {
   display: none;
 }
 
-/* "Choose these": one compact line per recommended Aniimo form, the detailed cards below in a disclosure. */
+/* "Choose these": one block per role requirement (the Aniimo to pick, what they must have and what they
+   bring), with one row per target personality; the example Aniimo's cards sit below in a disclosure. */
 .choose-title {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-size: 0.9rem;
+}
+
+.choose-help {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .choose-list {
@@ -1689,12 +1697,12 @@ kbd {
 
 .choose-item {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
   gap: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 8px 10px;
   background: #fbfdfd;
 }
 
@@ -1702,15 +1710,16 @@ kbd {
   min-width: 0;
 }
 
-.choose-name,
-.choose-jobs {
+.choose-main > p,
+.choose-roles {
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .choose-name {
   color: var(--ink);
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .choose-count {
@@ -1720,16 +1729,20 @@ kbd {
   font-weight: 850;
 }
 
-.choose-jobs {
-  color: #425466;
-  font-size: 0.8rem;
-}
-
-.choose-abilities {
+.choose-needs {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px 8px;
+  align-items: center;
+  gap: 3px 8px;
+  margin-top: 3px !important;
+}
+
+.choose-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .choose-ability {
@@ -1738,6 +1751,53 @@ kbd {
   gap: 3px;
   font-size: 0.8rem;
   font-weight: 800;
+}
+
+.choose-ability.is-bonus {
+  color: #425466;
+  font-weight: 650;
+}
+
+.choose-note {
+  color: var(--warn);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.choose-roles {
+  display: grid;
+  gap: 1px;
+  margin-top: 4px !important;
+  padding: 4px 0 0;
+  border-top: 1px dashed var(--line);
+  list-style: none;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+
+.choose-roles li {
+  overflow-wrap: anywhere;
+}
+
+.choose-jobs,
+.choose-muted {
+  color: #5b6b7b;
+}
+
+.choose-jobs {
+  font-size: 0.78rem;
+}
+
+.choose-also {
+  margin-top: 4px !important;
+  color: #5b6b7b;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.example-label {
+  color: var(--muted);
+  font-weight: 650;
 }
 
 .workforce-details {
@@ -1759,11 +1819,12 @@ kbd {
 
 @media (max-width: 560px) {
   .choose-item {
-    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 8px;
   }
 
-  .choose-abilities {
-    grid-column: 2;
-    justify-content: flex-start;
+  .choose-item .aniimo-head {
+    width: 30px;
+    height: 30px;
   }
 }
