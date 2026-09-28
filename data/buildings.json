@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "notes": [
+    "Starter building model for the planner. Exact Homeland facility recipes and staffing rules may change.",
+    "Continuous entries reserve one Aniimo body per active slot.",
+    "Farmland and Woodland are modeled as shared intermittent workloads, not one dedicated Aniimo per plot."
+  ],
+  "buildings": [
+    {
+      "id": "farmland",
+      "name": "Farmland plots",
+      "category": "Agriculture",
+      "behavior": "intermittent",
+      "countLabel": "plots",
+      "defaultCount": 8,
+      "defaultEnabled": true,
+      "pools": [
+        { "skill": "Grass", "jobsPerUnit": 1, "label": "planting" },
+        { "skill": "Water", "jobsPerUnit": 1, "label": "watering" },
+        { "skill": "Dark", "jobsPerUnit": 1, "label": "harvesting" },
+        { "skill": "Earth", "jobsPerUnit": 1, "label": "resetting" }
+      ]
+    },
+    {
+      "id": "woodland",
+      "name": "Woodland plots",
+      "category": "Gathering",
+      "behavior": "intermittent",
+      "countLabel": "plots",
+      "defaultCount": 4,
+      "defaultEnabled": true,
+      "pools": [
+        { "skill": "Grass", "jobsPerUnit": 1, "label": "tending" },
+        { "skill": "Water", "jobsPerUnit": 1, "label": "watering" },
+        { "skill": "Dark", "jobsPerUnit": 1, "label": "harvesting" },
+        { "skill": "Earth", "jobsPerUnit": 1, "label": "reclaiming" }
+      ]
+    },
+    {
+      "id": "cooking_hearth",
+      "name": "Cooking hearth",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Fire", "minLevel": 1 }]
+    },
+    {
+      "id": "smelter",
+      "name": "Smelter",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Fire", "minLevel": 1 }]
+    },
+    {
+      "id": "water_pump",
+      "name": "Water pump",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Water", "minLevel": 1 }]
+    },
+    {
+      "id": "mine",
+      "name": "Mine or quarry",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "sites",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Earth", "minLevel": 1 }]
+    },
+    {
+      "id": "windmill",
+      "name": "Windmill",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Wind", "minLevel": 1 }]
+    },
+    {
+      "id": "generator",
+      "name": "Generator",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Lightning", "minLevel": 1 }]
+    },
+    {
+      "id": "icebox",
+      "name": "Icebox",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Ice", "minLevel": 1 }]
+    },
+    {
+      "id": "lampworks",
+      "name": "Lampworks",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Light", "minLevel": 1 }]
+    },
+    {
+      "id": "drying_rack",
+      "name": "Drying rack",
+      "category": "Production",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Dark", "minLevel": 1 }]
+    },
+    {
+      "id": "storage_route",
+      "name": "Storage hauling route",
+      "category": "Logistics",
+      "behavior": "continuous",
+      "countLabel": "routes",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Hauling", "minLevel": 1 }]
+    },
+    {
+      "id": "artisan_bench",
+      "name": "Artisan bench",
+      "category": "Crafting",
+      "behavior": "continuous",
+      "countLabel": "benches",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Artisanship", "minLevel": 1 }]
+    },
+    {
+      "id": "leisure_corner",
+      "name": "Leisure corner",
+      "category": "Crafting",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Leisure", "minLevel": 1 }]
+    },
+    {
+      "id": "perfume_station",
+      "name": "Perfume station",
+      "category": "Crafting",
+      "behavior": "continuous",
+      "countLabel": "stations",
+      "defaultCount": 0,
+      "defaultEnabled": true,
+      "slotsPerUnit": 1,
+      "requirements": [{ "skill": "Perfumery", "minLevel": 1 }]
+    }
+  ]
+}

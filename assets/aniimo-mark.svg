@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">Aniimo Homeland Planner mark</title>
+  <rect width="96" height="96" rx="18" fill="#eef7f2"/>
+  <path d="M19 55c0-15 12-27 29-27s29 12 29 27v16H19V55Z" fill="#ffffff" stroke="#243142" stroke-width="4"/>
+  <path d="M31 34 26 19l16 8M65 34l5-15-16 8" fill="#ffffff" stroke="#243142" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="36" cy="51" r="5" fill="#243142"/>
+  <circle cx="60" cy="51" r="5" fill="#243142"/>
+  <path d="M42 62c4 4 8 4 12 0" fill="none" stroke="#3aa86d" stroke-width="4" stroke-linecap="round"/>
+  <path d="M17 73h62" stroke="#f0a02f" stroke-width="5" stroke-linecap="round"/>
+</svg>

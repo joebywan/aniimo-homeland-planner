@@ -1,0 +1,14 @@
+{
+  "name": "aniimo-homeland-planner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static Aniimo Homeland workforce planner for GitHub Pages.",
+  "scripts": {
+    "refresh:data": "node scripts/scrape-aniimo.js",
+    "test": "node tests/optimizer.test.js",
+    "serve": "python3 -m http.server 4173"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
