@@ -97,7 +97,7 @@ Capability targets:
 - Farm/woodland action time comes from `data/crops.json` (currently an estimated 6 seconds per plot, flagged unverified); crop growth time is chosen in Settings.
 - Walking between plots is represented by the "Walking time allowance" advanced setting.
 - Facilities come from `data/buildings.json`, sourced from aniimo.gg and aniimotools.dev; entries marked `verified: false` (e.g. hauler count) are estimates.
-- Aniimo capacity per RV level comes from `data/homeland.json`; Homebuilding Zone Aniimo are assumed to share the same RV spaces.
+- Aniimo capacity per RV level comes from `data/homeland.json`; this is one shared limit across the Homebuilding Zone and all production areas (confirmed in-game).
 - Game mechanics and data may change. Verify against current in-game behavior.
 
 ## Tests

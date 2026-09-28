@@ -106,7 +106,8 @@ window.ANIIMO_HOMELAND_DATA = {
     "name": "Homebuilding Zone",
     "capacity": null,
     "preferredSkills": [],
-    "notes": "Opens at RV 8 (quest 'Dream Cottage: Part 2'). Aniimo placed in the Homebuilding Zone continuously produce Bud Tickets, the currency for decorative furniture in the Home Shop (the RV 8 unlock text calls them 'Wish Stars'). Tickets collect in the Bud Ticket Jar (one per Home, 300 Bud Tickets, RV 8), which stops collecting when full. No work ability is involved: wikily.gg lists about 120 Bud Tickets per day per Aniimo for species with very different abilities; Sparkling appearances multiply the yield by 1.5 and other appearance tags (e.g. Prismana) can add bonuses. A community guide says Aniimo here use the same 'place N Aniimo in your Home' slots as workers ('remaining slots can go to the house'). No separate Homebuilding Zone Aniimo limit was found, so capacity is null. The zone has 16 plots (9 purchasable with Bud Tickets at RV 8–16) and a load limit of 400,000."
+    "notes": "Opens at RV 8 (quest 'Dream Cottage: Part 2'). Aniimo placed in the Homebuilding Zone continuously produce Bud Tickets, the currency for decorative furniture in the Home Shop (the RV 8 unlock text calls them 'Wish Stars'). Tickets collect in the Bud Ticket Jar (one per Home, 300 Bud Tickets, RV 8), which stops collecting when full. No work ability is involved: wikily.gg lists about 120 Bud Tickets per day per Aniimo for species with very different abilities; Sparkling appearances multiply the yield by 1.5 and other appearance tags (e.g. Prismana) can add bonuses. Confirmed in-game by a player: the RV 'place N Aniimo' limit is one shared limit across the Homebuilding Zone and all production areas, so the zone has no capacity of its own (capacity is null) and every Aniimo placed there uses one of those spaces. The zone has 16 plots (9 purchasable with Bud Tickets at RV 8–16) and a load limit of 400,000.",
+    "sharesRvCapacity": true
   },
   "sources": [
     {
@@ -143,6 +144,12 @@ window.ANIIMO_HOMELAND_DATA = {
       "name": "Steam community – RV and Homeland guide",
       "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3806795108",
       "notes": "A player guide confirming the Homebuilding Zone uses the same Aniimo spaces as your workers."
+    },
+    {
+      "name": "Checked in-game by a player",
+      "url": "",
+      "notes": "RV 2–20 capacities (8, 11, 14, 17, 20, 22, 24 … 42, 43, 44, 45) and the single shared limit across Homebuilding Zone and production areas were confirmed in-game by a player.",
+      "kind": "override"
     }
   ],
   "verified": true
