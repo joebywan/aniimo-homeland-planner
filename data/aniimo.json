@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-28T04:58:35.243Z",
+  "generatedAt": "2026-09-28T06:14:30.745Z",
   "skills": [
     "Fire",
     "Grass",
@@ -16,6 +16,66 @@
     "Leisure",
     "Perfumery"
   ],
+  "abilityIcons": {
+    "Fire": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_fire.webp?v=44",
+      "color": "#e03d3d"
+    },
+    "Grass": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_grass.webp?v=44",
+      "color": "#43a061"
+    },
+    "Water": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_water.webp?v=44",
+      "color": "#1e90ff"
+    },
+    "Earth": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_earth.webp?v=44",
+      "color": "#b8a278"
+    },
+    "Lightning": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_electricity.webp?v=44",
+      "color": "#e2c10b"
+    },
+    "Ice": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_ice.webp?v=44",
+      "color": "#58d0e8"
+    },
+    "Wind": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_wind.webp?v=44",
+      "color": "#58c7b1"
+    },
+    "Dark": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_shadow.webp?v=44",
+      "color": "#7b4ca9"
+    },
+    "Light": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_bg_light.webp?v=44",
+      "color": "#f6a93c"
+    },
+    "Hauling": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_Img_Ability_Transport.webp?v=44",
+      "color": "#6285cc"
+    },
+    "Artisanship": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_Img_Ability_Cropping.webp?v=44",
+      "color": "#71b258"
+    },
+    "Leisure": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_Img_Ability_Play.webp?v=44",
+      "color": "#e77894"
+    },
+    "Perfumery": {
+      "icon": "https://cdn.beskor.net/aniimo/icons/UI_Img_Ability_Incense_Making.webp?v=44",
+      "color": "#b579dc"
+    }
+  },
+  "categories": {
+    "common": "Base and regional forms you can normally catch. The planner uses these by default.",
+    "prismana": "Prismana forms. Only used when the player ticks them.",
+    "legendary": "Legendary Aniimo (the Aniilog's Stage 4 species). Only used when the player ticks them.",
+    "boss": "BOSS forms and boss/NPC entities. Never used by default."
+  },
   "sources": [
     {
       "name": "aniimo.gg – Homeland work abilities",
@@ -26,6 +86,11 @@
       "name": "Hideout Guides – Homeland worker abilities",
       "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities",
       "notes": "A second list we compare against to catch mistakes, and to fill in any Prismana Aniimo missing from aniimo.gg."
+    },
+    {
+      "name": "aniimo.gg – Aniilog",
+      "url": "https://aniimo.gg/aniilog/",
+      "notes": "Which Aniimo are Legendary: the Aniilog labels Somniwing and Irisalis as Stage 4, the only Stage 4 species. Game8 and AniimoTools also list these two as the game's Legendary Aniimo."
     },
     {
       "name": "Player corrections",
@@ -200,6 +265,22 @@
       ],
       "error": null
     },
+    "legendarySpecies": [
+      "Irisalis",
+      "Somniwing"
+    ],
+    "legendarySource": "https://aniimo.gg/aniilog/",
+    "categoryReport": {
+      "legendary": [
+        "Irisalis (Base)"
+      ],
+      "boss": [
+        "Infergon BOSS (BOSS)",
+        "Irelia (Base)",
+        "Tuckin BOSS (BOSS)"
+      ],
+      "overridden": []
+    },
     "overridesApplied": [
       "Prismana Glynsera (Prismana)",
       "Prismana Glacy (Prismana)",
@@ -232,7 +313,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "baleetle",
@@ -258,7 +340,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "baleetle-1045101",
@@ -284,7 +367,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/baleetle-1045101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "besauce",
@@ -310,7 +394,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "blazen",
@@ -336,7 +421,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "blazen-1022202",
@@ -362,7 +448,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/blazen-1022202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "blazen-1022201",
@@ -388,7 +475,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/blazen-1022201/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "bolty",
@@ -414,7 +502,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "bolty-1022102",
@@ -440,7 +529,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/bolty-1022102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "bonesky",
@@ -466,7 +556,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "bonesky-1013102",
@@ -492,7 +583,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/bonesky-1013102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "bouldus",
@@ -518,7 +610,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "bouldus-1045401",
@@ -544,7 +637,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/bouldus-1045401/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "budclaw",
@@ -570,7 +664,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "budclaw-1016103",
@@ -596,7 +691,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/budclaw-1016103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "budclaw-1016102",
@@ -622,7 +718,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/budclaw-1016102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "budclaw-1016101",
@@ -648,7 +745,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/budclaw-1016101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "budsquire",
@@ -674,7 +772,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "budsquire-1032103",
@@ -700,7 +799,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/budsquire-1032103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "bulbly",
@@ -726,7 +826,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "butterfly-wing-sprite",
@@ -752,7 +853,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "celestis",
@@ -778,7 +880,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "chirpi",
@@ -804,7 +907,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "chirpi-1018101",
@@ -830,7 +934,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/chirpi-1018101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "chirpi-1018103",
@@ -856,7 +961,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/chirpi-1018103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "coraliz",
@@ -882,7 +988,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "cornet",
@@ -908,7 +1015,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "cornet-1018501",
@@ -934,7 +1042,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/cornet-1018501/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "cornet-1018503",
@@ -960,7 +1069,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/cornet-1018503/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "cornet-1018502",
@@ -986,7 +1096,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/cornet-1018502/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "cozite",
@@ -1012,7 +1123,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "cubbo",
@@ -1038,7 +1150,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "dazmand",
@@ -1064,7 +1177,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "dewy",
@@ -1090,7 +1204,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "dreaple",
@@ -1116,7 +1231,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "eklue",
@@ -1142,7 +1258,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "eko",
@@ -1168,7 +1285,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "emberpup",
@@ -1194,7 +1312,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "emberpup-1005101",
@@ -1220,7 +1339,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/emberpup-1005101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "emberpup-1005104",
@@ -1246,7 +1366,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/emberpup-1005104/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "erlath",
@@ -1272,7 +1393,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fahloo",
@@ -1298,7 +1420,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fenmane",
@@ -1324,7 +1447,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fenmane-1029301",
@@ -1350,7 +1474,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/fenmane-1029301/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "fennelun",
@@ -1376,7 +1501,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fenrier",
@@ -1402,7 +1528,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fenrier-1013202",
@@ -1428,7 +1555,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/fenrier-1013202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fentuft",
@@ -1454,7 +1582,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flamerion",
@@ -1480,7 +1609,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flamerion-1033302",
@@ -1506,7 +1636,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flamerion-1033302/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flamerion-1033301",
@@ -1532,7 +1663,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flamerion-1033301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flamerion-1033303",
@@ -1558,7 +1690,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flamerion-1033303/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flameruff",
@@ -1584,7 +1717,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flameruff-1005201",
@@ -1610,7 +1744,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flameruff-1005201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flameruff-1005204",
@@ -1636,7 +1771,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flameruff-1005204/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "floret",
@@ -1662,7 +1798,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flutternym",
@@ -1688,7 +1825,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flutternym-1023103",
@@ -1714,7 +1852,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flutternym-1023103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flutternym-1023102",
@@ -1740,7 +1879,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flutternym-1023102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "flutternym-1023101",
@@ -1766,7 +1906,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/flutternym-1023101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "forest-cloak-butterfly",
@@ -1792,7 +1933,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fragrancier",
@@ -1818,7 +1960,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fulmintis",
@@ -1844,7 +1987,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "fulmintis-1003305",
@@ -1870,7 +2014,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/fulmintis-1003305/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "gachapus",
@@ -1896,7 +2041,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "geoclaw",
@@ -1922,7 +2068,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "geodeback",
@@ -1948,7 +2095,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "glacy",
@@ -1974,7 +2122,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "glacy-1004301",
@@ -2000,7 +2149,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/glacy-1004301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "glacy-1004302",
@@ -2026,7 +2176,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/glacy-1004302/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "glacy-1004303",
@@ -2053,7 +2204,8 @@
         "name": "Manual override (data/aniimo-overrides.json)",
         "url": "",
         "notes": "User-confirmed in-game values (reported as 'Gracy'; no Aniimo by that name exists, and these values match Prismana Glacy on aniimo.gg and Hideout Guides)."
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "glameep-prismana",
@@ -2079,7 +2231,8 @@
       "source": {
         "name": "Hideout Guides Aniimo Homeland Worker Abilities",
         "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "glynsera",
@@ -2105,7 +2258,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "glynsera-1013302",
@@ -2131,7 +2285,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/glynsera-1013302/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "glynsera-1013301",
@@ -2158,7 +2313,8 @@
         "name": "Manual override (data/aniimo-overrides.json)",
         "url": "",
         "notes": "User-confirmed in-game values. Also matches aniimo.gg and Hideout Guides."
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "gracewing",
@@ -2184,7 +2340,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "gracewing-1023203",
@@ -2210,7 +2367,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/gracewing-1023203/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "gracewing-1023202",
@@ -2236,7 +2394,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/gracewing-1023202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "gracewing-1023201",
@@ -2262,7 +2421,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/gracewing-1023201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "grizbo",
@@ -2288,7 +2448,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "grizbo-1050301",
@@ -2314,7 +2475,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/grizbo-1050301/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "helgon",
@@ -2340,7 +2502,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helgon-1002301",
@@ -2366,7 +2529,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/helgon-1002301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helion",
@@ -2392,7 +2556,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helmut",
@@ -2418,7 +2583,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helmut-1002102",
@@ -2444,7 +2610,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/helmut-1002102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helmut-1002101",
@@ -2470,7 +2637,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/helmut-1002101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helmwhelp",
@@ -2496,7 +2664,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "helmwhelp-1002201",
@@ -2522,7 +2691,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/helmwhelp-1002201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "hexxin",
@@ -2548,7 +2718,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "hexxin-1020301",
@@ -2574,7 +2745,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/hexxin-1020301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "hexxin-1020302",
@@ -2600,7 +2772,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/hexxin-1020302/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "hummin",
@@ -2626,7 +2799,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "hummin-1020101",
@@ -2652,7 +2826,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/hummin-1020101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "ignitis",
@@ -2678,7 +2853,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "ignitis-1003201",
@@ -2704,7 +2880,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/ignitis-1003201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "ignitis-1003203",
@@ -2730,7 +2907,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/ignitis-1003203/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "ignitis-1003202",
@@ -2756,7 +2934,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/ignitis-1003202/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "infergon",
@@ -2782,7 +2961,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "infergon-1002503",
@@ -2808,7 +2988,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/infergon-1002503/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "infergon-boss",
@@ -2834,7 +3015,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "boss"
     },
     {
       "id": "inferlupa",
@@ -2860,7 +3042,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "inferlupa-1005503",
@@ -2886,7 +3069,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/inferlupa-1005503/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "irelia",
@@ -2912,7 +3096,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "boss"
     },
     {
       "id": "iris",
@@ -2938,7 +3123,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "iris-1021102",
@@ -2964,7 +3150,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/iris-1021102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "iris-1021103",
@@ -2990,7 +3177,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/iris-1021103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "iris-1021101",
@@ -3016,7 +3204,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/iris-1021101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "iris-1021106",
@@ -3042,7 +3231,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/iris-1021106/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "iris-1021105",
@@ -3068,7 +3258,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/iris-1021105/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "iris-1021104",
@@ -3094,7 +3285,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/iris-1021104/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "irisal",
@@ -3120,7 +3312,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "irisal-1021202",
@@ -3146,7 +3339,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/irisal-1021202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "irisal-1021203",
@@ -3172,7 +3366,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/irisal-1021203/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "irisal-1021201",
@@ -3198,7 +3393,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/irisal-1021201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "irisal-1021206",
@@ -3224,7 +3420,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/irisal-1021206/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "irisal-1021205",
@@ -3250,7 +3447,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/irisal-1021205/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "irisal-1021204",
@@ -3276,7 +3474,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/irisal-1021204/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "irisalis",
@@ -3302,7 +3501,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "legendary"
     },
     {
       "id": "jabster",
@@ -3328,7 +3528,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "jawling",
@@ -3354,7 +3555,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "jawling-1002401",
@@ -3380,7 +3582,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/jawling-1002401/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "lavazar",
@@ -3406,7 +3609,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "leaf-hat-firefly",
@@ -3432,7 +3636,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "leafy",
@@ -3458,7 +3663,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "little-lightning-chirp",
@@ -3484,7 +3690,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "luminelle",
@@ -3510,7 +3717,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "luminelle-1014301",
@@ -3536,7 +3744,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/luminelle-1014301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "luminelle-1014302",
@@ -3562,7 +3771,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/luminelle-1014302/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "lunara",
@@ -3588,7 +3798,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "magmarex",
@@ -3614,7 +3825,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "magmarex-1028301",
@@ -3640,7 +3852,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/magmarex-1028301/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "malangel",
@@ -3666,7 +3879,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "malevsera",
@@ -3692,7 +3906,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "melloblum",
@@ -3718,7 +3933,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "melloblum-1032402",
@@ -3744,7 +3960,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/melloblum-1032402/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "minespine",
@@ -3770,7 +3987,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "minespine-prismana",
@@ -3796,7 +4014,8 @@
       "source": {
         "name": "Hideout Guides Aniimo Homeland Worker Abilities",
         "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "nimbi",
@@ -3822,7 +4041,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "nimbi-1026102",
@@ -3848,7 +4068,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/nimbi-1026102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "nimbi-1026105",
@@ -3874,7 +4095,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/nimbi-1026105/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "nimbi-1026101",
@@ -3900,7 +4122,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/nimbi-1026101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "panpanta",
@@ -3926,7 +4149,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "panpanta-1017401",
@@ -3952,7 +4176,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/panpanta-1017401/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "panpanta-1017402",
@@ -3978,7 +4203,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/panpanta-1017402/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "pawney",
@@ -4004,7 +4230,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pawney-1002602",
@@ -4030,7 +4257,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pawney-1002602/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pawney-1002601",
@@ -4056,7 +4284,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pawney-1002601/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pawney-1002603",
@@ -4082,7 +4311,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pawney-1002603/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "pebbling",
@@ -4108,7 +4338,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "piopiota",
@@ -4134,7 +4365,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "piopiota-1017301",
@@ -4160,7 +4392,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/piopiota-1017301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomawk",
@@ -4186,7 +4419,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomawk-1047502",
@@ -4212,7 +4446,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pomawk-1047502/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomawk-1047503",
@@ -4238,7 +4473,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pomawk-1047503/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomawk-1047501",
@@ -4264,7 +4500,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pomawk-1047501/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomegg",
@@ -4290,7 +4527,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomegg-1047102",
@@ -4316,7 +4554,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pomegg-1047102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomegg-1047103",
@@ -4342,7 +4581,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pomegg-1047103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pomegg-1047101",
@@ -4368,7 +4608,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pomegg-1047101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "popapus",
@@ -4394,7 +4635,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "popota",
@@ -4420,7 +4662,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "popota-1017201",
@@ -4446,7 +4689,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/popota-1017201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pranky",
@@ -4472,7 +4716,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pranky-1004201",
@@ -4498,7 +4743,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pranky-1004201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "pranky-1004202",
@@ -4524,7 +4770,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/pranky-1004202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "rookey",
@@ -4550,7 +4797,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "rookey-1002702",
@@ -4576,7 +4824,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/rookey-1002702/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "rookey-1002701",
@@ -4602,7 +4851,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/rookey-1002701/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "scorchhowl",
@@ -4628,7 +4878,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "scorchhowl-1005301",
@@ -4654,7 +4905,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/scorchhowl-1005301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "scorchhowl-1005304",
@@ -4680,7 +4932,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/scorchhowl-1005304/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "scorchhowl-1005302",
@@ -4706,7 +4959,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/scorchhowl-1005302/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "scorchhowl-1005303",
@@ -4732,7 +4986,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/scorchhowl-1005303/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "sheldon",
@@ -4758,7 +5013,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "shelly",
@@ -4784,7 +5040,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sherro",
@@ -4810,7 +5067,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sherro-1019401",
@@ -4836,7 +5094,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/sherro-1019401/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sherro-1019402",
@@ -4862,7 +5121,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/sherro-1019402/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "shrubclaw",
@@ -4888,7 +5148,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "shrubclaw-1016203",
@@ -4914,7 +5175,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/shrubclaw-1016203/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "shrubclaw-1016202",
@@ -4940,7 +5202,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/shrubclaw-1016202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "shrubclaw-1016201",
@@ -4966,7 +5229,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/shrubclaw-1016201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "skippy",
@@ -4992,7 +5256,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "skippy-1004101",
@@ -5018,7 +5283,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/skippy-1004101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "skippy-1004102",
@@ -5044,7 +5310,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/skippy-1004102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "soleon",
@@ -5070,7 +5337,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sparkelf",
@@ -5096,7 +5364,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sparkelf-6999301",
@@ -5122,7 +5391,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/sparkelf-6999301/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "sparki",
@@ -5148,7 +5418,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sparki-1033102",
@@ -5174,7 +5445,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/sparki-1033102/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sparki-1033101",
@@ -5200,7 +5472,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/sparki-1033101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "sparki-1033103",
@@ -5226,7 +5499,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/sparki-1033103/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "squarrel",
@@ -5252,7 +5526,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "squashel",
@@ -5278,7 +5553,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "stellarys",
@@ -5304,7 +5580,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "stellarys-1001201",
@@ -5330,7 +5607,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/stellarys-1001201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "stellarys-1001202",
@@ -5357,7 +5635,8 @@
         "name": "Manual override (data/aniimo-overrides.json)",
         "url": "",
         "notes": "User-confirmed in-game values. Also matches Hideout Guides."
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "susuta",
@@ -5383,7 +5662,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "susuta-1017101",
@@ -5409,7 +5689,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/susuta-1017101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "thornblade",
@@ -5435,7 +5716,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "thornblade-1032301",
@@ -5461,7 +5743,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/thornblade-1032301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "thornblade-1032303",
@@ -5487,7 +5770,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/thornblade-1032303/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "thornblade-1032302",
@@ -5513,7 +5797,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/thornblade-1032302/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "thunderfeather-sparrow",
@@ -5539,7 +5824,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tromber",
@@ -5565,7 +5851,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tromber-1018401",
@@ -5591,7 +5878,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/tromber-1018401/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tromber-1018403",
@@ -5617,7 +5905,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/tromber-1018403/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tubster",
@@ -5643,7 +5932,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tubster-1018701",
@@ -5669,7 +5959,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/tubster-1018701/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tubster-1018703",
@@ -5695,7 +5986,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/tubster-1018703/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tuckin",
@@ -5721,7 +6013,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tuckin-1020701",
@@ -5747,7 +6040,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/tuckin-1020701/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "tuckin-prismana",
@@ -5773,7 +6067,8 @@
       "source": {
         "name": "Hideout Guides Aniimo Homeland Worker Abilities",
         "url": "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "tuckin-9020700",
@@ -5799,7 +6094,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "boss"
     },
     {
       "id": "turbo",
@@ -5825,7 +6121,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "turbo-1026202",
@@ -5851,7 +6148,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/turbo-1026202/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "turbo-1026205",
@@ -5877,7 +6175,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/turbo-1026205/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "turbo-1026201",
@@ -5903,7 +6202,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/turbo-1026201/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "turbo-1026204",
@@ -5929,7 +6229,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/turbo-1026204/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "veilfloat",
@@ -5955,7 +6256,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "waleetle",
@@ -5981,7 +6283,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "waleetle-1045301",
@@ -6007,7 +6310,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/waleetle-1045301/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "waleetle-1045302",
@@ -6033,7 +6337,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/waleetle-1045302/"
-      }
+      },
+      "category": "prismana"
     },
     {
       "id": "wisptis",
@@ -6059,7 +6364,8 @@
       "source": {
         "name": "Beskor Aniimo Homeland Work Abilities",
         "url": "https://aniimo.gg/homeland/work/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "wisptis-1003101",
@@ -6085,7 +6391,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/wisptis-1003101/"
-      }
+      },
+      "category": "common"
     },
     {
       "id": "wisptis-1003103",
@@ -6111,7 +6418,8 @@
       "source": {
         "name": "Beskor Aniimo page",
         "url": "https://aniimo.gg/aniimo/wisptis-1003103/"
-      }
+      },
+      "category": "common"
     }
   ]
 }

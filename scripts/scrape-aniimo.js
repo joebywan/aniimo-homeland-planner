@@ -10,6 +10,8 @@ const OUTPUT_JS = path.join(ROOT, "data", "aniimo-data.js");
 const OVERRIDES_JSON = path.join(ROOT, "data", "aniimo-overrides.json");
 const SOURCE_URL = "https://aniimo.gg/homeland/work/";
 const HIDEOUT_URL = "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities";
+const ANIILOG_URL = "https://aniimo.gg/aniilog/";
+const CATEGORIES = ["common", "prismana", "legendary", "boss"];
 
 const SKILLS = [
   "Fire",
@@ -111,6 +113,45 @@ function absolutizeImage(src) {
 
 function newRecord({ id, name, species, form, image, source }) {
   return { id, name, species, form, image, skills: emptySkills(), source };
+}
+
+// Each ability section on the work page starts with a coloured circle holding the in-game ability
+// icon (hotlinked from cdn.beskor.net), followed by the ability name.
+function parseAbilityIcons(html) {
+  const icons = {};
+  const pattern =
+    /<span[^>]*style="background:\s*(#[0-9a-fA-F]{3,8})"[^>]*>\s*<img[^>]*src="([^"]+)"[^>]*\/?>\s*<\/span>\s*<div class="min-w-0 flex-1">\s*<div class="font-display[^"]*">([A-Za-z]+)</g;
+  for (const match of html.matchAll(pattern)) {
+    const [, color, src, skill] = match;
+    if (SKILLS.includes(skill) && !icons[skill]) icons[skill] = { icon: absolutizeImage(decodeHtml(src)), color: color.toLowerCase() };
+  }
+  const missing = SKILLS.filter((skill) => !icons[skill]);
+  if (missing.length) throw new Error(`Could not find ability icons for: ${missing.join(", ")}`);
+  // Keep the game's ability order.
+  return Object.fromEntries(SKILLS.map((skill) => [skill, icons[skill]]));
+}
+
+// The Aniilog page lists every species with a label such as "Grass · Stage 3", "Water · Stage 3 · Secret"
+// or "Grass · Stage 4 · Prismana". The game's two Legendary Aniimo (Somniwing and Irisalis) are the only
+// Stage 4 species, which is how legendaries are recognised.
+function parseAniilog(html) {
+  const entries = [];
+  const seen = new Set();
+  const pattern = /\\?"href\\?":\\?"([^"\\]+)\\?",\\?"name\\?":\\?"([^"\\]+)\\?",\\?"sub\\?":\\?"([^"\\]+)\\?"/g;
+  for (const match of html.matchAll(pattern)) {
+    const [, href, name, sub] = match;
+    const slug = slugFromHref(href);
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    const stage = Number(sub.match(/Stage\s*(\d+)/i)?.[1] || 0);
+    entries.push({ slug, name: decodeHtml(name), sub: decodeHtml(sub), stage, secret: /\bSecret\b/i.test(sub) });
+  }
+  return entries;
+}
+
+// Species pages show the game's template ID ("1004300"). IDs starting with 9 are boss/NPC entities.
+function parseTemplateId(html) {
+  return html.match(/title="Template id[^"]*"[\s\S]{0,300}?<code[^>]*>(\d+)<\/code>/)?.[1] || "";
 }
 
 function parseAbilitySections(html) {
@@ -252,6 +293,8 @@ async function collectForms(baseRecords, knownIds) {
 
   const pending = [];
   for (const { base, html } of speciesPages) {
+    const templateId = parseTemplateId(html);
+    if (templateId) base.templateId = templateId;
     for (const link of parseFormLinks(html)) {
       if (link.slug === base.id || knownIds.has(link.slug)) continue;
       if (classifySlug(base.name, link.slug) !== "form") continue;
@@ -364,6 +407,37 @@ function applyOverrides(records, overrides) {
   return applied;
 }
 
+// category decides whether the planner offers an Aniimo by default:
+//   common    – base and regional forms you can normally catch (on by default)
+//   prismana  – Prismana forms (off unless the player ticks them)
+//   legendary – Legendary species from the Aniilog (Stage 4), off unless ticked
+//   boss      – BOSS forms and boss/NPC entities (template ID starting with 9), never on by default
+// data/aniimo-overrides.json "categories" entries (species + optional form) win over all of this.
+function assignCategories(records, legendarySpecies, overrides) {
+  const report = { legendary: [], boss: [], overridden: [] };
+  for (const record of records) {
+    let category = "common";
+    if (record.form === "BOSS" || record.kind === "boss" || /^9\d{6}$/.test(record.templateId || "")) category = "boss";
+    else if (legendarySpecies.has(record.species)) category = "legendary";
+    else if (record.form === "Prismana") category = "prismana";
+    record.category = category;
+  }
+  for (const entry of overrides) {
+    if (!entry || !CATEGORIES.includes(entry.category)) continue;
+    for (const record of records) {
+      if (record.species !== entry.species) continue;
+      if (entry.form && record.form !== entry.form) continue;
+      record.category = entry.category;
+      report.overridden.push(`${record.name} (${record.form}): ${entry.category}`);
+    }
+  }
+  for (const record of records) {
+    if (record.category === "legendary") report.legendary.push(`${record.name} (${record.form})`);
+    if (record.category === "boss") report.boss.push(`${record.name} (${record.form})`);
+  }
+  return report;
+}
+
 function sortRecords(records) {
   return records.sort((a, b) => {
     const speciesSort = (a.species || a.name).localeCompare(b.species || b.name);
@@ -377,11 +451,19 @@ function sortRecords(records) {
   });
 }
 
-function buildPayload(records, scrape) {
+function buildPayload(records, scrape, abilityIcons) {
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     skills: SKILLS,
+    // In-game ability icons as aniimo.gg shows them: a white glyph on a coloured circle.
+    abilityIcons,
+    categories: {
+      common: "Base and regional forms you can normally catch. The planner uses these by default.",
+      prismana: "Prismana forms. Only used when the player ticks them.",
+      legendary: "Legendary Aniimo (the Aniilog's Stage 4 species). Only used when the player ticks them.",
+      boss: "BOSS forms and boss/NPC entities. Never used by default.",
+    },
     // Shown to players under "About the data", so keep names and notes in plain English.
     sources: [
       {
@@ -395,6 +477,12 @@ function buildPayload(records, scrape) {
         url: HIDEOUT_URL,
         notes:
           "A second list we compare against to catch mistakes, and to fill in any Prismana Aniimo missing from aniimo.gg.",
+      },
+      {
+        name: "aniimo.gg – Aniilog",
+        url: ANIILOG_URL,
+        notes:
+          "Which Aniimo are Legendary: the Aniilog labels Somniwing and Irisalis as Stage 4, the only Stage 4 species. Game8 and AniimoTools also list these two as the game's Legendary Aniimo.",
       },
       {
         name: "Player corrections",
@@ -434,6 +522,7 @@ function preserveTimestampWhenUnchanged(payload) {
 async function main() {
   const html = await fetchText(SOURCE_URL);
   const { records: workRecords, sectionSummaries } = parseAbilitySections(html);
+  const abilityIcons = parseAbilityIcons(html);
 
   const includeInternal = process.env.INCLUDE_INTERNAL_VARIANTS === "1";
   const internal = workRecords.filter((record) => record.kind === "internal");
@@ -451,10 +540,24 @@ async function main() {
     hideout.error = String(error.message || error);
   }
 
-  const overrides = fs.existsSync(OVERRIDES_JSON) ? JSON.parse(fs.readFileSync(OVERRIDES_JSON, "utf8")).overrides || [] : [];
-  const overridesApplied = applyOverrides(records, overrides);
+  const overridesFile = fs.existsSync(OVERRIDES_JSON) ? JSON.parse(fs.readFileSync(OVERRIDES_JSON, "utf8")) : {};
+  const overridesApplied = applyOverrides(records, overridesFile.overrides || []);
 
-  for (const record of records) delete record.kind;
+  let aniilog = { entries: [], error: null };
+  try {
+    aniilog.entries = parseAniilog(await fetchWithRetry(ANIILOG_URL));
+  } catch (error) {
+    aniilog.error = String(error.message || error);
+  }
+  const legendarySpecies = new Set(aniilog.entries.filter((entry) => entry.stage >= 4).map((entry) => entry.name));
+  // Fallback when the Aniilog can't be read: the two Legendary Aniimo known at the time of writing.
+  if (!legendarySpecies.size) ["Somniwing", "Irisalis"].forEach((name) => legendarySpecies.add(name));
+  const categoryReport = assignCategories(records, legendarySpecies, overridesFile.categories || []);
+
+  for (const record of records) {
+    delete record.kind;
+    delete record.templateId;
+  }
   sortRecords(records);
 
   const scrape = {
@@ -466,11 +569,14 @@ async function main() {
     internalVariantsNote:
       "aniimo.gg lists 9-digit-ID copies of some Aniimo (tower climb, shrine puzzle, tutorial, NPC and test entities, per their internal editor names). They are not collectible forms and are excluded. Set INCLUDE_INTERNAL_VARIANTS=1 to keep them.",
     hideoutPrismana: hideout,
+    legendarySpecies: [...legendarySpecies].sort(),
+    legendarySource: aniilog.error ? `fallback list (Aniilog failed: ${aniilog.error})` : ANIILOG_URL,
+    categoryReport,
     overridesApplied,
     fetchFailures: failures,
   };
 
-  const payload = preserveTimestampWhenUnchanged(buildPayload(records, scrape));
+  const payload = preserveTimestampWhenUnchanged(buildPayload(records, scrape, abilityIcons));
   const json = `${JSON.stringify(payload, null, 2)}\n`;
   const js = `window.ANIIMO_DATA = ${json.replace(/<\/script/gi, "<\\/script")};\n`;
 
@@ -483,6 +589,8 @@ async function main() {
   console.log(`Hideout Prismana listed: ${hideout.listed}; added: ${hideout.added.join(", ") || "none"}; mismatches: ${hideout.mismatches.length}`);
   if (hideout.error) console.warn(`Hideout cross-reference failed: ${hideout.error}`);
   console.log(`Overrides applied: ${overridesApplied.join(", ") || "none"}`);
+  console.log(`Legendary species: ${scrape.legendarySpecies.join(", ")}; legendary records: ${categoryReport.legendary.join(", ") || "none"}`);
+  console.log(`Boss records: ${categoryReport.boss.join(", ") || "none"}`);
   if (failures.length) console.warn(`Fetch failures: ${failures.length}`, failures.slice(0, 5));
   for (const summary of sectionSummaries) {
     console.log(`${summary.skill}: ${summary.parsedCount}`);
@@ -499,6 +607,10 @@ if (require.main === module) {
 module.exports = {
   SKILLS,
   classifySlug,
+  assignCategories,
+  parseAbilityIcons,
+  parseAniilog,
+  parseTemplateId,
   parseAbilitySections,
   parseFormLinks,
   parseHomelandWork,

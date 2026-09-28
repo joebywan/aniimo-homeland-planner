@@ -21,8 +21,11 @@
     "Perfumery",
   ];
 
+  // mode "pool": every Aniimo passed in is available with as many copies as needed (the planner's
+  // "Available Aniimo" pool). mode "owned": limited to roster quantities (kept for library use and tests).
+  // "theorycraft" is the old name for "pool".
   const DEFAULT_SETTINGS = {
-    mode: "owned",
+    mode: "pool",
     actionDurationSeconds: 5,
     cycleDurationMinutes: 20,
     overheadMultiplier: 1,
@@ -58,7 +61,7 @@
     return `${worker.name} (${worker.form})`;
   }
 
-  // In planning ("theorycraft") mode unowned Aniimo are treated as unlimited. To keep the search
+  // In pool mode Aniimo are treated as unlimited. To keep the search
   // fast we only generate as many copies of a form as could ever be useful: the number of bodies
   // that the skills it has could possibly fill, capped at the search depth.
   function planningCopyCap(entry, model, requirements, settings, skills) {
@@ -85,16 +88,48 @@
     return Math.max(1, Math.min(maxWorkers, best));
   }
 
+  function isOwnedMode(settings) {
+    return settings?.mode === "owned";
+  }
+
+  const CATEGORIES = ["common", "prismana", "legendary", "boss"];
+
+  // Which group an Aniimo belongs to. Data records carry `category`; older data falls back to the form.
+  function aniimoCategory(entry) {
+    if (CATEGORIES.includes(entry?.category)) return entry.category;
+    if (entry?.form === "BOSS") return "boss";
+    if (entry?.form === "Prismana") return "prismana";
+    return "common";
+  }
+
+  // pool: { includePrismana, includeLegendary, picks: { [id]: true | false } }. A pick (the per-row tick)
+  // always wins. Otherwise common Aniimo are in, Prismana and legendary follow their toggles, and BOSS
+  // forms are out.
+  function isInPool(entry, pool) {
+    const pick = pool?.picks?.[entry?.id];
+    if (pick === true || pick === false) return pick;
+    const category = aniimoCategory(entry);
+    if (category === "common") return true;
+    if (category === "prismana") return Boolean(pool?.includePrismana);
+    if (category === "legendary") return Boolean(pool?.includeLegendary);
+    return false;
+  }
+
+  function filterAniimoPool(aniimo, pool) {
+    return (aniimo || []).filter((entry) => isInPool(entry, pool));
+  }
+
   function buildWorkers(aniimo, roster, settings, skills, copyCapFor) {
     const workers = [];
+    const owned = isOwnedMode(settings);
 
     for (const entry of aniimo) {
-      const ownedState = roster?.[entry.id] || {};
+      const ownedState = (owned && roster?.[entry.id]) || {};
       if (ownedState.excluded) continue;
 
-      const ownedQuantity = Math.floor(clampNumber(ownedState.quantity, 0, 0, 99));
-      const planningCopies = settings.mode === "theorycraft" ? (copyCapFor ? copyCapFor(entry) : 1) : 0;
-      const quantity = Math.max(ownedQuantity, planningCopies);
+      const ownedQuantity = owned ? Math.floor(clampNumber(ownedState.quantity, 0, 0, 99)) : 0;
+      const poolCopies = owned ? 0 : copyCapFor ? copyCapFor(entry) : 1;
+      const quantity = Math.max(ownedQuantity, poolCopies);
 
       for (let copy = 1; copy <= quantity; copy += 1) {
         workers.push({
@@ -104,7 +139,9 @@
           name: entry.name,
           form: entry.form,
           image: entry.image || "",
-          owned: copy <= ownedQuantity,
+          category: aniimoCategory(entry),
+          // Only meaningful in owned mode; pool Aniimo are all available.
+          owned: owned ? copy <= ownedQuantity : true,
           skills: cloneSkillMap(skills, entry.skills),
           totalSkill: skills.reduce((sum, skill) => sum + Number(entry.skills?.[skill] || 0), 0),
         });
@@ -194,18 +231,20 @@
       return { ok: true, assignments: [], busyWorkerIds: new Set(), unfilled: [] };
     }
 
+    const specialisation = new Map(
+      selectedWorkers.map((worker) => [worker.workerId, countMatchingContinuousSkills(worker, continuousJobs)])
+    );
+    const power = new Map(selectedWorkers.map((worker) => [worker.workerId, totalSkillPower(worker, DEFAULT_SKILLS)]));
     const jobs = continuousJobs
       .map((job) => ({
         job,
         candidates: selectedWorkers
           .filter((worker) => workerCanDoJob(worker, job))
           .sort((a, b) => {
-            const aSpecialization = countMatchingContinuousSkills(a, continuousJobs);
-            const bSpecialization = countMatchingContinuousSkills(b, continuousJobs);
             return (
-              aSpecialization - bSpecialization ||
+              specialisation.get(a.workerId) - specialisation.get(b.workerId) ||
               jobMatchLevel(a, job) - jobMatchLevel(b, job) ||
-              totalSkillPower(a, DEFAULT_SKILLS) - totalSkillPower(b, DEFAULT_SKILLS) ||
+              power.get(a.workerId) - power.get(b.workerId) ||
               a.workerId.localeCompare(b.workerId)
             );
           }),
@@ -221,30 +260,36 @@
       };
     }
 
-    const used = new Set();
-    const assignments = new Map();
-    let explored = 0;
-    const maxStates = 100000;
-
-    function backtrack(index) {
-      explored += 1;
-      if (explored > maxStates) return false;
-      if (index >= jobs.length) return true;
-
-      const { job, candidates } = jobs[index];
-      for (const worker of candidates) {
-        if (used.has(worker.workerId)) continue;
-        used.add(worker.workerId);
-        assignments.set(job.id, { job, worker });
-        if (backtrack(index + 1)) return true;
-        assignments.delete(job.id);
-        used.delete(worker.workerId);
+    // Maximum bipartite matching (augmenting paths). Jobs with the fewest options go first and each job
+    // tries its preferred Aniimo first (the most specialised, lowest-level one that fits), so the
+    // matching keeps versatile Aniimo free where it can, and it always finds a full assignment if one
+    // exists.
+    const jobByWorker = new Map();
+    const workerByJob = new Map();
+    function augment(jobIndex, visited) {
+      for (const worker of jobs[jobIndex].candidates) {
+        if (visited.has(worker.workerId)) continue;
+        visited.add(worker.workerId);
+        const holder = jobByWorker.get(worker.workerId);
+        if (holder === undefined || augment(holder, visited)) {
+          jobByWorker.set(worker.workerId, jobIndex);
+          workerByJob.set(jobIndex, worker);
+          return true;
+        }
       }
-
       return false;
     }
+    let matched = 0;
+    for (let index = 0; index < jobs.length; index += 1) {
+      if (augment(index, new Set())) matched += 1;
+    }
+    const assignments = new Map();
+    for (const [jobIndex, worker] of workerByJob) {
+      const { job } = jobs[jobIndex];
+      assignments.set(job.id, { job, worker });
+    }
 
-    const ok = backtrack(0);
+    const ok = matched === jobs.length;
     if (!ok) {
       return {
         ok: false,
@@ -511,59 +556,251 @@
     });
   }
 
-  function approximateStateScore(state, candidates, requirements, skills, model, settings) {
-    let deficit = 0;
-    let surplus = 0;
-    for (const skill of skills) {
-      const required = Number(requirements?.[skill] || 0);
-      const available = Number(state.totals?.[skill] || 0);
-      deficit += Math.max(0, required - available);
-      surplus += Math.max(0, available - required);
-    }
-
-    const selected = state.indices.map((index) => candidates[index]);
-    let continuousShortage = 0;
-    for (const job of model.continuousJobs) {
-      const compatible = selected.filter((worker) => workerCanDoJob(worker, job)).length;
-      if (!compatible) continuousShortage += 1;
-    }
-
+  // Precomputed per-candidate vectors so each search state can be scored from running counters instead
+  // of re-scanning every selected Aniimo against every job.
+  function buildSearchContext(candidates, requirements, skills, model, settings) {
+    const groups = continuousJobGroups(model);
     const maxLoad = clampNumber(settings.maxUtilizationPercent, 50, 1, 100) / 100;
-    let intermittentShortage = 0;
-    for (const task of model.intermittentTasks) {
-      const compatible = selected.filter((worker) => Number(worker.skills?.[task.skill] || 0) > 0).length;
-      intermittentShortage += Math.max(0, Math.ceil(task.load / maxLoad) - compatible);
-    }
-
-    return deficit * 1000 + continuousShortage * 700 + intermittentShortage * 500 + surplus * 9;
+    const tasks = model.intermittentTasks.map((task) => ({
+      skill: task.skill,
+      need: Math.ceil(task.load / maxLoad - 0.000001),
+    }));
+    const jobSkillSet = new Set();
+    for (const group of groups) for (const requirement of group.job.requirements || []) jobSkillSet.add(requirement.skill);
+    for (const task of tasks) jobSkillSet.add(task.skill);
+    const jobSkills = [...jobSkillSet].sort();
+    const neededBySkill = jobSkills.map(
+      (skill) =>
+        groups
+          .filter((group) => (group.job.requirements || []).some((requirement) => requirement.skill === skill))
+          .reduce((sum, group) => sum + group.count, 0) + tasks.filter((task) => task.skill === skill).length
+    );
+    return {
+      skills,
+      weights: settings.maxTeamSize ? CAPPED_WEIGHTS : DEFAULT_WEIGHTS,
+      required: skills.map((skill) => Number(requirements?.[skill] || 0)),
+      groups,
+      tasks,
+      jobSkills,
+      neededBySkill,
+      continuousCount: model.continuousJobs.length,
+      vectors: candidates.map((worker) => {
+        const group = groups.map((item) => (workerCanDoJob(worker, item.job) ? 1 : 0));
+        const task = tasks.map((item) => (Number(worker.skills?.[item.skill] || 0) > 0 ? 1 : 0));
+        const levels = skills.map((skill) => Number(worker.skills?.[skill] || 0));
+        return {
+          group,
+          task,
+          hold: jobSkills.map((skill) => (Number(worker.skills?.[skill] || 0) > 0 ? 1 : 0)),
+          // Sparse copies for quick child scoring.
+          skillIdx: levels.map((level, index) => (level > 0 ? index : -1)).filter((index) => index >= 0),
+          levels,
+          groupIdx: group.map((value, index) => (value ? index : -1)).filter((index) => index >= 0),
+          taskIdx: task.map((value, index) => (value ? index : -1)).filter((index) => index >= 0),
+          skillMask: levels.reduce((mask, level, index) => (level > 0 ? mask | (1 << index) : mask), 0),
+        };
+      }),
+    };
   }
 
-  function stateKey(state, candidates, requirements, skills, model, settings) {
-    const skillPart = skills
-      .map((skill) => {
-        const cap = Number(requirements?.[skill] || 0) + 4;
-        return Math.min(Number(state.totals?.[skill] || 0), cap);
-      })
-      .join(",");
+  // How much each shortfall costs a search state. Normally missing requirement points weigh most. With a
+  // team-size cap (the "best plan that fits" search) keeping buildings and farm steps staffed comes first,
+  // and requirement points are filled with whatever spaces are left.
+  const DEFAULT_WEIGHTS = { deficit: 1000, continuous: 700, intermittent: 500, surplus: 9 };
+  const CAPPED_WEIGHTS = { deficit: 1000, continuous: 100000, intermittent: 60000, surplus: 9 };
 
-    const jobSkills = new Set();
-    for (const job of model.continuousJobs) {
-      for (const requirement of job.requirements || []) jobSkills.add(requirement.skill);
+  // Score parts of a state: requirement deficit/surplus, summed job-group shortage and farm shortage.
+  function scoreParts(state, context) {
+    let deficit = 0;
+    let surplus = 0;
+    context.skills.forEach((skill, index) => {
+      const available = Number(state.totals?.[skill] || 0);
+      deficit += Math.max(0, context.required[index] - available);
+      surplus += Math.max(0, available - context.required[index]);
+    });
+    let groupShort = 0;
+    context.groups.forEach((group, index) => {
+      groupShort += Math.max(0, group.count - state.counters.groupCompat[index]);
+    });
+    let intermittent = 0;
+    context.tasks.forEach((task, index) => {
+      intermittent += Math.max(0, task.need - state.counters.taskCompat[index]);
+    });
+    return { deficit, surplus, groupShort, intermittent };
+  }
+
+  function combineScore(parts, size, context) {
+    const continuous = Math.max(parts.groupShort, context.continuousCount - size);
+    const weights = context.weights;
+    return (
+      parts.deficit * weights.deficit +
+      continuous * weights.continuous +
+      parts.intermittent * weights.intermittent +
+      parts.surplus * weights.surplus
+    );
+  }
+
+  // Score of the state plus candidate `index`, computed from the parent's parts without building it.
+  function childParts(state, index, context) {
+    const vector = context.vectors[index];
+    let { deficit, surplus, groupShort, intermittent } = state.parts;
+    for (const skillIndex of vector.skillIdx) {
+      const skill = context.skills[skillIndex];
+      const before = Number(state.totals[skill] || 0);
+      const after = before + vector.levels[skillIndex];
+      const required = context.required[skillIndex];
+      deficit += Math.max(0, required - after) - Math.max(0, required - before);
+      surplus += Math.max(0, after - required) - Math.max(0, before - required);
     }
-    for (const task of model.intermittentTasks) jobSkills.add(task.skill);
+    for (const groupIndex of vector.groupIdx) {
+      if (state.counters.groupCompat[groupIndex] < context.groups[groupIndex].count) groupShort -= 1;
+    }
+    for (const taskIndex of vector.taskIdx) {
+      if (state.counters.taskCompat[taskIndex] < context.tasks[taskIndex].need) intermittent -= 1;
+    }
+    return { deficit, surplus, groupShort, intermittent };
+  }
 
-    const selected = state.indices.map((index) => candidates[index]);
-    const countPart = [...jobSkills]
-      .sort()
-      .map((skill) => {
-        const needed =
-          model.continuousJobs.filter((job) => (job.requirements || []).some((requirement) => requirement.skill === skill))
-            .length + model.intermittentTasks.filter((task) => task.skill === skill).length;
-        const count = selected.filter((worker) => Number(worker.skills?.[skill] || 0) > 0).length;
-        return `${skill}:${Math.min(count, needed + 2)}`;
-      })
+  // Bit mask of the abilities that would help (see unmetNeedSkills); 0 means anything may be tried.
+  function unmetNeedMask(state, context) {
+    const need = unmetNeedSkills(state, context);
+    if (!need) return 0;
+    return need.reduce((mask, skill) => {
+      const index = context.skills.indexOf(skill);
+      return index >= 0 ? mask | (1 << index) : mask;
+    }, 0);
+  }
+
+  function emptyCounters(context) {
+    return {
+      groupCompat: context.groups.map(() => 0),
+      taskCompat: context.tasks.map(() => 0),
+      holds: context.jobSkills.map(() => 0),
+    };
+  }
+
+  function addCounters(counters, vector) {
+    return {
+      groupCompat: counters.groupCompat.map((value, index) => value + vector.group[index]),
+      taskCompat: counters.taskCompat.map((value, index) => value + vector.task[index]),
+      holds: counters.holds.map((value, index) => value + vector.hold[index]),
+    };
+  }
+
+  // Shortfalls a state still has: full-time job groups without enough Aniimo (each job needs its own
+  // Aniimo, so five Mines need five Earth Aniimo, not one) and farm tasks without enough helpers.
+  function stateShortage(state, context) {
+    let continuous = 0;
+    context.groups.forEach((group, index) => {
+      continuous += Math.max(0, group.count - state.counters.groupCompat[index]);
+    });
+    continuous = Math.max(continuous, context.continuousCount - state.indices.length);
+    let intermittent = 0;
+    context.tasks.forEach((task, index) => {
+      intermittent += Math.max(0, task.need - state.counters.taskCompat[index]);
+    });
+    return { continuous, intermittent };
+  }
+
+  function approximateStateScore(state, context) {
+    let deficit = 0;
+    let surplus = 0;
+    context.skills.forEach((skill, index) => {
+      const available = Number(state.totals?.[skill] || 0);
+      deficit += Math.max(0, context.required[index] - available);
+      surplus += Math.max(0, available - context.required[index]);
+    });
+    const shortage = stateShortage(state, context);
+    const weights = context.weights;
+    return (
+      deficit * weights.deficit +
+      shortage.continuous * weights.continuous +
+      shortage.intermittent * weights.intermittent +
+      surplus * weights.surplus
+    );
+  }
+
+  // Abilities that would help a state still short of something: requirement points not yet reached,
+  // full-time job groups without enough Aniimo, and farm tasks without enough helpers. Returns null when
+  // nothing is obviously short (then any Aniimo may be tried, e.g. to satisfy the exact assignment).
+  function unmetNeedSkills(state, context) {
+    const need = new Set();
+    context.skills.forEach((skill, index) => {
+      if (Number(state.totals?.[skill] || 0) < context.required[index]) need.add(skill);
+    });
+    context.groups.forEach((group, index) => {
+      if (state.counters.groupCompat[index] < group.count) {
+        for (const requirement of group.job.requirements || []) need.add(requirement.skill);
+      }
+    });
+    context.tasks.forEach((task, index) => {
+      if (state.counters.taskCompat[index] < task.need) need.add(task.skill);
+    });
+    return need.size ? [...need] : null;
+  }
+
+  // Full-time jobs grouped by identical requirements (cached on the model).
+  function continuousJobGroups(model) {
+    if (model._jobGroups) return model._jobGroups;
+    const groups = new Map();
+    for (const job of model.continuousJobs) {
+      const key = (job.requirements || [])
+        .map((requirement) => `${requirement.skill}:${Number(requirement.minLevel || 1)}`)
+        .sort()
+        .join("|");
+      const group = groups.get(key) || { job, count: 0 };
+      group.count += 1;
+      groups.set(key, group);
+    }
+    Object.defineProperty(model, "_jobGroups", { value: [...groups.values()], enumerable: false });
+    return model._jobGroups;
+  }
+
+  // The search only looks at a limited list of candidates. Taking just the top scorers can leave out
+  // every Aniimo with a rarely needed ability (e.g. Light), so first reserve enough of the best holders
+  // of each needed ability, then fill the rest of the list by score.
+  function pickCandidates(sorted, relevantSkills, model, requirements, settings, limit) {
+    if (sorted.length <= limit) return sorted;
+    const maxLoad = clampNumber(settings.maxUtilizationPercent, 50, 1, 100) / 100;
+    const chosen = new Set();
+    for (const skill of relevantSkills) {
+      let bodies = 0;
+      for (const job of model.continuousJobs) {
+        if ((job.requirements || []).some((requirement) => requirement.skill === skill)) bodies += 1;
+      }
+      for (const task of model.intermittentTasks) {
+        if (task.skill === skill) bodies += Math.ceil(task.load / maxLoad - 0.000001);
+      }
+      const holders = sorted.filter((worker) => Number(worker.skills?.[skill] || 0) > 0);
+      let points = 0;
+      let taken = 0;
+      for (const worker of holders) {
+        // Enough holders for the jobs and the requirement points, plus a few alternatives.
+        if (taken >= bodies + 3 && points >= Number(requirements?.[skill] || 0) + 3) break;
+        chosen.add(worker);
+        taken += 1;
+        points += Number(worker.skills[skill] || 0);
+      }
+    }
+    for (const worker of sorted) {
+      if (chosen.size >= limit) break;
+      chosen.add(worker);
+    }
+    // Keep score order; a copy is only useful if the earlier copies are also in the list.
+    const kept = sorted.filter((worker) => chosen.has(worker));
+    const keptIds = new Set(kept.map((worker) => worker.workerId));
+    return kept.filter((worker) => worker.copy <= 1 || keptIds.has(`${worker.aniimoId}#${worker.copy - 1}`));
+  }
+
+  // States with the same (capped) ability totals and the same number of holders per job ability are
+  // treated as equivalent, which also removes the same set reached in a different order.
+  function stateKey(state, context) {
+    const skillPart = context.skills
+      .map((skill, index) => Math.min(Number(state.totals?.[skill] || 0), context.required[index] + 4))
       .join(",");
-
+    const countPart = state.counters.holds
+      .map((count, index) => Math.min(count, context.neededBySkill[index] + 2))
+      .join(",");
     return `${skillPart}|${countPart}|${state.indices.length}`;
   }
 
@@ -572,9 +809,9 @@
     const skillCoverage = computeSkillCoverage(state.totals, requirements, skills);
     const targetsOk = skillTargetsMet(state.totals, requirements, skills);
     const continuous = assignContinuous(selectedWorkers, model.continuousJobs);
-    const intermittent = continuous.ok
-      ? assignIntermittent(selectedWorkers, model.intermittentTasks, continuous.busyWorkerIds, settings)
-      : { ok: false, assignments: [], unfilled: model.intermittentTasks, workerLoads: new Map() };
+    // Even when a full-time job is left without an Aniimo, the farm steps are still checked with the
+    // Aniimo that are left, so the report shows which farm steps are really short.
+    const intermittent = assignIntermittent(selectedWorkers, model.intermittentTasks, continuous.busyWorkerIds, settings);
 
     return {
       ok: targetsOk && continuous.ok && intermittent.ok,
@@ -728,6 +965,20 @@
   function finalizeResult(feasible, result, state, candidates, allWorkers, requirements, skills, model, settings, diagnostics) {
     const selectedIds = new Set(result.selectedWorkers.map((worker) => worker.workerId));
     const unusedWorkers = allWorkers.filter((worker) => !selectedIds.has(worker.workerId));
+    if (!isOwnedMode(settings)) {
+      // Pool Aniimo are unlimited, so another copy of every form in the plan is always available (e.g.
+      // as a backup), even if the search only generated as many copies as the jobs could use.
+      const unusedForms = new Set(unusedWorkers.map((worker) => worker.aniimoId));
+      const lastCopy = new Map();
+      for (const worker of allWorkers) {
+        if (!lastCopy.has(worker.aniimoId) || lastCopy.get(worker.aniimoId).copy < worker.copy) lastCopy.set(worker.aniimoId, worker);
+      }
+      for (const [aniimoId, worker] of lastCopy) {
+        if (unusedForms.has(aniimoId)) continue;
+        const copy = worker.copy + 1;
+        unusedWorkers.push({ ...worker, workerId: `${aniimoId}#${copy}`, copy });
+      }
+    }
     const selectedWorkers = decorateSelectedWorkers(result, requirements, skills);
 
     return {
@@ -739,6 +990,8 @@
       continuousAssignments: result.continuous.assignments || [],
       intermittentAssignments: result.intermittent.assignments || [],
       missing: result.missing,
+      unfilledJobs: result.continuous.unfilled || [],
+      unfilledFarmTasks: result.intermittent.ok ? [] : uniqueFarmTasks(result.intermittent.unfilled || []),
       diagnostics: {
         selectedCount: selectedWorkers.length,
         candidateCount: candidates.length,
@@ -752,6 +1005,52 @@
     };
   }
 
+  // Farm chunks that couldn't be placed, merged back to one entry per farm task.
+  function uniqueFarmTasks(chunks) {
+    const byId = new Map();
+    for (const chunk of chunks) {
+      if (!byId.has(chunk.id)) {
+        byId.set(chunk.id, { id: chunk.id, buildingId: chunk.buildingId, buildingName: chunk.buildingName, skill: chunk.skill, label: chunk.label });
+      }
+    }
+    return [...byId.values()];
+  }
+
+  // The beam search is a heuristic, so the plan it finds can occasionally carry an Aniimo it doesn't
+  // need. Try leaving each one out (weakest first, later copies before earlier ones) and keep any
+  // smaller team that still covers everything.
+  function dropRedundantWorkers(winning, state, candidates, requirements, skills, model, settings) {
+    let best = { winning, state };
+    let improved = true;
+    while (improved && best.state.indices.length > 1) {
+      improved = false;
+      const order = best.state.indices
+        .slice()
+        .sort(
+          (a, b) =>
+            candidates[b].copy - candidates[a].copy ||
+            totalSkillPower(candidates[a], skills) - totalSkillPower(candidates[b], skills)
+        );
+      for (const drop of order) {
+        const worker = candidates[drop];
+        const indices = best.state.indices.filter((index) => index !== drop);
+        // Keep copies numbered from 1: only drop the highest copy of a form still in the team.
+        if (indices.some((index) => candidates[index].aniimoId === worker.aniimoId && candidates[index].copy > worker.copy)) continue;
+        const totals = emptySkillMap(skills);
+        for (const index of indices) for (const skill of skills) totals[skill] += Number(candidates[index].skills?.[skill] || 0);
+        if (!skillTargetsMet(totals, requirements, skills)) continue;
+        const trial = { indices, last: Math.max(...indices), totals };
+        const validation = validateSelection(trial, candidates, requirements, skills, model, settings);
+        if (validation.ok) {
+          best = { winning: validation, state: trial };
+          improved = true;
+          break;
+        }
+      }
+    }
+    return best;
+  }
+
   function optimizeWorkforce(input) {
     const skills = input.skills || DEFAULT_SKILLS;
     const requirements = cloneSkillMap(skills, input.requirements || {});
@@ -763,16 +1062,21 @@
     const relevantSkills = relevantSkillSet(requirements, model);
     let candidates = sortAndFilterCandidates(allWorkers, relevantSkills, model, requirements);
 
-    if (settings.mode === "theorycraft") {
-      candidates = candidates.slice(0, Math.max(20, Math.min(120, Number(settings.theorycraftCandidateLimit || 80))));
+    if (!isOwnedMode(settings)) {
+      // Big Homelands need more distinct Aniimo than the usual list holds.
+      const base = Math.max(20, Math.min(160, Number(settings.theorycraftCandidateLimit || 80)));
+      const limit = Math.min(200, Math.max(base, model.continuousJobs.length + model.intermittentTasks.length + 40));
+      candidates = pickCandidates(candidates, relevantSkills, model, requirements, settings, limit);
     }
     // Keep copies of the same form in ascending order so the index-ordered search picks #1 before #2.
     candidates = orderCopies(candidates);
 
+    const context = buildSearchContext(candidates, requirements, skills, model, settings);
     const emptyState = {
       indices: [],
       last: -1,
       totals: emptySkillMap(skills),
+      counters: emptyCounters(context),
     };
 
     if (!candidates.length) {
@@ -782,10 +1086,19 @@
       });
     }
 
-    const maxDepth = Math.min(
+    // Every full-time job needs its own Aniimo, so search at least that deep (plus room for farm helpers
+    // and requirement points), even when the setting asks for fewer.
+    let maxDepth = Math.min(
       candidates.length,
-      Math.floor(clampNumber(settings.maxSearchWorkers, DEFAULT_SETTINGS.maxSearchWorkers, 1, 80))
+      100,
+      Math.max(
+        Math.floor(clampNumber(settings.maxSearchWorkers, DEFAULT_SETTINGS.maxSearchWorkers, 1, 80)),
+        model.continuousJobs.length + model.intermittentTasks.length + 4
+      )
     );
+    // "Best plan that fits": never look at teams bigger than the spaces available.
+    const teamCap = positiveIntegerOrNull(settings.maxTeamSize);
+    if (teamCap !== null) maxDepth = Math.min(maxDepth, teamCap);
     const beamWidth = Math.floor(clampNumber(settings.beamWidth, DEFAULT_SETTINGS.beamWidth, 100, 20000));
     const indexByWorkerId = new Map(candidates.map((worker, index) => [worker.workerId, index]));
     const previousCopyIndex = candidates.map((worker) => {
@@ -801,15 +1114,17 @@
       const solutions = [];
 
       for (const state of beam) {
-        const stateScore =
-          state.score ?? approximateStateScore(state, candidates, requirements, skills, model, settings);
+        const stateScore = state.score ?? approximateStateScore(state, context);
         if (stateScore < bestPartialScore) {
           bestPartialScore = stateScore;
           bestPartial = state;
         }
 
-        // Full staffing validation is expensive; it can only pass once the skill targets are met.
+        // Full staffing validation is expensive; it can only pass once the skill targets are met and
+        // every job group has enough compatible Aniimo.
         if (!skillTargetsMet(state.totals, requirements, skills)) continue;
+        const shortage = stateShortage(state, context);
+        if (shortage.continuous > 0 || shortage.intermittent > 0) continue;
         const validation = validateSelection(state, candidates, requirements, skills, model, settings);
         if (validation.ok) {
           solutions.push(validation);
@@ -818,12 +1133,13 @@
 
       if (solutions.length) {
         solutions.sort((a, b) => solutionSort(a, b, skills));
-        const winning = solutions[0];
-        const state = beam.find((candidateState) => {
+        let winning = solutions[0];
+        let state = beam.find((candidateState) => {
           const ids = candidateState.indices.map((index) => candidates[index]).map((worker) => worker.workerId).join("|");
           const solutionIds = winning.selectedWorkers.map((worker) => worker.workerId).join("|");
           return ids === solutionIds;
         }) || beam[0];
+        ({ winning, state } = dropRedundantWorkers(winning, state, candidates, requirements, skills, model, settings));
 
         return finalizeResult(true, winning, state, candidates, allWorkers, requirements, skills, model, settings, {
           note: "Solution found with beam search.",
@@ -834,28 +1150,40 @@
 
       const nextStates = [];
       for (const state of beam) {
-        for (let index = state.last + 1; index < candidates.length; index += 1) {
-          const worker = candidates[index];
+        // Only add Aniimo that help with something still missing. Any unselected candidate can be added
+        // (not just later ones in the list); the same set reached in a different order is removed by
+        // the state key below.
+        if (!state.parts) state.parts = scoreParts(state, context);
+        const helpfulMask = unmetNeedMask(state, context);
+        const chosen = new Set(state.indices);
+        const size = state.indices.length + 1;
+        for (let index = 0; index < candidates.length; index += 1) {
+          if (chosen.has(index)) continue;
           // Copies are interchangeable: only allow copy #n once copy #n-1 is already selected.
           const previous = previousCopyIndex[index];
-          if (previous >= 0 && !state.indices.includes(previous)) continue;
-          nextStates.push({
-            indices: state.indices.concat(index),
-            last: index,
-            totals: addSkills(state.totals, worker, skills),
-          });
+          if (previous >= 0 && !chosen.has(previous)) continue;
+          if (helpfulMask && !(context.vectors[index].skillMask & helpfulMask)) continue;
+          const parts = childParts(state, index, context);
+          // Children are only built in full if they make it into the next beam.
+          nextStates.push({ parent: state, index, parts, score: combineScore(parts, size, context), size });
         }
       }
 
-      for (const state of nextStates) {
-        state.score = approximateStateScore(state, candidates, requirements, skills, model, settings);
-      }
-      nextStates.sort((a, b) => a.score - b.score || a.indices.length - b.indices.length);
+      nextStates.sort((a, b) => a.score - b.score || a.size - b.size);
 
       const seen = new Set();
       beam = [];
-      for (const state of nextStates) {
-        const key = stateKey(state, candidates, requirements, skills, model, settings);
+      for (const child of nextStates) {
+        const { parent, index } = child;
+        const state = {
+          indices: parent.indices.concat(index),
+          last: index,
+          totals: addSkills(parent.totals, candidates[index], skills),
+          counters: addCounters(parent.counters, context.vectors[index]),
+          parts: child.parts,
+          score: child.score,
+        };
+        const key = stateKey(state, context);
         if (seen.has(key)) continue;
         seen.add(key);
         beam.push(state);
@@ -873,14 +1201,9 @@
     return Math.floor(numeric);
   }
 
-  // Works out how many Aniimo the homeland can hold. A manual number always wins; otherwise the
-  // RV level is looked up in the (optional, possibly incomplete) homeland data file.
-  function resolveHomelandCapacity(homelandData, rvLevel, manualCapacity) {
-    const manual = positiveIntegerOrNull(manualCapacity);
-    if (manual !== null && manual > 0) {
-      return { capacity: manual, source: "manual", known: true };
-    }
-
+  // Works out how many Aniimo the homeland can hold from the RV level alone (the game doesn't let
+  // players change it), using the (optional, possibly incomplete) homeland data file.
+  function resolveHomelandCapacity(homelandData, rvLevel) {
     const level = positiveIntegerOrNull(rvLevel);
     const levels = Array.isArray(homelandData?.rvLevels) ? homelandData.rvLevels : [];
     const entry = level === null ? null : levels.find((item) => Number(item?.level) === level);
@@ -892,6 +1215,28 @@
     return { capacity: null, source: "unknown", known: false, level };
   }
 
+  // Structured placement limit: building.maxByRv = [{ rv, max }, ...]. Returns
+  //   { limited: false, locked } when the building has no limit data (e.g. Storage Units, a player choice),
+  //   { limited: true, known: false } when no RV level is chosen,
+  //   { limited: true, known: true, max, locked, unlockRv } otherwise (max 0 and locked before unlock).
+  function buildingMaxForRv(building, rvLevel) {
+    const steps = (Array.isArray(building?.maxByRv) ? building.maxByRv : [])
+      .map((step) => ({ rv: Number(step?.rv), max: Number(step?.max) }))
+      .filter((step) => Number.isFinite(step.rv) && Number.isFinite(step.max) && step.max >= 0)
+      .sort((a, b) => a.rv - b.rv);
+    const level = positiveIntegerOrNull(rvLevel);
+    if (!steps.length) {
+      const unlockRv = Number(building?.unlockRv) || 0;
+      return { limited: false, locked: level !== null && level >= 1 && level < unlockRv, unlockRv };
+    }
+    const unlockRv = Math.max(steps[0].rv, Number(building.unlockRv) || 0);
+    if (level === null || level < 1) return { limited: true, known: false, unlockRv };
+    if (level < unlockRv) return { limited: true, known: true, max: 0, locked: true, unlockRv };
+    let max = 0;
+    for (const step of steps) if (step.rv <= level) max = step.max;
+    return { limited: true, known: true, max: Math.floor(max), locked: false, unlockRv };
+  }
+
   function spareEntry(worker, reason, extra = {}) {
     return {
       workerId: worker.workerId,
@@ -901,6 +1246,7 @@
       form: worker.form,
       displayName: displayWorkerName(worker),
       image: worker.image || "",
+      category: worker.category,
       owned: worker.owned !== false,
       skills: worker.skills,
       reason,
@@ -982,15 +1328,21 @@
     base.free = free;
     if (free === 0) return base;
 
-    // Pool of spare Aniimo. Owned Aniimo come first; in planning mode unowned ones follow.
+    // Spare Aniimo to suggest. In owned mode only owned copies; in pool mode (the default) any Aniimo
+    // in the player's available pool, suggesting each form at most once to keep the advice readable.
+    const ownedMode = input.mode === "owned";
     const pool = (result.unusedWorkers || [])
-      .filter((worker) => input.mode === "theorycraft" || worker.owned !== false)
+      .filter((worker) => !ownedMode || worker.owned !== false)
       .slice()
       .sort((a, b) => Number(b.owned !== false) - Number(a.owned !== false));
     const taken = new Set();
-    // Only one copy of each unowned form per suggestion list keeps the advice readable.
-    const available = () => pool.filter((worker) => !taken.has(worker.workerId));
-    const take = (worker) => taken.add(worker.workerId);
+    const takenForms = new Set();
+    const available = () =>
+      pool.filter((worker) => !taken.has(worker.workerId) && (ownedMode || !takenForms.has(worker.aniimoId)));
+    const take = (worker) => {
+      taken.add(worker.workerId);
+      takenForms.add(worker.aniimoId);
+    };
     let remaining = free;
 
     // (c) Homebuilding zone: the player decides how many spaces to reserve.
@@ -1014,7 +1366,6 @@
       }
       if (!pick) {
         // Any spare Aniimo works; choose the one least useful for other work.
-        // Unowned Aniimo are only worth catching for the zone if they suit it, so stick to owned ones.
         pick = options
           .filter((worker) => worker.owned !== false)
           .sort((a, b) => Number(b.owned !== false) - Number(a.owned !== false) || spareScore(a) - spareScore(b))[0];
@@ -1077,13 +1428,11 @@
           Number(b.skills.Hauling) - Number(a.skills.Hauling) ||
           displayWorkerName(a).localeCompare(displayWorkerName(b))
       );
-    const seenUnownedForms = new Set();
+    const seenForms = new Set();
     for (const worker of haulers) {
       if (remaining <= 0) break;
-      if (worker.owned === false) {
-        if (seenUnownedForms.has(worker.aniimoId)) continue;
-        seenUnownedForms.add(worker.aniimoId);
-      }
+      if (seenForms.has(worker.aniimoId)) continue;
+      seenForms.add(worker.aniimoId);
       take(worker);
       remaining -= 1;
       base.haulers.push(spareEntry(worker, `Hauling ${worker.skills.Hauling}: moves goods between buildings faster`));
@@ -1093,16 +1442,377 @@
     return base;
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // Over-capacity planning. Every non-farm building needs its own Aniimo while it produces, and the
+  // RV capacity is one limit shared by production and the Homebuilding Zone. When the full plan needs
+  // more Aniimo than that, work out a "best plan that fits": leave some buildings idle (spare copies of a
+  // building before the only one of its kind), keep every farm step covered, and get as close to the
+  // Estimated Require totals as the remaining spaces allow.
+
+  // Fewest farm helpers the farm steps could ever need with this pool: enough helper time for the total
+  // farm load, and enough helpers that every farm ability is held by someone.
+  function farmHelperLowerBound(model, pool, settings) {
+    const tasks = model.intermittentTasks || [];
+    if (!tasks.length) return { helpers: 0, maxFarmSkillsPerAniimo: 0, farmSkills: [] };
+    const maxLoad = clampNumber(settings.maxUtilizationPercent, 50, 1, 100) / 100;
+    const loadBySkill = new Map();
+    for (const task of tasks) loadBySkill.set(task.skill, (loadBySkill.get(task.skill) || 0) + task.load);
+    const farmSkills = [...loadBySkill.keys()];
+    let maxCover = 0;
+    for (const entry of pool || []) {
+      const cover = farmSkills.filter((skill) => Number(entry.skills?.[skill] || 0) > 0).length;
+      maxCover = Math.max(maxCover, cover);
+    }
+    if (maxCover === 0) return { helpers: Infinity, maxFarmSkillsPerAniimo: 0, farmSkills };
+    let helpers;
+    if (settings.allowIntermittentMultiSkill === false) {
+      helpers = [...loadBySkill.values()].reduce((sum, load) => sum + Math.ceil(load / maxLoad - 0.000001), 0);
+    } else {
+      const total = [...loadBySkill.values()].reduce((sum, load) => sum + load, 0);
+      const perSkill = Math.max(...[...loadBySkill.values()].map((load) => Math.ceil(load / maxLoad - 0.000001)));
+      helpers = Math.max(Math.ceil(total / maxLoad - 0.000001), perSkill, Math.ceil(farmSkills.length / maxCover));
+    }
+    return { helpers, maxFarmSkillsPerAniimo: maxCover, farmSkills };
+  }
+
+  // Splits a plan into full-time building workers, farm helpers and Aniimo only there for ability points.
+  function teamBreakdown(result) {
+    const continuousIds = new Set((result.continuousAssignments || []).map((item) => item.worker.workerId));
+    const farmIds = new Set(
+      (result.intermittentAssignments || []).map((item) => item.worker.workerId).filter((id) => !continuousIds.has(id))
+    );
+    const total = (result.selectedWorkers || []).length;
+    return {
+      total,
+      buildings: continuousIds.size,
+      farmHelpers: farmIds.size,
+      boosters: Math.max(0, total - continuousIds.size - farmIds.size),
+      continuousIds,
+      farmIds,
+    };
+  }
+
+  function sumDeficit(totals, requirements, skills) {
+    return skills.reduce((sum, skill) => sum + Math.max(0, Number(requirements[skill] || 0) - Number(totals[skill] || 0)), 0);
+  }
+
+  // Picks `toIdle` full-time jobs to switch off, starting from the full plan's team: jobs that couldn't be
+  // staffed anyway, then spare copies of a building (a 2nd Well, the 5th Mine), then buildings you only
+  // have one of. Within a tier it drops the job whose Aniimo adds the least to the requirement totals.
+  function chooseIdleJobs(model, full, requirements, skills, toIdle) {
+    const workerByJob = new Map((full.continuousAssignments || []).map((item) => [item.job.id, item.worker]));
+    const active = new Map();
+    for (const job of model.continuousJobs) active.set(job.buildingId, (active.get(job.buildingId) || 0) + 1);
+    const remainingJobs = new Set(model.continuousJobs.map((job) => job.id));
+    const team = new Map();
+    for (const item of full.continuousAssignments || []) team.set(item.worker.workerId, item.worker);
+    const farmIds = teamBreakdown(full).farmIds;
+    for (const worker of full.selectedWorkers || []) if (farmIds.has(worker.workerId)) team.set(worker.workerId, worker);
+    const totals = emptySkillMap(skills);
+    for (const worker of team.values()) for (const skill of skills) totals[skill] += Number(worker.skills?.[skill] || 0);
+
+    const idled = [];
+    for (let step = 0; step < toIdle; step += 1) {
+      let best = null;
+      for (const job of model.continuousJobs) {
+        if (!remainingJobs.has(job.id)) continue;
+        const worker = workerByJob.get(job.id) || null;
+        const count = active.get(job.buildingId) || 0;
+        const tier = worker ? (count > 1 ? 1 : 2) : 0;
+        let loss = 0;
+        if (worker) {
+          const after = { ...totals };
+          for (const skill of skills) after[skill] -= Number(worker.skills?.[skill] || 0);
+          loss = sumDeficit(after, requirements, skills) - sumDeficit(totals, requirements, skills);
+        }
+        const power = worker ? totalSkillPower(worker, skills) : 0;
+        const key = [tier, loss, -count, power];
+        const better = !best || compareKeys(key, best.key) < 0;
+        if (better) best = { job, worker, key };
+      }
+      if (!best) break;
+      remainingJobs.delete(best.job.id);
+      active.set(best.job.buildingId, active.get(best.job.buildingId) - 1);
+      if (best.worker) {
+        team.delete(best.worker.workerId);
+        for (const skill of skills) totals[skill] -= Number(best.worker.skills?.[skill] || 0);
+      }
+      idled.push(best.job);
+    }
+    return { idled, team: [...team.values()] };
+  }
+
+  function compareKeys(a, b) {
+    for (let index = 0; index < a.length; index += 1) if (a[index] !== b[index]) return a[index] - b[index];
+    return 0;
+  }
+
+  // Groups identical items into "Name ×count" entries, keeping first-seen order.
+  function groupByName(items, nameOf) {
+    const groups = new Map();
+    for (const item of items) {
+      const name = nameOf(item);
+      const group = groups.get(name) || { name, count: 0, items: [] };
+      group.count += 1;
+      group.items.push(item);
+      groups.set(name, group);
+    }
+    return [...groups.values()];
+  }
+
+  function formatGroups(groups) {
+    return groups.map((group) => `${group.name} ×${group.count}`).join(", ");
+  }
+
+  function evaluateTeam(team, context) {
+    const { candidatesFor, requirements, skills, model, settings, allWorkers } = context;
+    const candidates = candidatesFor(team);
+    const totals = emptySkillMap(skills);
+    for (const worker of candidates) for (const skill of skills) totals[skill] += Number(worker.skills?.[skill] || 0);
+    const state = { indices: candidates.map((_, index) => index), totals };
+    const validation = validateSelection(state, candidates, requirements, skills, model, settings);
+    return finalizeResult(validation.ok, validation, state, candidates, allWorkers, requirements, skills, model, settings, {
+      note: "Full plan's team with the idle buildings' Aniimo taken out.",
+    });
+  }
+
+  function planQuality(result) {
+    const unstaffed = (result.unfilledJobs || []).length + (result.unfilledFarmTasks || []).length;
+    const deficit = (result.skillCoverage || []).reduce((sum, row) => sum + Number(row.missing || 0), 0);
+    return { unstaffed, deficit, size: (result.selectedWorkers || []).length };
+  }
+
+  function compareQuality(a, b) {
+    return a.unstaffed - b.unstaffed || a.deficit - b.deficit || a.size - b.size;
+  }
+
+  // Compact, grouped description of what a plan still lacks. Never one line per building copy.
+  // options: { pool, catalogue, skills, idleJobs }
+  function summarizeShortfalls(result, options = {}) {
+    const skills = options.skills || DEFAULT_SKILLS;
+    const pool = options.pool || [];
+    const catalogue = options.catalogue || pool;
+    const idle = groupByName(options.idleJobs || [], (job) => job.name).map((group) => ({
+      name: group.name,
+      buildingId: group.items[0].buildingId,
+      count: group.count,
+    }));
+    const unstaffed = groupByName(result.unfilledJobs || [], (job) => job.name).map((group) => ({
+      name: group.name,
+      buildingId: group.items[0].buildingId,
+      count: group.count,
+      skills: (group.items[0].requirements || []).map((requirement) => requirement.skill),
+      requirements: group.items[0].requirements || [],
+    }));
+    const farmSkills = [];
+    for (const task of result.unfilledFarmTasks || []) if (!farmSkills.includes(task.skill)) farmSkills.push(task.skill);
+    const short = (result.skillCoverage || [])
+      .filter((row) => Number(row.missing) > 0)
+      .map((row) => ({ skill: row.skill, missing: Number(row.missing) }));
+
+    // Abilities nobody in the pool has at all (or not at the level a building needs).
+    const hasAbility = (list, skill, minLevel = 1) => list.some((entry) => Number(entry.skills?.[skill] || 0) >= minLevel);
+    const needs = new Map();
+    const addNeed = (skill, minLevel = 1) => needs.set(skill, Math.min(needs.get(skill) ?? Infinity, minLevel));
+    for (const group of unstaffed) {
+      // A job the pool can't do at all: every accepted ability is missing.
+      const doable = group.requirements.some((requirement) => hasAbility(pool, requirement.skill, Number(requirement.minLevel || 1)));
+      if (!doable) for (const requirement of group.requirements) addNeed(requirement.skill, Number(requirement.minLevel || 1));
+    }
+    for (const skill of farmSkills) addNeed(skill);
+    for (const row of short) addNeed(row.skill);
+    const noAbility = [];
+    for (const [skill, minLevel] of needs) {
+      if (hasAbility(pool, skill, minLevel)) continue;
+      const elsewhere = catalogue.filter((entry) => Number(entry.skills?.[skill] || 0) >= minLevel);
+      noAbility.push({
+        skill,
+        minLevel,
+        prismana: elsewhere.some((entry) => aniimoCategory(entry) === "prismana"),
+        legendary: elsewhere.some((entry) => aniimoCategory(entry) === "legendary"),
+        otherCount: elsewhere.length,
+      });
+    }
+    noAbility.sort((a, b) => skills.indexOf(a.skill) - skills.indexOf(b.skill));
+
+    const lines = [];
+    if (idle.length) lines.push(`Left idle: ${formatGroups(idle)}`);
+    if (unstaffed.length) lines.push(`No Aniimo for: ${formatGroups(unstaffed)}`);
+    if (farmSkills.length) lines.push(`Farm steps short of helpers: ${farmSkills.join(", ")}`);
+    if (short.length) lines.push(`Short on: ${short.map((row) => `${row.skill} ${row.missing}`).join(", ")}`);
+    for (const item of noAbility) {
+      const level = item.minLevel > 1 ? ` at level ${item.minLevel}+` : "";
+      let hint = "";
+      if (item.prismana && item.legendary) hint = " Ticking Prismana forms or legendary Aniimo on the Available Aniimo tab would help.";
+      else if (item.prismana) hint = " Ticking Prismana forms on the Available Aniimo tab would help.";
+      else if (item.legendary) hint = " Ticking legendary Aniimo on the Available Aniimo tab would help.";
+      else if (item.otherCount) hint = " Tick one that has it on the Available Aniimo tab.";
+      lines.push(`No Aniimo in your pool has ${item.skill}${level}.${hint}`);
+    }
+    return { idle, unstaffed, farmSkills, short, noAbility, lines, ok: !lines.length };
+  }
+
+  // input: the optimizeWorkforce input plus
+  //   capacity (RV Aniimo spaces), homebuildingReserve (spaces kept for the Homebuilding Zone),
+  //   catalogue (every Aniimo, to suggest ticking Prismana/legendary), fullResult (optional, reused).
+  // Returns the full plan, whether it fits, the headline numbers, and (when over) the best plan that fits.
+  function planForCapacity(input) {
+    const skills = input.skills || DEFAULT_SKILLS;
+    const requirements = cloneSkillMap(skills, input.requirements || {});
+    const settings = { ...DEFAULT_SETTINGS, ...(input.settings || {}) };
+    delete settings.maxTeamSize;
+    const pool = input.aniimo || [];
+    const catalogue = input.catalogue || pool;
+    const full = input.fullResult || optimizeWorkforce({ ...input, settings });
+    const model = buildWorkModel(input.buildings || [], input.buildingState || {}, settings);
+    const breakdown = teamBreakdown(full);
+    const farmBound = farmHelperLowerBound(model, pool, settings);
+    const capacity = positiveIntegerOrNull(input.capacity);
+    const capacityKnown = capacity !== null && capacity > 0;
+    const reserve = capacityKnown ? Math.min(capacity, positiveIntegerOrNull(input.homebuildingReserve) ?? 0) : 0;
+    const budget = capacityKnown ? capacity - reserve : null;
+    const buildingJobs = model.continuousJobs.length;
+    const farmHelpersNeeded = Math.max(breakdown.farmHelpers, full.unfilledFarmTasks?.length ? farmBound.helpers : 0);
+    const needed = Math.max(breakdown.total, buildingJobs + (Number.isFinite(farmHelpersNeeded) ? farmHelpersNeeded : 0));
+    const minimumPossible = buildingJobs + (Number.isFinite(farmBound.helpers) ? farmBound.helpers : 0);
+
+    const base = {
+      full,
+      fitted: null,
+      capacity,
+      capacityKnown,
+      reserve,
+      budget,
+      needed,
+      overCapacity: false,
+      overBy: 0,
+      breakdown: {
+        buildings: buildingJobs,
+        farmHelpers: farmHelpersNeeded,
+        boosters: breakdown.boosters,
+      },
+      minimumPossible,
+      farmBound,
+      idleJobs: [],
+      fullShortfalls: summarizeShortfalls(full, { pool, catalogue, skills }),
+      shortfalls: null,
+    };
+    base.shortfalls = base.fullShortfalls;
+
+    if (!capacityKnown || needed <= budget) return base;
+
+    base.overCapacity = true;
+    base.overBy = needed - budget;
+    if (budget <= 0) {
+      base.fitted = null;
+      return base;
+    }
+
+    // Aniimo that are only there for ability points go first; then buildings are left idle.
+    const farmKeep = Number.isFinite(farmHelpersNeeded) ? farmHelpersNeeded : 0;
+    const toIdle = Math.min(buildingJobs, Math.max(0, buildingJobs + Math.min(farmKeep, budget) - budget));
+    const { idled, team } = chooseIdleJobs(model, full, requirements, skills, toIdle);
+    const idledByBuilding = new Map();
+    for (const job of idled) idledByBuilding.set(job.buildingId, (idledByBuilding.get(job.buildingId) || 0) + 1);
+    const reducedState = {};
+    for (const building of input.buildings || []) {
+      const state = getBuildingState(building, input.buildingState || {});
+      reducedState[building.id] = {
+        enabled: state.enabled,
+        count: Math.max(0, state.count - (idledByBuilding.get(building.id) || 0)),
+      };
+    }
+    const reducedModel = buildWorkModel(input.buildings || [], reducedState, settings);
+
+    // Option 1: the full plan's team minus the idle buildings' Aniimo (instant).
+    const allWorkers = buildWorkers(pool, input.roster || {}, settings, skills, (entry) =>
+      planningCopyCap(entry, model, requirements, settings, skills)
+    );
+    const greedy = evaluateTeam(team.slice(0, budget), {
+      candidatesFor: (list) => list,
+      requirements,
+      skills,
+      model: reducedModel,
+      settings,
+      allWorkers,
+    });
+    let fitted = greedy;
+    // Option 2: a fresh search capped at the available spaces, only needed when option 1 misses
+    // requirement points or leaves something unstaffed.
+    const greedyQuality = planQuality(greedy);
+    if (greedyQuality.unstaffed > 0 || greedyQuality.deficit > 0) {
+      const searched = optimizeWorkforce({
+        ...input,
+        buildingState: reducedState,
+        settings: { ...settings, maxTeamSize: budget, beamWidth: Math.min(Number(settings.beamWidth) || 1000, 600) },
+      });
+      if (searched.selectedWorkers.length <= budget && compareQuality(planQuality(searched), greedyQuality) < 0) {
+        fitted = searched;
+      }
+    }
+    fitted.diagnostics = { ...fitted.diagnostics, fittedToCapacity: budget };
+    base.fitted = fitted;
+    base.idleJobs = idled;
+    base.shortfalls = summarizeShortfalls(fitted, { pool, catalogue, skills, idleJobs: idled });
+    return base;
+  }
+
+  // Plain-English headline for a planForCapacity result. options: { rvLevel, zoneName }
+  function describeCapacityPlan(plan, options = {}) {
+    const zoneName = options.zoneName || DEFAULT_HOMEBUILDING_ZONE_NAME;
+    const s = (count, word, pluralWord = `${word}s`) => `${count} ${count === 1 ? word : pluralWord}`;
+    const parts = [s(plan.breakdown.buildings, "building")];
+    if (plan.breakdown.farmHelpers) parts.push(s(plan.breakdown.farmHelpers, "farm helper"));
+    if (plan.breakdown.boosters) parts.push(`${plan.breakdown.boosters} for ability totals`);
+    const home = options.rvLevel ? `RV ${options.rvLevel}` : "your Homeland";
+    let spaces = `${home} has ${s(plan.capacity, "space")}`;
+    if (plan.reserve) spaces += `, ${plan.reserve} kept for the ${zoneName}, leaving ${plan.budget}`;
+    if (!plan.overCapacity) {
+      return {
+        headline: `Your buildings need ${s(plan.needed, "Aniimo", "Aniimo")} (${parts.join(" + ")}), and ${spaces}.`,
+        minimum: "",
+      };
+    }
+    const headline = `Your buildings need ${s(plan.needed, "Aniimo", "Aniimo")} (${parts.join(" + ")}), but ${spaces} – ${plan.overBy} over.`;
+    let minimum = "";
+    if (plan.breakdown.farmHelpers > 0 && Number.isFinite(plan.farmBound.helpers)) {
+      const least = plan.minimumPossible;
+      const leastOver = least - plan.budget;
+      if (least < plan.needed) {
+        minimum = `If Aniimo with several farm abilities doubled up on the farm steps, the least possible would be ${least}${
+          leastOver > 0 ? ` – still ${leastOver} over` : ""
+        }.`;
+      } else {
+        const most = plan.farmBound.maxFarmSkillsPerAniimo;
+        const farmCount = plan.farmBound.farmSkills.length;
+        minimum = `That's already the least possible: every non-farm building needs its own Aniimo${
+          farmCount > 1 && plan.farmBound.helpers > 1
+            ? `, and no Aniimo in your pool has more than ${most} of the ${farmCount} farm abilities, so the farm steps need ${plan.farmBound.helpers} helpers`
+            : ""
+        }.`;
+      }
+    }
+    return { headline, minimum };
+  }
+
   return {
     DEFAULT_SKILLS,
     DEFAULT_SETTINGS,
     DEFAULT_HOMEBUILDING_ZONE_NAME,
+    aniimoCategory,
     assignContinuous,
     assignIntermittent,
     buildWorkModel,
+    buildingMaxForRv,
+    describeCapacityPlan,
+    farmHelperLowerBound,
+    filterAniimoPool,
+    isInPool,
     optimizeWorkforce,
+    planForCapacity,
     planningCopyCap,
     recommendSpareSpaces,
     resolveHomelandCapacity,
+    summarizeShortfalls,
   };
 });

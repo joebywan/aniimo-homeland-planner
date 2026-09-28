@@ -40,7 +40,6 @@
   };
 
   const DEFAULT_SETTINGS = {
-    mode: "theorycraft",
     cycleDurationMinutes: 20,
     cropId: "",
     overheadMultiplier: 1,
@@ -51,12 +50,28 @@
   };
 
   // Settings that used to be user-editable but are now fixed game values or unlimited.
-  const RETIRED_SETTINGS = ["theorycraftCopies", "actionDurationSeconds"];
+  // "mode" (owned vs planning ahead) was dropped when the roster became the Available Aniimo pool.
+  const RETIRED_SETTINGS = ["theorycraftCopies", "actionDurationSeconds", "mode"];
 
+  // Aniimo spaces come from the RV level only (the game doesn't let players change them), so the old
+  // "capacityOverride" value is dropped when a saved state is loaded.
   const DEFAULT_HOMELAND = {
     rvLevel: null,
-    capacityOverride: null,
     homebuildingReserve: null,
+  };
+
+  // Which Aniimo the optimiser may use. Common Aniimo are in by default; Prismana and legendary ones
+  // only when ticked. picks holds per-row ticks that differ from those defaults.
+  const DEFAULT_POOL = {
+    includePrismana: false,
+    includeLegendary: false,
+    picks: {},
+  };
+
+  const CATEGORY_BADGES = {
+    prismana: "Prismana",
+    legendary: "Legendary",
+    boss: "Boss",
   };
 
   const app = {
@@ -71,7 +86,13 @@
       rosterSearch: "",
       skillFilter: "All",
     },
+    failedIcons: new Set(),
+    buildingNotice: "",
+    // lastPlan: planForCapacity output (full plan plus, when over capacity, the best plan that fits).
+    // lastResult: the plan currently shown. planView: "fitted" or "full" when over capacity.
+    lastPlan: null,
     lastResult: null,
+    planView: "fitted",
     running: false,
   };
 
@@ -84,6 +105,7 @@
     app.data.homeland = await loadOptionalData("ANIIMO_HOMELAND_DATA", "data/homeland.json");
     app.state = normalizeState(loadState());
 
+    watchAbilityIconErrors();
     bindEvents();
     trackHeaderHeight();
     renderAll();
@@ -128,7 +150,7 @@
     return {
       activeTab: "requirements",
       requirements: defaultRequirements(),
-      roster: {},
+      pool: { ...DEFAULT_POOL, picks: {} },
       buildingState: {},
       homeland: { ...DEFAULT_HOMELAND },
       settings: { ...DEFAULT_SETTINGS },
@@ -139,7 +161,10 @@
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
-      return { ...defaultState(), ...JSON.parse(raw) };
+      // normalizeState fills in defaults; merging them here would hide which keys an old save lacks
+      // (e.g. no "pool" yet, so its roster should be migrated).
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : defaultState();
     } catch {
       return defaultState();
     }
@@ -154,14 +179,14 @@
 
   function normalizeState(rawState) {
     const skills = app.data.aniimo.skills || Object.keys(ABILITY_META);
+    const raw = rawState && typeof rawState === "object" ? rawState : {};
     const state = {
       ...defaultState(),
-      ...rawState,
-      requirements: { ...defaultRequirements(), ...(rawState.requirements || {}) },
-      roster: { ...(rawState.roster || {}) },
-      buildingState: { ...(rawState.buildingState || {}) },
-      homeland: { ...DEFAULT_HOMELAND, ...(rawState.homeland || {}) },
-      settings: { ...DEFAULT_SETTINGS, ...(rawState.settings || {}) },
+      ...raw,
+      requirements: { ...defaultRequirements(), ...(raw.requirements || {}) },
+      buildingState: { ...(raw.buildingState || {}) },
+      homeland: { ...DEFAULT_HOMELAND, ...(raw.homeland || {}) },
+      settings: { ...DEFAULT_SETTINGS, ...(raw.settings || {}) },
     };
 
     const tab = LEGACY_TABS[state.activeTab] || state.activeTab;
@@ -171,40 +196,142 @@
       state.requirements[skill] = safeNumber(state.requirements[skill], 0, 0, 999);
     }
 
-    // A count of 0 means "not built". Older saves also had an on/off flag per building; a building that
-    // was switched off is treated as not built, and the flag itself is dropped.
-    for (const building of app.data.buildings.buildings || []) {
-      const raw = state.buildingState[building.id];
-      const saved = raw && typeof raw === "object" ? raw : {};
-      const count = safeNumber(saved.count ?? building.defaultCount ?? 0, 0, 0, 999);
-      state.buildingState[building.id] = { count: saved.enabled === false ? 0 : count };
-    }
-
-    for (const entry of app.data.aniimo.aniimo || []) {
-      const saved = state.roster[entry.id];
-      if (saved) {
-        state.roster[entry.id] = {
-          quantity: safeNumber(saved.quantity, 0, 0, 99),
-          excluded: Boolean(saved.excluded),
-        };
-      }
-    }
-
     state.homeland = {
       rvLevel: optionalCount(state.homeland.rvLevel, 999),
-      capacityOverride: optionalCount(state.homeland.capacityOverride, 999),
       homebuildingReserve: optionalCount(state.homeland.homebuildingReserve, 999),
     };
+
+    state.pool = normalizePool(raw.pool, raw.roster);
+    // The old owned-quantity roster is replaced by the pool.
+    delete state.roster;
+
+    // A count of 0 means "not built". Older saves also had an on/off flag per building; a building that
+    // was switched off is treated as not built, and the flag itself is dropped. "auto" marks a count that
+    // follows the RV level's maximum; older saves have no flag, so their counts are kept as typed.
+    for (const building of app.data.buildings.buildings || []) {
+      const saved = state.buildingState[building.id];
+      const hasSaved = saved && typeof saved === "object" && saved.count !== undefined;
+      const limit = getBuildingLimit(building, state.homeland.rvLevel);
+      let count = hasSaved ? safeNumber(saved.count, 0, 0, 999) : 0;
+      if (hasSaved && saved.enabled === false) count = 0;
+      let auto = limit.limited ? (hasSaved ? saved.auto === true : true) : false;
+      if (limit.limited && limit.known) {
+        if (auto || limit.locked) {
+          count = limit.max;
+          auto = true;
+        } else {
+          count = Math.min(count, limit.max);
+        }
+      } else if (limit.limited && auto) {
+        count = 0;
+      } else if (!limit.limited && !hasSaved) {
+        count = safeNumber(building.defaultCount ?? 0, 0, 0, 999);
+      }
+      if (limit.locked) count = 0;
+      state.buildingState[building.id] = { count: Math.floor(count), auto };
+    }
 
     for (const key of RETIRED_SETTINGS) delete state.settings[key];
     state.settings.cycleDurationMinutes = safeNumber(state.settings.cycleDurationMinutes, 20, 0.1, 10080);
     state.settings.cropId = typeof state.settings.cropId === "string" ? state.settings.cropId : "";
     state.settings.overheadMultiplier = safeNumber(state.settings.overheadMultiplier, 1, 0.1, 20);
     state.settings.maxUtilizationPercent = safeNumber(state.settings.maxUtilizationPercent, 50, 1, 100);
-    state.settings.mode = state.settings.mode === "owned" ? "owned" : "theorycraft";
     state.settings.allowIntermittentMultiSkill = state.settings.allowIntermittentMultiSkill !== false;
 
     return state;
+  }
+
+  // Older saves have a roster of owned quantities instead of a pool. Common Aniimo are in the pool
+  // anyway; a Prismana or legendary Aniimo the player owned (and didn't untick) becomes an explicit tick.
+  function normalizePool(rawPool, legacyRoster) {
+    const known = new Set((app.data.aniimo.aniimo || []).map((entry) => entry.id));
+    const pool = { ...DEFAULT_POOL, picks: {} };
+    if (rawPool && typeof rawPool === "object") {
+      pool.includePrismana = rawPool.includePrismana === true;
+      pool.includeLegendary = rawPool.includeLegendary === true;
+      for (const [id, value] of Object.entries(rawPool.picks || {})) {
+        if (known.has(id) && typeof value === "boolean") pool.picks[id] = value;
+      }
+      return pool;
+    }
+    if (legacyRoster && typeof legacyRoster === "object") {
+      for (const entry of app.data.aniimo.aniimo || []) {
+        const saved = legacyRoster[entry.id];
+        if (!saved || typeof saved !== "object") continue;
+        if (Number(saved.quantity) > 0 && !saved.excluded && aniimoCategory(entry) !== "common") {
+          pool.picks[entry.id] = true;
+        }
+      }
+    }
+    return pool;
+  }
+
+  function aniimoCategory(entry) {
+    return window.AniimoOptimizer.aniimoCategory(entry);
+  }
+
+  function isInPool(entry) {
+    return window.AniimoOptimizer.isInPool(entry, app.state.pool);
+  }
+
+  function getBuildingLimit(building, rvLevel = app.state?.homeland?.rvLevel) {
+    return window.AniimoOptimizer.buildingMaxForRv(building, rvLevel);
+  }
+
+  // Highest count the input allows: the RV max when known, otherwise no real limit.
+  function buildingInputMax(building) {
+    const limit = getBuildingLimit(building);
+    if (limit.locked) return 0;
+    return limit.limited && limit.known ? limit.max : 999;
+  }
+
+  function setBuildingCount(building, value) {
+    const limit = getBuildingLimit(building);
+    const count = Math.floor(safeNumber(value, 0, 0, buildingInputMax(building)));
+    app.state.buildingState[building.id] = {
+      count,
+      // A count set to the max keeps following the RV level; anything else is the player's choice.
+      auto: Boolean(limit.limited && limit.known && count === limit.max),
+    };
+    return count;
+  }
+
+  // Changing RV level: counts that followed the old max (or were set to it) move to the new max; counts
+  // the player lowered themselves are kept, but never above the new max. Returns what changed.
+  function applyRvChange(oldLevel, newLevel) {
+    const summary = { raised: 0, lowered: 0, kept: 0, locked: 0 };
+    for (const building of app.data.buildings.buildings || []) {
+      const saved = app.state.buildingState[building.id] || { count: 0, auto: true };
+      const before = saved.count;
+      const oldLimit = getBuildingLimit(building, oldLevel);
+      const newLimit = getBuildingLimit(building, newLevel);
+      if (!newLimit.limited) {
+        if (newLimit.locked) saved.count = 0;
+        app.state.buildingState[building.id] = { count: saved.count, auto: false };
+        continue;
+      }
+      const followed = saved.auto || (oldLimit.known && before === oldLimit.max);
+      let count = before;
+      let auto = followed;
+      if (newLimit.known) {
+        if (newLimit.locked) {
+          count = 0;
+          auto = true;
+        } else if (followed) {
+          count = newLimit.max;
+        } else {
+          count = Math.min(before, newLimit.max);
+        }
+      } else if (followed) {
+        count = 0;
+      }
+      app.state.buildingState[building.id] = { count, auto };
+      if (newLimit.locked && before > 0) summary.locked += 1;
+      else if (count > before) summary.raised += 1;
+      else if (count < before) summary.lowered += 1;
+      else if (!followed && newLimit.known && count < newLimit.max) summary.kept += 1;
+    }
+    return summary;
   }
 
   function saveState() {
@@ -254,19 +381,39 @@
     document.getElementById("buildingTable").addEventListener("input", (event) => {
       const input = event.target.closest("[data-building-count]");
       if (!input) return;
-      app.state.buildingState[input.dataset.buildingCount].count = safeNumber(input.value, 0, 0, 999);
+      const building = getBuilding(input.dataset.buildingCount);
+      if (!building) return;
+      if (input.value === "") return;
+      const count = setBuildingCount(building, input.value);
+      if (Number(input.value) !== count) input.value = count;
+      updateBuildingRow(input.closest("tr"), building);
+      app.buildingNotice = "";
       markDirty();
+      renderBuildingToolbar();
+    });
+
+    document.getElementById("buildingTable").addEventListener("change", (event) => {
+      const input = event.target.closest("[data-building-count]");
+      if (!input) return;
+      const building = getBuilding(input.dataset.buildingCount);
+      if (building) input.value = app.state.buildingState[building.id].count;
     });
 
     document.getElementById("buildingTable").addEventListener("click", (event) => {
       const button = event.target.closest("[data-building-step]");
       if (!button) return;
-      const id = button.dataset.buildingStep;
+      const building = getBuilding(button.dataset.buildingStep);
+      if (!building) return;
       const delta = Number(button.dataset.delta);
-      const current = app.state.buildingState[id].count;
-      app.state.buildingState[id].count = safeNumber(current + delta, 0, 0, 999);
+      setBuildingCount(building, app.state.buildingState[building.id].count + delta);
+      app.buildingNotice = "";
       markDirty();
       renderBuildings();
+    });
+
+    document.getElementById("buildingToolbar").addEventListener("click", (event) => {
+      if (!event.target.closest("#setAllMaxButton")) return;
+      setAllBuildingsToMax();
     });
 
     document.getElementById("rosterSearch").addEventListener("input", (event) => {
@@ -279,44 +426,31 @@
       renderRoster();
     });
 
-    document.getElementById("rosterTable").addEventListener("input", (event) => {
-      const input = event.target.closest("[data-roster-quantity]");
+    document.getElementById("rosterTable").addEventListener("change", (event) => {
+      const checkbox = event.target.closest("[data-pool-pick]");
+      if (!checkbox) return;
+      const entry = getAniimo(checkbox.dataset.poolPick);
+      if (!entry) return;
+      const id = entry.id;
+      delete app.state.pool.picks[id];
+      // Only remember a tick that differs from what the toggles above would give.
+      if (isInPool(entry) !== checkbox.checked) app.state.pool.picks[id] = checkbox.checked;
+      checkbox.closest("tr")?.classList.toggle("is-excluded", !checkbox.checked);
+      markDirty();
+      renderPoolSummary();
+    });
+
+    document.querySelector(".pool-toggles").addEventListener("change", (event) => {
+      const input = event.target.closest("[data-pool-toggle]");
       if (!input) return;
-      const saved = ensureRoster(input.dataset.rosterQuantity);
-      saved.quantity = safeNumber(input.value, 0, 0, 99);
-      // Update the "Include in plan" box in place so typing doesn't lose focus.
-      const checkbox = input.closest("tr")?.querySelector("[data-roster-use]");
-      if (checkbox) {
-        checkbox.disabled = saved.quantity <= 0;
-        checkbox.checked = saved.quantity > 0 && !saved.excluded;
+      const category = input.dataset.poolToggle;
+      app.state.pool[category === "prismana" ? "includePrismana" : "includeLegendary"] = input.checked;
+      // The toggle sets every Aniimo in that group, so earlier per-row ticks for the group are cleared.
+      for (const entry of app.data.aniimo.aniimo) {
+        if (aniimoCategory(entry) === category) delete app.state.pool.picks[entry.id];
       }
       markDirty();
-    });
-
-    document.getElementById("rosterTable").addEventListener("change", (event) => {
-      const checkbox = event.target.closest("[data-roster-use]");
-      if (!checkbox) return;
-      ensureRoster(checkbox.dataset.rosterUse).excluded = !checkbox.checked;
-      markDirty();
       renderRoster();
-    });
-
-    document.getElementById("rosterTable").addEventListener("click", (event) => {
-      const button = event.target.closest("[data-roster-step]");
-      if (!button) return;
-      const id = button.dataset.rosterStep;
-      const delta = Number(button.dataset.delta);
-      const saved = ensureRoster(id);
-      saved.quantity = safeNumber(saved.quantity + delta, 0, 0, 99);
-      markDirty();
-      renderRoster();
-    });
-
-    document.querySelectorAll("input[name='mode']").forEach((input) => {
-      input.addEventListener("change", () => {
-        app.state.settings.mode = input.value;
-        markDirty();
-      });
     });
 
     document.getElementById("cycleDurationMinutes").addEventListener("input", (event) => {
@@ -356,11 +490,10 @@
     document.getElementById("tab-optimise").addEventListener("click", (event) => {
       const link = event.target.closest("[data-goto-tab]");
       if (link) activateTab(link.dataset.gotoTab);
-      const modeButton = event.target.closest("[data-set-mode]");
-      if (modeButton) {
-        app.state.settings.mode = modeButton.dataset.setMode === "owned" ? "owned" : "theorycraft";
-        markDirty();
-        renderSettings();
+      const viewButton = event.target.closest("[data-plan-view]");
+      if (viewButton && app.lastPlan) {
+        app.planView = viewButton.dataset.planView === "full" ? "full" : "fitted";
+        renderResults();
       }
     });
 
@@ -374,36 +507,73 @@
   function handleHomelandInput(event) {
     const target = event.target;
     if (target.id === "rvLevel") {
-      app.state.homeland.rvLevel = optionalCount(target.value, 999);
-    } else if (target.id === "capacityOverride") {
-      app.state.homeland.capacityOverride = optionalCount(target.value, 999);
+      // A <select> fires both input and change; only act once per real change.
+      const level = optionalCount(target.value, 999);
+      if (level === app.state.homeland.rvLevel) return;
+      const oldLevel = app.state.homeland.rvLevel;
+      app.state.homeland.rvLevel = level;
+      const summary = applyRvChange(oldLevel, level);
+      app.buildingNotice = describeRvChange(level, summary);
+      markDirty();
+      renderCapacityStatus();
+      renderBuildings();
+      return;
     } else if (target.id === "homebuildingReserve") {
-      app.state.homeland.homebuildingReserve = optionalCount(target.value, 999);
+      const reserve = optionalCount(target.value, 999);
+      if (reserve === app.state.homeland.homebuildingReserve) return;
+      app.state.homeland.homebuildingReserve = reserve;
     } else {
       return;
     }
-    // Capacity doesn't change the minimum workforce, only the spare-space advice, so keep the result.
-    saveState();
+    // The zone's spaces come out of the same RV limit, so they change the best plan that fits.
+    markDirty();
     renderCapacityStatus();
-    if (app.lastResult) renderSpareSpaces(app.lastResult);
   }
 
   function hasAnyRequirement() {
     return Object.values(app.state.requirements).some((value) => Number(value) > 0);
   }
 
-  function ensureRoster(id) {
-    if (!app.state.roster[id]) {
-      app.state.roster[id] = { quantity: 0, excluded: false };
+  function getBuilding(id) {
+    return (app.data.buildings.buildings || []).find((building) => building.id === id) || null;
+  }
+
+  function getAniimo(id) {
+    return (app.data.aniimo.aniimo || []).find((entry) => entry.id === id) || null;
+  }
+
+  function describeRvChange(level, summary) {
+    if (level === null) return "RV level cleared. Building counts that followed the old maximum are set to 0.";
+    const parts = [];
+    if (summary.raised) parts.push(`${summary.raised} raised to the new maximum`);
+    if (summary.lowered) parts.push(`${summary.lowered} lowered to fit`);
+    if (summary.locked) parts.push(`${summary.locked} not unlocked yet at this level`);
+    if (summary.kept) parts.push(`${summary.kept} you set lower yourself kept as they were`);
+    return parts.length ? `RV ${level}: building counts updated – ${parts.join(", ")}.` : "";
+  }
+
+  function setAllBuildingsToMax() {
+    const level = app.state.homeland.rvLevel;
+    if (level === null) return;
+    let changed = 0;
+    for (const building of app.data.buildings.buildings || []) {
+      const limit = getBuildingLimit(building);
+      if (!limit.limited || !limit.known) continue;
+      if (app.state.buildingState[building.id].count !== limit.max) changed += 1;
+      app.state.buildingState[building.id] = { count: limit.max, auto: true };
     }
-    return app.state.roster[id];
+    app.buildingNotice = changed
+      ? `Set ${changed} building${plural(changed)} to the most you can place at RV ${level}.`
+      : `Every building is already at the most you can place at RV ${level}.`;
+    markDirty();
+    renderBuildings();
   }
 
   function markDirty() {
     app.lastResult = null;
+    app.lastPlan = null;
     saveState();
     renderResultShell();
-    renderModeNotice();
   }
 
   function activateTab(requestedTab) {
@@ -428,7 +598,6 @@
     renderSettings();
     renderSources();
     renderResultShell();
-    renderModeNotice();
     activateTab(app.state.activeTab || "requirements");
   }
 
@@ -450,21 +619,22 @@
       .join("")}`;
   }
 
+  // Mirrors the in-game Ability Distribution panel: one column per ability, icon and name on top and the
+  // number underneath, in the game's order.
   function renderRequirements() {
-    const tbody = document.querySelector("#requirementsTable tbody");
-    tbody.innerHTML = app.data.aniimo.skills
+    const grid = document.getElementById("requirementsTable");
+    grid.innerHTML = app.data.aniimo.skills
       .map((skill) => {
         const value = app.state.requirements[skill] || 0;
         const id = `require-${escapeAttr(skill)}`;
         return `
-          <tr>
-            <th scope="row">
-              <label class="ability-label" for="${id}">${abilityDot(skill, "small")}<span>${escapeHtml(skill)}</span></label>
-            </th>
-            <td class="numeric-col">
-              <input class="requirement-input" id="${id}" data-requirement="${escapeAttr(skill)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${value}" />
-            </td>
-          </tr>
+          <div class="ability-cell">
+            <label class="ability-cell-head" for="${id}">
+              ${abilityIcon(skill)}
+              <span class="ability-cell-name">${escapeHtml(skill)}</span>
+            </label>
+            <input class="requirement-input" id="${id}" data-requirement="${escapeAttr(skill)}" type="number" inputmode="numeric" min="0" max="999" step="1" value="${value}" />
+          </div>
         `;
       })
       .join("");
@@ -506,11 +676,7 @@
   }
 
   function getCapacityInfo() {
-    return window.AniimoOptimizer.resolveHomelandCapacity(
-      getHomelandData(),
-      app.state.homeland.rvLevel,
-      app.state.homeland.capacityOverride
-    );
+    return window.AniimoOptimizer.resolveHomelandCapacity(getHomelandData(), app.state.homeland.rvLevel);
   }
 
   function getHomebuildingReserve() {
@@ -539,7 +705,6 @@
       control.innerHTML = `<input type="number" id="rvLevel" min="1" max="999" step="1" placeholder="e.g. 3" value="${current ?? ""}" />`;
     }
 
-    document.getElementById("capacityOverride").value = app.state.homeland.capacityOverride ?? "";
     const zone = getZone();
     document.getElementById("homebuildingReserveLabel").textContent = `Spaces for the ${zone.name}`;
     const preferred = zone.preferredSkills.length ? ` Aniimo with ${zone.preferredSkills.join(", ")} suit it best.` : "";
@@ -554,33 +719,37 @@
     const data = getHomelandData();
     const status = document.getElementById("capacityStatus");
     let text;
-    if (info.source === "manual") {
-      text = `Planning for ${info.capacity} Aniimo spaces (the number you typed in).`;
-    } else if (info.source === "rvLevel") {
+    if (info.source === "rvLevel") {
       const unverified = data && data.verified === false ? " This figure is community data and hasn't been fully confirmed." : "";
       text = `RV level ${info.level} has room for ${info.capacity} Aniimo.${unverified}`;
     } else if (info.level !== null && info.level !== undefined) {
-      text = `We don't know yet how many Aniimo RV level ${info.level} holds. Optional: type your total into "Aniimo spaces available" to get spare-space suggestions.`;
+      const level = getRvLevels().find((item) => item.level === info.level);
+      text =
+        level && level.capacity === 0
+          ? `RV level ${info.level} has no Aniimo spaces yet – Aniimo helpers unlock at RV 2.`
+          : `We don't know yet how many Aniimo RV level ${info.level} holds, so spare-space suggestions are off.`;
     } else {
-      text = "Optional: add your RV level so we can check the team fits and suggest uses for spare spaces.";
+      text = "Choose your RV level. It sets how many Aniimo fit in your Homeland and how many of each building you can place.";
     }
     status.textContent = text;
     status.classList.toggle("is-unknown", !info.known);
   }
 
   function renderBuildings() {
+    renderBuildingToolbar();
     const tbody = document.querySelector("#buildingTable tbody");
     tbody.innerHTML = app.data.buildings.buildings
       .map((building) => {
-        const state = app.state.buildingState[building.id];
+        const label = escapeAttr(building.name);
         return `
-          <tr class="${state.count > 0 ? "" : "is-unbuilt"}">
-            <td>
+          <tr data-building-row="${escapeAttr(building.id)}">
+            <td class="count-cell">
               <div class="stepper">
-                <button type="button" class="icon-button" data-building-step="${escapeAttr(building.id)}" data-delta="-1" title="Decrease ${escapeAttr(building.name)}">-</button>
-                <input class="count-input" type="number" min="0" max="999" step="1" data-building-count="${escapeAttr(building.id)}" value="${state.count}" aria-label="${escapeAttr(building.name)} count" />
-                <button type="button" class="icon-button" data-building-step="${escapeAttr(building.id)}" data-delta="1" title="Increase ${escapeAttr(building.name)}">+</button>
+                <button type="button" class="icon-button" data-building-step="${escapeAttr(building.id)}" data-delta="-1" title="Decrease ${label}" aria-label="Decrease ${label}">-</button>
+                <input class="count-input" type="number" min="0" step="1" data-building-count="${escapeAttr(building.id)}" aria-label="${label} count" />
+                <button type="button" class="icon-button" data-building-step="${escapeAttr(building.id)}" data-delta="1" title="Increase ${label}" aria-label="Increase ${label}">+</button>
               </div>
+              <small class="count-limit"></small>
             </td>
             <td>
               <div class="building-name">
@@ -593,29 +762,115 @@
         `;
       })
       .join("");
+    tbody.querySelectorAll("tr[data-building-row]").forEach((row) => updateBuildingRow(row, getBuilding(row.dataset.buildingRow)));
   }
 
+  // Updates one row's count, limit note and locked state without re-rendering (keeps focus while typing).
+  function updateBuildingRow(row, building) {
+    if (!row || !building) return;
+    const state = app.state.buildingState[building.id];
+    const limit = getBuildingLimit(building);
+    const max = buildingInputMax(building);
+    const input = row.querySelector("[data-building-count]");
+    const note = row.querySelector(".count-limit");
+    if (document.activeElement !== input || Number(input.value) !== state.count) input.value = state.count;
+    input.max = String(max);
+    input.disabled = Boolean(limit.locked);
+    row.querySelector('[data-delta="-1"]').disabled = Boolean(limit.locked) || state.count <= 0;
+    row.querySelector('[data-delta="1"]').disabled = Boolean(limit.locked) || state.count >= max;
+    row.classList.toggle("is-locked", Boolean(limit.locked));
+    row.classList.toggle("is-unbuilt", !limit.locked && state.count <= 0);
+    let text = "";
+    if (limit.locked) text = `Unlocks at RV ${limit.unlockRv}`;
+    else if (limit.limited && limit.known) text = `max ${limit.max}${building.maxByRvVerified === false ? "*" : ""}`;
+    else if (limit.limited) text = limit.unlockRv > 1 ? `from RV ${limit.unlockRv}` : "";
+    else text = "your choice";
+    note.textContent = text;
+    note.title =
+      building.maxByRvVerified === false && !limit.locked
+        ? building.maxByRvNotes || "Not yet confirmed in-game."
+        : building.placementLimit
+          ? `How many you can place: ${building.placementLimit}`
+          : "";
+  }
+
+  function renderBuildingToolbar() {
+    const toolbar = document.getElementById("buildingToolbar");
+    if (!toolbar) return;
+    const level = app.state.homeland.rvLevel;
+    const known = level !== null;
+    let below = 0;
+    if (known) {
+      for (const building of app.data.buildings.buildings || []) {
+        const limit = getBuildingLimit(building);
+        if (limit.limited && limit.known && app.state.buildingState[building.id].count < limit.max) below += 1;
+      }
+    }
+    const message = app.buildingNotice
+      ? app.buildingNotice
+      : !known
+        ? "Choose your RV level above and each count fills in with the most you can place at that level."
+        : below
+          ? `${below} building${plural(below)} ${below === 1 ? "is" : "are"} below the most you can place at RV ${level}.`
+          : `Counts are the most you can place at RV ${level}. Lower any you haven't built.`;
+    toolbar.innerHTML = `
+      <p class="toolbar-note${known ? "" : " is-prompt"}" role="status">${escapeHtml(message)}</p>
+      <button type="button" class="secondary-button" id="setAllMaxButton" ${known ? "" : "disabled"}>
+        ${known ? `Set all to max for RV ${level}` : "Set all to max for my RV level"}
+      </button>
+    `;
+  }
+
+  // Every row uses the same layout: ability icon + name (+ the farm step), then a short note.
   function renderBuildingModel(building) {
+    let items;
+    let note;
     if (building.behavior === "continuous") {
-      const skills = (building.requirements || []).map((requirement) => {
+      items = (building.requirements || []).map((requirement) => {
         const level = Number(requirement.minLevel || 1);
-        return `${escapeHtml(requirement.skill)}${level > 1 ? ` (level ${level}+)` : ""}`;
+        return workItem(requirement.skill, level > 1 ? `Lv ${level}+` : "");
       });
       const slots = Number(building.slotsPerUnit || 1);
-      const who = `${slots === 1 ? "One Aniimo" : `${slots} Aniimo`} with ${skills.join(" or ")}`;
-      const note = building.countHelp ? ` <span class="pool-label">${escapeHtml(building.countHelp)}</span>` : "";
-      return `${who}${note}`;
+      note =
+        building.countLabel === "haulers"
+          ? "1 Aniimo per hauler you add"
+          : `${slots} Aniimo per ${building.countLabel === "facilities" || !building.countLabel ? "facility" : building.countLabel.replace(/s$/, "")}`;
+    } else {
+      items = (building.pools || []).map((pool) => workItem(pool.skill, pool.label || ""));
+      note = `Shared: each step takes about ${getActionDurationSeconds()} s per plot, so one Aniimo per step covers many plots`;
     }
+    const joiner = building.behavior === "continuous" ? '<span class="work-or">or</span>' : "";
+    return `<div class="work-list">${items.join(joiner)}</div><span class="work-note">${escapeHtml(note)}</span>`;
+  }
 
-    return (building.pools || [])
-      .map((pool) => {
-        const label = pool.label ? ` <span class="pool-label">${escapeHtml(pool.label)}</span>` : "";
-        return `<span class="pool-item">${abilityDot(pool.skill, "small")} ${escapeHtml(pool.skill)}${label}</span>`;
-      })
-      .join(" ");
+  function workItem(skill, label) {
+    const extra = label ? ` <span class="pool-label">${escapeHtml(label)}</span>` : "";
+    return `<span class="work-item">${abilityIcon(skill, "small")}<span class="work-skill">${escapeHtml(skill)}</span>${extra}</span>`;
+  }
+
+  function categoryBadge(entryOrCategory) {
+    const category = typeof entryOrCategory === "string" ? entryOrCategory : aniimoCategory(entryOrCategory);
+    const label = CATEGORY_BADGES[category];
+    return label ? `<span class="category-badge is-${category}">${escapeHtml(label)}</span>` : "";
+  }
+
+  function renderPoolSummary() {
+    const all = app.data.aniimo.aniimo || [];
+    const inPool = all.filter((entry) => isInPool(entry)).length;
+    const counts = { prismana: 0, legendary: 0 };
+    for (const entry of all) {
+      const category = aniimoCategory(entry);
+      if (category in counts) counts[category] += 1;
+    }
+    document.getElementById("poolSummary").textContent = `${inPool} of ${all.length} Aniimo available to the planner.`;
+    document.getElementById("includePrismana").checked = app.state.pool.includePrismana;
+    document.getElementById("includeLegendary").checked = app.state.pool.includeLegendary;
+    document.getElementById("prismanaCount").textContent = `${counts.prismana} forms`;
+    document.getElementById("legendaryCount").textContent = `${counts.legendary} Aniimo`;
   }
 
   function renderRoster() {
+    renderPoolSummary();
     const tbody = document.querySelector("#rosterTable tbody");
     const query = app.filters.rosterSearch;
     const skillFilter = app.filters.skillFilter;
@@ -625,38 +880,37 @@
         .filter((skill) => Number(entry.skills[skill]) > 0)
         .join(" ")
         .toLowerCase();
-      const matchesQuery = !query || displayName.includes(query) || skillNames.includes(query);
+      const category = (CATEGORY_BADGES[aniimoCategory(entry)] || "").toLowerCase();
+      const matchesQuery = !query || displayName.includes(query) || skillNames.includes(query) || (category && category.includes(query));
       const matchesSkill = skillFilter === "All" || Number(entry.skills?.[skillFilter] || 0) > 0;
       return matchesQuery && matchesSkill;
     });
 
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="3" class="work-model-text">No Aniimo match your search.</td></tr>`;
+      return;
+    }
+
     tbody.innerHTML = rows
       .map((entry) => {
-        const saved = app.state.roster[entry.id] || { quantity: 0, excluded: false };
-        const owned = Number(saved.quantity) > 0;
+        const included = isInPool(entry);
         const formLine = getFormLabel(entry);
+        const name = getDisplayName(entry);
         return `
-          <tr>
-            <td>
-              <div class="stepper">
-                <button type="button" class="icon-button" data-roster-step="${escapeAttr(entry.id)}" data-delta="-1" title="Decrease ${escapeAttr(getDisplayName(entry))}">-</button>
-                <input class="quantity-input" type="number" min="0" max="99" step="1" data-roster-quantity="${escapeAttr(entry.id)}" value="${saved.quantity || 0}" aria-label="${escapeAttr(getDisplayName(entry))} quantity" />
-                <button type="button" class="icon-button" data-roster-step="${escapeAttr(entry.id)}" data-delta="1" title="Increase ${escapeAttr(getDisplayName(entry))}">+</button>
-              </div>
+          <tr class="${included ? "" : "is-excluded"}">
+            <td class="use-col">
+              <input class="use-checkbox" type="checkbox" id="pool-${escapeAttr(entry.id)}" data-pool-pick="${escapeAttr(entry.id)}" ${included ? "checked" : ""} aria-label="Let the planner use ${escapeAttr(name)}" />
             </td>
             <td>
-              <div class="aniimo-name">
-                <img class="aniimo-head" src="${escapeAttr(entry.image || FALLBACK_MARK)}" alt="" />
-                <div class="aniimo-title">
-                  <strong>${escapeHtml(entry.name)}</strong>
+              <label class="aniimo-name" for="pool-${escapeAttr(entry.id)}">
+                <img class="aniimo-head" src="${escapeAttr(entry.image || FALLBACK_MARK)}" alt="" loading="lazy" />
+                <span class="aniimo-title">
+                  <strong>${escapeHtml(entry.name)} ${categoryBadge(entry)}</strong>
                   ${formLine ? `<span>${escapeHtml(formLine)}</span>` : ""}
-                </div>
-              </div>
+                </span>
+              </label>
             </td>
             <td>${skillChips(entry.skills)}</td>
-            <td>
-              <input class="use-checkbox" type="checkbox" data-roster-use="${escapeAttr(entry.id)}" ${owned && !saved.excluded ? "checked" : ""} ${owned ? "" : "disabled"} title="${owned ? "" : "Set a quantity first"}" aria-label="Include ${escapeAttr(getDisplayName(entry))} in plan" />
-            </td>
           </tr>
         `;
       })
@@ -699,10 +953,6 @@
   }
 
   function renderSettings() {
-    document.querySelectorAll("input[name='mode']").forEach((input) => {
-      input.checked = input.value === app.state.settings.mode;
-    });
-
     document.getElementById("cycleDurationMinutes").value = app.state.settings.cycleDurationMinutes;
     document.getElementById("maxUtilizationPercent").value = app.state.settings.maxUtilizationPercent;
 
@@ -807,47 +1057,22 @@
     return `<div class="source-item">${title}${notes}</div>`;
   }
 
-  function hasOwnedAniimo() {
-    return Object.values(app.state.roster).some((entry) => Number(entry?.quantity) > 0);
-  }
-
-  // A gentle nudge for players who have filled in their roster but are still in planning mode.
-  function renderModeNotice() {
-    const notice = document.getElementById("modeNotice");
-    if (!notice) return;
-    if (app.state.settings.mode !== "theorycraft" || !hasOwnedAniimo()) {
-      notice.classList.add("is-hidden");
-      notice.innerHTML = "";
-      return;
-    }
-    notice.classList.remove("is-hidden");
-    notice.innerHTML = `
-      <p>
-        You've added Aniimo on the Roster tab, but the planner is set to also suggest Aniimo you don't own yet
-        (planning ahead). Switch if you only want a team you can use right now.
-      </p>
-      <button type="button" class="secondary-button" data-set-mode="owned">Only use Aniimo I own</button>
-    `;
-  }
-
   function renderResultShell() {
-    if (!app.lastResult) {
+    if (!app.lastPlan) {
       document.getElementById("resultSummary").textContent =
-        'Press "Optimise workforce" once you\'ve filled in Requirements, Homeland and Roster.';
+        'Press "Optimise workforce" once you\'ve filled in Requirements and Homeland.';
       document.getElementById("missingPanel").classList.add("is-hidden");
       document.getElementById("capacityNotice").classList.add("is-hidden");
       document.getElementById("workerResults").className = "worker-results empty-state";
       document.getElementById("workerResults").textContent = "No recommendation yet.";
       document.querySelector("#coverageTable tbody").innerHTML = "";
       document.querySelector("#staffingTable tbody").innerHTML = "";
-      document.getElementById("unusedResults").className = "unused-results empty-state";
-      document.getElementById("unusedResults").textContent = "No recommendation yet.";
       document.getElementById("spareResults").className = "empty-state";
       document.getElementById("spareResults").textContent = "Run the optimiser to see suggestions.";
       return;
     }
 
-    renderResults(app.lastResult);
+    renderResults();
   }
 
   function waitForPaint() {
@@ -883,18 +1108,50 @@
 
     try {
       await waitForPaint();
-      const result = window.AniimoOptimizer.optimizeWorkforce({
-        aniimo: app.data.aniimo.aniimo,
+      const pool = window.AniimoOptimizer.filterAniimoPool(app.data.aniimo.aniimo, app.state.pool);
+      const run = (aniimo) =>
+        window.AniimoOptimizer.optimizeWorkforce({
+          aniimo,
+          skills: app.data.aniimo.skills,
+          requirements: app.state.requirements,
+          buildings: app.data.buildings.buildings,
+          buildingState: app.state.buildingState,
+          settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds() },
+        });
+      let result = run(pool);
+      // The search is a heuristic, and a bigger pool can occasionally lead it to a slightly bigger team.
+      // Ticking Prismana or legendary Aniimo should never make the plan worse, so also try without them
+      // and keep whichever team is smaller.
+      let usedPool = pool;
+      const commonOnly = pool.filter((entry) => aniimoCategory(entry) === "common");
+      if (commonOnly.length && commonOnly.length < pool.length) {
+        const alternative = run(commonOnly);
+        const better =
+          (alternative.feasible && !result.feasible) ||
+          (alternative.feasible === result.feasible && alternative.selectedWorkers.length < result.selectedWorkers.length);
+        if (better) {
+          result = alternative;
+          usedPool = commonOnly;
+        }
+      }
+      // If the full plan needs more Aniimo than the RV allows, also work out the best plan that fits.
+      const capacity = getCapacityInfo();
+      app.lastPlan = window.AniimoOptimizer.planForCapacity({
+        aniimo: usedPool,
+        catalogue: app.data.aniimo.aniimo,
         skills: app.data.aniimo.skills,
         requirements: app.state.requirements,
-        roster: app.state.roster,
         buildings: app.data.buildings.buildings,
         buildingState: app.state.buildingState,
-        settings: { ...app.state.settings, actionDurationSeconds: getActionDurationSeconds() },
+        settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds() },
+        capacity: capacity.known ? capacity.capacity : null,
+        homebuildingReserve: getHomebuildingReserve(),
+        fullResult: result,
       });
-      app.lastResult = result;
-      renderResults(result);
+      app.planView = "fitted";
+      renderResults();
     } catch (error) {
+      app.lastPlan = null;
       app.lastResult = null;
       renderResultShell();
       const panel = document.getElementById("missingPanel");
@@ -909,53 +1166,108 @@
     }
   }
 
-  function renderResults(result) {
+  // The plan on screen: the best plan that fits when over capacity (unless the full plan is chosen).
+  function currentView(plan) {
+    return plan.overCapacity && plan.fitted && app.planView !== "full" ? "fitted" : "full";
+  }
+
+  function renderResults() {
+    const plan = app.lastPlan;
+    if (!plan) return;
+    const view = currentView(plan);
+    const result = view === "fitted" ? plan.fitted : plan.full;
+    app.lastResult = result;
     const count = result.selectedWorkers.length;
-    const capacity = getCapacityInfo();
-    let summary = result.feasible
-      ? `This plan uses ${count} Aniimo – the smallest team the planner found.`
-      : `Couldn't cover everything. The best attempt uses ${count} Aniimo – see what's missing below.`;
-    if (capacity.known) {
-      const free = capacity.capacity - count;
-      summary +=
-        free >= 0
-          ? ` Your Homeland has room for ${capacity.capacity}, leaving ${free} spare.`
-          : ` Your Homeland only has room for ${capacity.capacity}.`;
+    let summary;
+    if (plan.overCapacity && view === "fitted") {
+      summary = `Showing the best plan for your ${plan.budget} space${plural(plan.budget)}: ${count} Aniimo.`;
+    } else if (plan.overCapacity) {
+      summary = `Showing the full plan: ${count} Aniimo – ${plan.overBy} more than you have room for.`;
+    } else {
+      summary = result.feasible
+        ? `This plan uses ${count} Aniimo – the smallest team the planner found.`
+        : `Couldn't cover everything. The best attempt uses ${count} Aniimo – see what's missing below.`;
+      if (plan.capacityKnown) {
+        const free = plan.capacity - count;
+        summary += ` Your Homeland has room for ${plan.capacity}, leaving ${free} spare.`;
+      }
     }
     document.getElementById("resultSummary").textContent = summary;
+    document.getElementById("workforceHelp").textContent =
+      view === "fitted"
+        ? "The best team that fits your Aniimo spaces, chosen from your Available Aniimo. Buildings left idle get no Aniimo."
+        : "The smallest group of Aniimo that covers your requirements and buildings, chosen from your Available Aniimo.";
 
-    renderMissing(result);
+    renderCapacityNotice(plan, view);
+    renderMissing(plan, view);
     renderWorkerResults(result);
     renderCoverage(result);
-    renderStaffing(result);
-    renderUnused(result);
+    renderStaffing(result, view === "fitted" ? plan.shortfalls.idle : []);
     renderSpareSpaces(result);
   }
 
-  function renderMissing(result) {
+  function capacityHeadline(plan) {
+    return window.AniimoOptimizer.describeCapacityPlan(plan, { rvLevel: app.state.homeland.rvLevel, zoneName: getZone().name });
+  }
+
+  function renderCapacityNotice(plan, view) {
+    const notice = document.getElementById("capacityNotice");
+    if (!plan.overCapacity) {
+      notice.classList.add("is-hidden");
+      notice.innerHTML = "";
+      return;
+    }
+    const text = capacityHeadline(plan);
+    const fittedSize = plan.fitted ? plan.fitted.selectedWorkers.length : 0;
+    let fittedBody;
+    if (!plan.fitted) {
+      fittedBody = `<p>There are no spaces left for production Aniimo. Lower the spaces kept for the ${escapeHtml(getZone().name)} on the <button type="button" class="link-button" data-goto-tab="homeland">Homeland tab</button>.</p>`;
+    } else {
+      const lines = plan.shortfalls.lines.map((line) => `<li>${escapeHtml(line)}</li>`);
+      const farmTasks = plan.fitted.physicalStaffing.filter((row) => row.type === "Intermittent");
+      if (farmTasks.length && !plan.shortfalls.farmSkills.length) lines.push("<li>Every farm step is covered.</li>");
+      if (!plan.shortfalls.short.length && !plan.shortfalls.noAbility.length) lines.push("<li>Estimated Require totals are still met.</li>");
+      fittedBody = `
+        <p><strong>Best plan that fits: ${fittedSize} Aniimo.</strong> The rest of your buildings stay idle until you have more room.</p>
+        <ul class="shortfall-list">${lines.join("")}</ul>
+      `;
+    }
+    const toggle = plan.fitted
+      ? `
+        <div class="plan-switch" role="group" aria-label="Which plan to show">
+          <button type="button" class="plan-switch-button${view === "fitted" ? " is-active" : ""}" data-plan-view="fitted" aria-pressed="${view === "fitted"}">Best plan for ${plan.budget} space${plural(plan.budget)}</button>
+          <button type="button" class="plan-switch-button${view === "full" ? " is-active" : ""}" data-plan-view="full" aria-pressed="${view === "full"}">Full plan (${plan.full.selectedWorkers.length} Aniimo)</button>
+        </div>
+      `
+      : "";
+    notice.classList.remove("is-hidden");
+    notice.innerHTML = `
+      <h3>More buildings than Aniimo spaces</h3>
+      <p>${escapeHtml(text.headline)}${text.minimum ? ` ${escapeHtml(text.minimum)}` : ""}</p>
+      ${fittedBody}
+      ${toggle}
+    `;
+  }
+
+  // What the shown plan still lacks, as a short grouped list (never one line per building copy).
+  function renderMissing(plan, view) {
     const panel = document.getElementById("missingPanel");
-    if (result.feasible || !result.missing.length) {
+    const shortfalls = view === "fitted" ? null : plan.fullShortfalls;
+    // The best plan that fits lists its own gaps in the capacity notice above.
+    if (!shortfalls || shortfalls.ok) {
       panel.classList.add("is-hidden");
       panel.innerHTML = "";
       return;
     }
-
-    const hint =
-      app.state.settings.mode === "owned"
-        ? 'You may not own enough suitable Aniimo. Add more on the Roster tab, or switch Settings to "Also suggest Aniimo I don\'t own yet".'
-        : "Try lowering a requirement or building count.";
+    const hint = shortfalls.noAbility.length
+      ? "Or lower that building count or requirement."
+      : "Try lowering a requirement or building count, or let the planner use more Aniimo on the Available Aniimo tab (for example Prismana forms).";
     panel.classList.remove("is-hidden");
     panel.innerHTML = `
       <h3>Still missing</h3>
-      <ul>${result.missing.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      <ul class="shortfall-list">${shortfalls.lines.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
       <p>${escapeHtml(hint)}</p>
     `;
-  }
-
-  function ownershipTag(worker) {
-    if (app.state.settings.mode !== "theorycraft") return "";
-    const owned = worker.owned !== false;
-    return `<span class="own-tag ${owned ? "is-owned" : "is-unowned"}">${owned ? "Owned" : "Not owned yet"}</span>`;
   }
 
   function renderWorkerResults(result) {
@@ -973,7 +1285,7 @@
           <article class="worker-card">
             <img class="aniimo-head" src="${escapeAttr(worker.image || FALLBACK_MARK)}" alt="" />
             <div>
-              <h4>${escapeHtml(worker.displayName)}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""} ${ownershipTag(worker)}</h4>
+              <h4>${escapeHtml(worker.displayName)}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""} ${categoryBadge(worker.category || worker)}</h4>
               <p><strong>Main job:</strong> ${escapeHtml(worker.primaryAssignment)}</p>
               ${
                 worker.secondaryAssignments.length
@@ -996,7 +1308,7 @@
       .map((row) => {
         return `
           <tr>
-            <td>${abilityDot(row.skill, "small")} ${escapeHtml(row.skill)}</td>
+            <td><span class="work-item">${abilityIcon(row.skill, "small")}<span class="work-skill">${escapeHtml(row.skill)}</span></span></td>
             <td>${row.required}</td>
             <td>${row.available}</td>
             <td><span class="status-pill ${row.status === "OK" ? "ok" : "missing"}">${escapeHtml(row.status === "OK" ? "OK" : "Short")}</span></td>
@@ -1006,9 +1318,9 @@
       .join("");
   }
 
-  function renderStaffing(result) {
+  function renderStaffing(result, idle = []) {
     const tbody = document.querySelector("#staffingTable tbody");
-    if (!result.physicalStaffing.length) {
+    if (!result.physicalStaffing.length && !idle.length) {
       tbody.innerHTML = `<tr><td colspan="4" class="work-model-text">No buildings need staff. Add some on the Homeland tab.</td></tr>`;
       return;
     }
@@ -1023,31 +1335,23 @@
           </tr>
         `;
       })
-      .join("");
-  }
-
-  function renderUnused(result) {
-    const container = document.getElementById("unusedResults");
-    container.className = "unused-results";
-    const ownedUnused = result.unusedWorkers.filter((worker) => worker.owned !== false);
-
-    if (!ownedUnused.length) {
-      container.className = "unused-results empty-state";
-      container.textContent = Object.values(app.state.roster).some((entry) => Number(entry.quantity) > 0)
-        ? 'Every Aniimo you own (and ticked "Include in plan") is already in the plan.'
-        : "You haven't added any Aniimo on the Roster tab yet.";
-      return;
-    }
-
-    container.innerHTML = ownedUnused
-      .slice(0, 80)
-      .map((worker) => `<span class="unused-chip">${escapeHtml(displayWorker(worker))}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""}</span>`)
-      .join("");
+      .join("") +
+      idle
+        .map(
+          (group) => `
+          <tr class="is-idle">
+            <td>${escapeHtml(group.name)} (left idle)</td>
+            <td>${group.count} Aniimo</td>
+            <td>0 Aniimo</td>
+            <td><span class="status-pill idle">Idle</span></td>
+          </tr>
+        `
+        )
+        .join("");
   }
 
   function renderSpareSpaces(result) {
     const container = document.getElementById("spareResults");
-    const notice = document.getElementById("capacityNotice");
     const capacity = getCapacityInfo();
     const zone = getZone();
     const plan = window.AniimoOptimizer.recommendSpareSpaces({
@@ -1056,30 +1360,15 @@
       homebuildingReserve: getHomebuildingReserve(),
       homebuildingZone: getHomelandData()?.homebuildingZone || { name: zone.name },
       skills: app.data.aniimo.skills,
-      mode: app.state.settings.mode,
+      mode: "pool",
     });
-
-    if (plan.overCapacity) {
-      notice.classList.remove("is-hidden");
-      notice.innerHTML = `
-        <h3>Too many Aniimo for your Homeland</h3>
-        <p>
-          Your Homeland has room for <strong>${plan.capacity}</strong> Aniimo, but this plan needs
-          <strong>${plan.used}</strong> – that's ${plan.overBy} too many. Raise your RV level, build fewer
-          buildings, lower some requirements, or look for Aniimo with more abilities so fewer can do the work.
-        </p>
-      `;
-    } else {
-      notice.classList.add("is-hidden");
-      notice.innerHTML = "";
-    }
 
     if (!plan.capacityKnown) {
       container.className = "empty-state";
       container.innerHTML = `
         <div>
-          <p>Tell us how many Aniimo your Homeland can hold to get ideas for any spare spaces.</p>
-          <button type="button" class="secondary-button" data-goto-tab="homeland">Set RV level / spaces</button>
+          <p>Choose your RV level so the planner knows how many Aniimo your Homeland holds and can suggest uses for spare spaces.</p>
+          <button type="button" class="secondary-button" data-goto-tab="homeland">Set your RV level</button>
         </div>
       `;
       return;
@@ -1087,7 +1376,7 @@
 
     if (plan.overCapacity) {
       container.className = "empty-state";
-      container.textContent = "No spare spaces – the plan already needs more room than you have.";
+      container.textContent = "No spare spaces – this plan needs more room than you have. Switch to the best plan that fits above.";
       return;
     }
 
@@ -1169,7 +1458,7 @@
             <img class="aniimo-head" src="${escapeAttr(entry.image || FALLBACK_MARK)}" alt="" />
             <div>
               <strong>${escapeHtml(entry.displayName)}${escapeHtml(another)}</strong>
-              ${ownershipTag(entry)}
+              ${categoryBadge(entry.category || entry)}
               <p>${escapeHtml(entry.reason)}</p>
             </div>
           </li>
@@ -1213,6 +1502,7 @@
       const importedState = payload.state || payload;
       app.state = normalizeState(importedState);
       app.lastResult = null;
+      app.lastPlan = null;
       saveState();
       renderAll();
     } catch (error) {
@@ -1229,20 +1519,49 @@
     }
     app.state = normalizeState(defaultState());
     app.lastResult = null;
+    app.lastPlan = null;
     renderAll();
   }
 
-  function abilityDot(skill, size = "") {
-    const meta = ABILITY_META[skill] || { abbr: String(skill).slice(0, 2), color: "#667085" };
-    const className = size === "small" ? "ability-dot small" : "ability-dot";
-    return `<span class="${className}" style="background:${meta.color}" title="${escapeAttr(skill)}" aria-hidden="true">${escapeHtml(meta.abbr)}</span>`;
+  function abilityMeta(skill) {
+    const fallback = ABILITY_META[skill] || { abbr: String(skill).slice(0, 2), color: "#667085" };
+    const fromData = app.data.aniimo?.abilityIcons?.[skill] || {};
+    const color = /^#[0-9a-f]{3,8}$/i.test(String(fromData.color || "")) ? fromData.color : fallback.color;
+    const icon = /^https:\/\//i.test(String(fromData.icon || "")) ? fromData.icon : "";
+    return { abbr: fallback.abbr, color, icon };
+  }
+
+  // The in-game ability icon (hotlinked like the Aniimo portraits) on its coloured circle. If the image
+  // can't load, the circle shows the ability's two-letter abbreviation instead.
+  function abilityIcon(skill, size = "") {
+    const meta = abilityMeta(skill);
+    const useImage = meta.icon && !app.failedIcons.has(meta.icon);
+    const classes = ["ability-icon", size === "small" ? "small" : "", useImage ? "has-img" : ""].filter(Boolean).join(" ");
+    const image = useImage ? `<img class="ability-img" src="${escapeAttr(meta.icon)}" alt="" decoding="async" />` : "";
+    return `<span class="${classes}" style="background:${meta.color}" title="${escapeAttr(skill)}" aria-hidden="true">${image}<span class="ability-abbr">${escapeHtml(meta.abbr)}</span></span>`;
+  }
+
+  // One capturing listener covers every ability icon, including ones that fail before a per-image
+  // listener could be attached.
+  function watchAbilityIconErrors() {
+    document.addEventListener(
+      "error",
+      (event) => {
+        const image = event.target;
+        if (!(image instanceof HTMLImageElement) || !image.classList.contains("ability-img")) return;
+        app.failedIcons.add(image.getAttribute("src"));
+        image.parentElement?.classList.remove("has-img");
+        image.remove();
+      },
+      true
+    );
   }
 
   function skillChips(skillMap) {
     const chips = app.data.aniimo.skills
       .filter((skill) => Number(skillMap?.[skill] || 0) > 0)
       .map((skill) => {
-        return `<span class="skill-pill">${abilityDot(skill, "small")} ${escapeHtml(skill)} ${Number(skillMap[skill])}</span>`;
+        return `<span class="skill-pill">${abilityIcon(skill, "small")} ${escapeHtml(skill)} ${Number(skillMap[skill])}</span>`;
       });
     return chips.length ? `<div class="skill-list">${chips.join("")}</div>` : `<span class="work-model-text">None</span>`;
   }

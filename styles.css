@@ -14,6 +14,10 @@
   --danger: #bb3e4a;
   --ok: #2e8b57;
   --shadow: 0 14px 35px rgba(32, 37, 54, 0.08);
+  /* Widest the page content gets; header and tab bar line up with it on very wide screens. */
+  --content-max: 1600px;
+  --gutter: clamp(16px, 4vw, 36px);
+  --page-inline: max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -50,7 +54,7 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 18px clamp(16px, 4vw, 36px);
+  padding: 18px var(--page-inline);
   border-bottom: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(14px);
@@ -181,7 +185,7 @@ p {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 10px clamp(16px, 4vw, 36px);
+  padding: 10px var(--page-inline);
   border-bottom: 1px solid var(--line);
   background: rgba(245, 248, 246, 0.88);
   position: sticky;
@@ -207,9 +211,9 @@ p {
 }
 
 .app-main {
-  width: min(1480px, 100%);
+  width: min(var(--content-max), 100%);
   margin: 0 auto;
-  padding: 20px clamp(16px, 4vw, 36px) 42px;
+  padding: 20px var(--gutter) 42px;
 }
 
 .tab-panel {
@@ -228,24 +232,42 @@ p {
   margin-bottom: 16px;
 }
 
-.ability-dot {
+.section-heading p,
+.subsection-copy {
+  max-width: 90ch;
+}
+
+/* In-game ability icon on its coloured circle; the abbreviation shows if the image can't load. */
+.ability-icon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   color: white;
   font-size: 0.68rem;
   font-weight: 850;
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.16);
   flex: 0 0 auto;
+  overflow: hidden;
 }
 
-.ability-dot.small {
+.ability-icon.small {
   width: 22px;
   height: 22px;
   font-size: 0.58rem;
+}
+
+.ability-img {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+}
+
+.ability-icon.has-img .ability-abbr {
+  display: none;
 }
 
 .table-shell {
@@ -517,11 +539,13 @@ p {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
   gap: 14px;
+  align-items: start;
 }
 
 fieldset {
+  min-width: 0;
   margin: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -573,9 +597,9 @@ legend {
 
 /* About the data (page footer) */
 .app-footer {
-  width: min(1480px, 100%);
+  width: min(var(--content-max), 100%);
   margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 36px) 32px;
+  padding: 0 var(--gutter) 32px;
 }
 
 .about-data {
@@ -657,44 +681,7 @@ legend {
   display: block;
 }
 
-/* Gentle, non-error notice (e.g. planning mode with a filled-in roster) */
-.info-panel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 16px;
-  border: 1px solid rgba(44, 122, 104, 0.28);
-  border-radius: 8px;
-  background: #eef7f3;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-}
-
-.info-panel p {
-  margin: 0;
-  flex: 1 1 260px;
-  color: var(--accent-strong);
-}
-
-.unused-results {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
-.unused-chip {
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 4px 8px;
-  background: #fbfdfd;
-  color: #425466;
-  font-size: 0.78rem;
-  font-weight: 750;
-}
-
+/* Gentle, non-error notice */
 /* Requirements table */
 .hint-banner {
   margin: 0 0 12px;
@@ -706,54 +693,93 @@ legend {
   font-weight: 650;
 }
 
-.requirements-shell {
-  max-width: 560px;
+/* Requirements: a horizontal table like the in-game Ability Distribution panel. 13 columns on wide
+   screens, wrapping to 7 + 6 and then 5 + 5 + 3 on narrow ones. */
+.ability-panel {
+  padding: 10px 14px 14px;
 }
 
-.data-table.requirements-table {
+.ability-grid {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.ability-cell {
+  display: grid;
+  /* The header takes any extra height, so every input in a row lines up. */
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+  box-shadow:
+    inset -1px 0 0 var(--line),
+    inset 0 -1px 0 var(--line);
+}
+
+.ability-cell-head {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 5px;
+  padding: 10px 4px 8px;
+  background: var(--surface-2);
+  box-shadow: inset 0 -1px 0 var(--line);
+  cursor: pointer;
   min-width: 0;
 }
 
-.data-table.requirements-table tbody th {
-  position: static;
-  background: transparent;
-  color: var(--ink);
-  font-size: 0.95rem;
-  font-weight: 750;
-  text-transform: none;
+.ability-cell-name {
+  max-width: 100%;
+  color: #344054;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  word-break: keep-all;
 }
 
-.requirements-table td,
-.requirements-table th {
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-.ability-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.numeric-col {
-  width: 150px;
-  text-align: right;
-}
-
-.data-table th.numeric-col {
-  text-align: right;
+.ability-cell .requirement-input {
+  width: calc(100% - 12px);
+  margin: 7px auto 8px;
+  text-align: center;
 }
 
 .requirement-input {
-  width: 96px;
-  min-height: 36px;
+  min-height: 38px;
   border: 1px solid var(--line-strong);
   border-radius: 6px;
-  padding: 0 10px;
-  text-align: right;
+  padding: 0 4px;
   background: #fff;
+  font-size: 1rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .ability-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .ability-panel {
+    padding: 8px 8px 10px;
+  }
+
+  .ability-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .ability-cell-head {
+    padding: 8px 1px 6px;
+  }
+
+  .ability-cell-name {
+    font-size: 0.6rem;
+    letter-spacing: -0.01em;
+  }
 }
 
 .requirement-input:focus,
@@ -772,8 +798,9 @@ legend {
 
 .capacity-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 4px 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 4px 24px;
+  max-width: 1100px;
 }
 
 .capacity-grid .setting-row {
@@ -818,6 +845,201 @@ legend {
 
 .subsection-copy {
   margin-bottom: 12px;
+}
+
+/* "Who can work here": the same icon + ability (+ step) layout on every row */
+.work-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.work-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.work-skill {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.work-or {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.work-note {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.count-cell {
+  white-space: nowrap;
+}
+
+.count-limit {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.building-table tr.is-locked td {
+  background: #f7f9fa;
+}
+
+.building-table tr.is-locked .building-name strong,
+.building-table tr.is-locked .work-model-text {
+  color: #98a2b3;
+}
+
+.building-table tr.is-locked .count-limit {
+  color: var(--warn);
+}
+
+.building-table tr.is-locked .ability-icon {
+  opacity: 0.55;
+}
+
+.count-input:disabled,
+.icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.table-footnote {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  max-width: 90ch;
+}
+
+.building-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(44, 122, 104, 0.28);
+  border-radius: 8px;
+  background: #eef7f3;
+}
+
+.toolbar-note {
+  margin: 0;
+  flex: 1 1 280px;
+  color: var(--accent-strong);
+  font-weight: 650;
+}
+
+.toolbar-note.is-prompt {
+  color: var(--warn);
+}
+
+.building-toolbar .secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Available Aniimo */
+.pool-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.toggle-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 0 1 320px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.toggle-card:has(input:checked) {
+  border-color: rgba(44, 122, 104, 0.5);
+  background: #e8f4ef;
+}
+
+.toggle-card input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.toggle-card strong {
+  display: block;
+  color: var(--ink);
+}
+
+.toggle-card small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.pool-summary {
+  align-self: center;
+  margin: 0;
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.use-col {
+  width: 56px;
+  text-align: center !important;
+}
+
+.roster-table label.aniimo-name {
+  cursor: pointer;
+}
+
+.roster-table tr.is-excluded .aniimo-title strong,
+.roster-table tr.is-excluded .skill-list {
+  opacity: 0.55;
+}
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
+.category-badge.is-prismana {
+  background: #fff4d6;
+  color: #7a5200;
+}
+
+.category-badge.is-legendary {
+  background: #efe6ff;
+  color: #5b2fa0;
+}
+
+.category-badge.is-boss {
+  background: #ffe9ea;
+  color: #9b2c36;
 }
 
 .pool-item {
@@ -897,6 +1119,11 @@ legend {
   line-height: 1.4;
 }
 
+.fieldset-intro {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+}
+
 .advanced-settings {
   margin-top: 16px;
   border-top: 1px solid var(--line);
@@ -919,29 +1146,77 @@ legend {
   grid-column: 1 / -1;
 }
 
-.own-tag {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 4px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  vertical-align: middle;
-}
-
-.own-tag.is-owned {
-  background: #eaf6ef;
-  color: #247446;
-}
-
-.own-tag.is-unowned {
-  background: #fff4e5;
-  color: #8a4b0f;
-}
-
 .notice-panel p {
   color: inherit;
+}
+
+.shortfall-list {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 !important;
+}
+
+.shortfall-list li {
+  overflow-wrap: anywhere;
+}
+
+/* Switch between the best plan that fits and the full plan. */
+.plan-switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  max-width: 100%;
+}
+
+.plan-switch-button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.plan-switch-button.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.plan-switch-button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .plan-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .plan-switch-button {
+    border-radius: 9px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+.status-pill.idle {
+  border-color: rgba(184, 109, 31, 0.25);
+  background: #fff6ea;
+  color: #8a4f12;
+}
+
+tr.is-idle td {
+  color: var(--muted);
 }
 
 .link-button {
@@ -1098,14 +1373,6 @@ legend {
 
   .row-actions {
     flex-wrap: wrap;
-  }
-
-  .requirements-shell {
-    max-width: none;
-  }
-
-  .numeric-col {
-    width: 120px;
   }
 
   .result-grid {
