@@ -1277,7 +1277,9 @@
         "https://aniimo.gg/homeland/object/floral-windmill/"
       ],
       "verified": true
-    },
+    }
+  ],
+  "removedBuildings": [
     {
       "id": "storage_hauling",
       "name": "Storage Unit",
@@ -1295,15 +1297,15 @@
       ],
       "unlockRv": 2,
       "placementLimit": "Player choice",
-      "notes": "Hauling Aniimo carry stockpiled produce from facilities to Storage Units (unlocked at RV 2). Storage Units themselves have no worker slot; the number of haulers you need is not a fixed game value, so set the count yourself.",
+      "removedReason": "Confirmed in-game by a player: Storage Units are only drop-off points for hauling Aniimo, not staffed buildings. Hauling is covered by the Estimated Require Hauling target and spare-space hauler suggestions.",
+      "notes": "Hauling Aniimo carry stockpiled produce from facilities to Storage Units (unlocked at RV 2). Storage Units themselves have no worker slot.",
       "source": "https://aniimo.gg/homeland/work/",
       "sources": [
         "https://aniimo.gg/homeland/work/",
         "https://aniimo.gg/homeland/rv/",
         "https://aniimo.gg/homeland/object/storage-unit/"
       ],
-      "verified": false,
-      "countHelp": "Storage Units have no worker slot of their own – set “How many” to the number of Aniimo you want hauling."
+      "verified": true
     }
   ]
 }

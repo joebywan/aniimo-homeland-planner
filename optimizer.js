@@ -1216,7 +1216,7 @@
   }
 
   // Structured placement limit: building.maxByRv = [{ rv, max }, ...]. Returns
-  //   { limited: false, locked } when the building has no limit data (e.g. Storage Units, a player choice),
+  //   { limited: false, locked } when the building has no limit data (no limit known),
   //   { limited: true, known: false } when no RV level is chosen,
   //   { limited: true, known: true, max, locked, unlockRv } otherwise (max 0 and locked before unlock).
   function buildingMaxForRv(building, rvLevel) {

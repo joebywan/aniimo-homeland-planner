@@ -831,10 +831,7 @@
         return workItem(requirement.skill, level > 1 ? `Lv ${level}+` : "");
       });
       const slots = Number(building.slotsPerUnit || 1);
-      note =
-        building.countLabel === "haulers"
-          ? "1 Aniimo per hauler you add"
-          : `${slots} Aniimo per ${building.countLabel === "facilities" || !building.countLabel ? "facility" : building.countLabel.replace(/s$/, "")}`;
+      note = `${slots} Aniimo per ${building.countLabel === "facilities" || !building.countLabel ? "facility" : building.countLabel.replace(/s$/, "")}`;
     } else {
       items = (building.pools || []).map((pool) => workItem(pool.skill, pool.label || ""));
       note = `Shared: each step takes about ${getActionDurationSeconds()} s per plot, so one Aniimo per step covers many plots`;

@@ -295,10 +295,7 @@ test("building max follows the maxByRv steps and locks before unlock", () => {
 
 test("every building's maxByRv matches its placementLimit text", () => {
   for (const building of buildingsData.buildings) {
-    if (!building.maxByRv) {
-      assert.equal(building.id, "storage_hauling", `${building.id} is missing maxByRv`);
-      continue;
-    }
+    assert.ok(building.maxByRv, `${building.id} is missing maxByRv`);
     const steps = [...String(building.placementLimit).matchAll(/(\d+)\s+from\s+RV\s*(\d+)/gi)].map((m) => ({
       rv: Number(m[2]),
       max: Number(m[1]),
