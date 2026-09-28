@@ -11,6 +11,7 @@ const OVERRIDES_JSON = path.join(ROOT, "data", "aniimo-overrides.json");
 const SOURCE_URL = "https://aniimo.gg/homeland/work/";
 const HIDEOUT_URL = "https://backup.hideoutgacha.com/games/aniimo/homeland-abilities";
 const ANIILOG_URL = "https://aniimo.gg/aniilog/";
+const TIERS_SOURCE_URL = "https://wiki.aniimo.com/";
 const CATEGORIES = ["common", "prismana", "legendary"];
 
 const SKILLS = [
@@ -349,7 +350,10 @@ async function collectForms(baseRecords, knownIds) {
   });
 
   const pending = [];
+  const lines = [];
   for (const { base, html } of speciesPages) {
+    const evolution = parseEvolutionLine(html);
+    if (evolution) lines.push(evolution);
     const templateId = parseTemplateId(html);
     if (templateId) base.templateId = templateId;
     for (const link of parseFormLinks(html)) {
@@ -381,7 +385,155 @@ async function collectForms(baseRecords, knownIds) {
     }
   });
 
-  return { formRecords, failures };
+  return { formRecords, failures, lines };
+}
+
+// Stage names the game uses (official wiki's Stage filter: https://wiki.aniimo.com/): stage 1 Lumin,
+// 2 Gamma, 3 Nova; stage 4 is the Legendary Aniimo. Some lines skip Gamma (Cozite, stage 1 -> Bailite,
+// stage 3), so the name follows the stage number, not the position in the line.
+const TIER_NAMES = { 1: "Lumin", 2: "Gamma", 3: "Nova", 4: "Legendary" };
+
+// The "Evolution" section of an aniimo.gg species page as a tree: the line's name and every member with its
+// stage number and the member it evolves from, e.g. { line: "Emberpup line", members: [{ slug: "emberpup",
+// name: "Emberpup", stage: 1, parent: null }, { slug: "flameruff", ..., parent: "emberpup" }, ...] }.
+// Branches (Pebbling -> Lavazar -> Magmarex and Pebbling -> Geodeback -> Minespine) are nested <div>s, so
+// the parent is the member most recently opened at a shallower depth.
+function parseEvolutionLine(html) {
+  const text = String(html || "");
+  const start = text.search(/>Evolution<span[^>]*>[^<]*<\/span><\/h2>/);
+  if (start < 0) return null;
+  const line = decodeHtml(text.slice(start).match(/>Evolution<span[^>]*>([^<]*)<\/span>/)[1]).trim();
+  const end = text.indexOf("<h2", start + 20);
+  const segment = text.slice(start, end > 0 ? end : undefined);
+  const members = [];
+  const seen = new Set();
+  const stack = [];
+  let depth = 0;
+  const tokens = /<div\b|<\/div>|<a\b[^>]*href="\/aniimo\/([a-z0-9-]+)\/"[^>]*>([\s\S]*?)<\/a>/g;
+  for (const match of segment.matchAll(tokens)) {
+    const token = match[0];
+    if (token.startsWith("<div")) {
+      depth += 1;
+      continue;
+    }
+    if (token === "</div>") {
+      depth -= 1;
+      while (stack.length && stack[stack.length - 1].depth > depth) stack.pop();
+      continue;
+    }
+    const slug = match[1];
+    const name = match[2].match(/<span[^>]*>([^<]+)<\/span>/)?.[1];
+    const stage = Number(match[2].match(/Stage (?:<!-- -->)?(\d+)/)?.[1] || 0);
+    if (!name || !stage) continue;
+    const parent = stack.length ? stack[stack.length - 1].slug : null;
+    stack.push({ slug, depth });
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    members.push({ slug, name: decodeHtml(name).trim(), stage, parent });
+  }
+  return members.length ? { line, members } : null;
+}
+
+// Adds stage, tierName and, for Aniimo in an evolution line, evolutionLine, evolvesFrom (the species it
+// evolves from) and finalStage (the highest stage it can reach). Stage numbers come from the Aniilog
+// (aniilogEntries) where it gives one, otherwise from the line.
+function applyEvolution(records, lines, aniilogEntries = []) {
+  const bySpecies = new Map();
+  for (const entry of lines || []) {
+    if (!entry || entry.members.length < 2) continue;
+    const nameBySlug = new Map(entry.members.map((member) => [member.slug, member.name]));
+    const children = new Map();
+    for (const member of entry.members) {
+      if (!member.parent) continue;
+      const list = children.get(member.parent) || [];
+      list.push(member);
+      children.set(member.parent, list);
+    }
+    const reach = (member) => Math.max(member.stage, ...(children.get(member.slug) || []).map(reach));
+    for (const member of entry.members) {
+      if (bySpecies.has(member.name)) continue;
+      bySpecies.set(member.name, {
+        line: entry.line,
+        stage: member.stage,
+        evolvesFrom: member.parent ? nameBySlug.get(member.parent) || null : null,
+        finalStage: reach(member),
+      });
+    }
+  }
+  const aniilogStage = new Map((aniilogEntries || []).filter((entry) => entry.stage > 0).map((entry) => [entry.name, entry.stage]));
+  const report = { withLine: 0, withoutLine: [] };
+  for (const record of records) {
+    const info = bySpecies.get(record.species);
+    for (const key of ["evolutionLine", "evolvesFrom"]) delete record[key];
+    const stage = aniilogStage.get(record.species) || info?.stage || 1;
+    record.stage = stage;
+    record.finalStage = info ? Math.max(stage, info.finalStage) : stage;
+    record.tierName = TIER_NAMES[stage] || `Stage ${stage}`;
+    if (info) {
+      record.evolutionLine = info.line;
+      if (info.evolvesFrom) record.evolvesFrom = info.evolvesFrom;
+      report.withLine += 1;
+    } else {
+      report.withoutLine.push(record.species);
+    }
+  }
+  report.withoutLine = [...new Set(report.withoutLine)].sort();
+  return report;
+}
+
+// A lower-stage Aniimo is "dominated" when one it can evolve into (a descendant in its evolution tree, not
+// just any higher stage of the line) in the same form (base with base, a regional form with the same
+// regional form, Prismana with Prismana) has every Homeland ability at least as high. The planner leaves
+// dominated Aniimo out of the default pool. Starters are never compared.
+function markDominated(records) {
+  const dominated = [];
+  const childrenOf = new Map();
+  for (const record of records) {
+    delete record.dominatedBy;
+    if (!record.evolvesFrom) continue;
+    const list = childrenOf.get(record.evolvesFrom) || new Set();
+    list.add(record.species);
+    childrenOf.set(record.evolvesFrom, list);
+  }
+  const descendants = (species, found = new Set()) => {
+    for (const child of childrenOf.get(species) || []) {
+      if (found.has(child)) continue;
+      found.add(child);
+      descendants(child, found);
+    }
+    return found;
+  };
+  for (const record of records) {
+    if (record.starter) continue;
+    const later = descendants(record.species);
+    if (!later.size) continue;
+    const better = records.filter(
+      (other) =>
+        later.has(other.species) &&
+        other.form === record.form &&
+        other.category === record.category &&
+        SKILLS.every((skill) => Number(other.skills?.[skill] || 0) >= Number(record.skills?.[skill] || 0))
+    );
+    if (!better.length) continue;
+    record.dominatedBy = better.map((other) => other.id);
+    dominated.push(record.id);
+  }
+  return dominated;
+}
+
+// Starters (Lunara and Helion): a player only ever has one of them.
+function markStarters(records, starters) {
+  const names = new Set((starters || []).map((item) => (typeof item === "string" ? item : item?.species)).filter(Boolean));
+  const marked = [];
+  for (const record of records) {
+    if (names.has(record.species)) {
+      record.starter = true;
+      marked.push(record.id);
+    } else {
+      delete record.starter;
+    }
+  }
+  return marked;
 }
 
 // Hideout Guides lists Prismana breeds in its table (levels 3+ only).
@@ -610,6 +762,12 @@ function buildPayload(records, scrape, abilityIcons) {
           "The in-game Aniimo index. Gives each Aniimo its Aniilog number (#001 to #082, plus special numbers such as #10001 Irisalis) and decides which Aniimo are in the released game: entries marked \"Secret\" with no number (datamined or not yet released) are left out. Also marks the Legendary Aniimo: Somniwing and Irisalis are the only Stage 4 species.",
       },
       {
+        name: "Aniimo official wiki – stages",
+        url: TIERS_SOURCE_URL,
+        notes:
+          "Stage names: stage 1 Lumin, 2 Gamma, 3 Nova (stage 4 is Legendary). Which Aniimo evolve into which comes from the Evolution section of each aniimo.gg page; a lower stage one of its own evolutions matches or beats in every Homeland ability is left out of the planner by default.",
+      },
+      {
         name: "Player corrections",
         kind: "override",
         url: "data/aniimo-overrides.json",
@@ -674,7 +832,7 @@ async function main() {
   records.push(...missing.added);
 
   const baseRecords = records.filter((record) => record.kind === "base");
-  const { formRecords, failures } = await collectForms(baseRecords, knownIds);
+  const { formRecords, failures, lines } = await collectForms(baseRecords, knownIds);
   failures.push(...missing.failures);
   records.push(...formRecords);
 
@@ -692,12 +850,19 @@ async function main() {
   const legendarySpecies = new Set(aniilogEntries.filter((entry) => entry.stage >= 4).map((entry) => entry.name));
   const categoryReport = assignCategories(records, legendarySpecies, overridesFile.categories || []);
 
+
   for (const record of records) {
     delete record.kind;
     delete record.templateId;
     delete record.hideoutOnly;
   }
   sortRecords(records);
+
+  // Evolution stages and stage names, starters, and lower stages one of their evolutions fully covers.
+  // After sorting, so the lists come out in the same order on every run.
+  const evolutionReport = applyEvolution(records, lines, aniilogEntries);
+  const starters = markStarters(records, overridesFile.starters || []);
+  const dominated = markDominated(records);
 
   const scrape = {
     url: SOURCE_URL,
@@ -722,6 +887,7 @@ async function main() {
     legendarySource: ANIILOG_URL,
     categoryReport,
     overridesApplied,
+    evolution: { ...evolutionReport, tiersSource: TIERS_SOURCE_URL, starters, dominated },
     fetchFailures: failures,
   };
 
@@ -756,6 +922,11 @@ if (require.main === module) {
 
 module.exports = {
   SKILLS,
+  TIER_NAMES,
+  parseEvolutionLine,
+  applyEvolution,
+  markDominated,
+  markStarters,
   classifySlug,
   assignCategories,
   parseAbilityIcons,

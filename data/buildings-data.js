@@ -8,7 +8,8 @@ window.ANIIMO_BUILDINGS_DATA = {
     "Hatchinator also has 1 Aniimo slot on aniimo.gg but no work type is documented, so it is omitted.",
     "maxByRv is placementLimit as data: each {rv, max} step gives how many of the building you can place from that RV level on. The planner fills building counts with the max for the chosen RV level. Farmland, Woodland and Mine steps (maxByRvVerified: false) come from the RV upgrade requirements; see maxByRvNotes.",
     "role: 'primary' buildings make goods from nothing (aniimo.gg 'Materials Production', recipes say 'No inputs') and are assumed to run full time; Farmland and Woodland keep the shared plot model. 'processor' buildings (aniimo.gg 'Materials Processing' and 'Item Production') turn other goods into products, so they only work while inputs last and the planner counts them as a share of one Aniimo. 'climate' (Cooling Unit, Heat Furnace, Sunlamp) and 'power' (Crackle Generator) each hold an Aniimo that does no other work (Hideout's Homeland Optimizer). Checked 2026-09-28 against aniimo.gg object pages and AniimoTools station recipe tables.",
-    "personalityBonus: the personality that works 20% faster at that building (AniimoTools station pages, e.g. 'Aniimo with the Nimble personality work 20 % faster here'; Hideout: 'a matching personality adds a fifth on top'). Farmland, Woodland, Aniipod Maker, Dance Pad Polisher, climate buildings and the Crackle Generator have none. Personalities are random on each Aniimo you catch, not fixed per species (confirmed in-game by a player), so the planner recommends a personality per building and ability, never per species."
+    "personalityBonus: the personality that works 20% faster at that building (AniimoTools station pages, e.g. 'Aniimo with the Nimble personality work 20 % faster here'; Hideout: 'a matching personality adds a fifth on top'). Farmland, Woodland, Aniipod Maker, Dance Pad Polisher, climate buildings and the Crackle Generator have none. Personalities are random on each Aniimo you catch, not fixed per species (confirmed in-game by a player), so the planner recommends a personality per building and ability, never per species.",
+    "allowedSpecies: only Aniimo of these species (any form, including Prismana) can work the building, whatever their level (AniimoTools station recipe tables: 'Family only · …'; Dewy House and Tidewhisper Sandcastle confirmed in-game by a player). The list is every recipe's family together; familyRecipes says which family works which recipe. Only the five Leisure buildings have such limits."
   ],
   "sources": [
     {
@@ -711,7 +712,38 @@ window.ANIIMO_BUILDINGS_DATA = {
         "https://aniimotools.dev/systems/homeland/stations/tidewhisper-sandcastle/",
         "https://aniimo.gg/homeland/object/tidewhisper-sandcastle-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "allowedSpecies": [
+        "Panpanta",
+        "Piopiota",
+        "Popota",
+        "Susuta",
+        "Sherro",
+        "Sheldon",
+        "Shelly"
+      ],
+      "familyRecipes": [
+        {
+          "recipe": "Sea Salt (Level 1 and 2)",
+          "species": [
+            "Panpanta",
+            "Piopiota",
+            "Popota",
+            "Susuta"
+          ]
+        },
+        {
+          "recipe": "Pearl (Level 3, needs a Heat Furnace nearby)",
+          "species": [
+            "Sherro",
+            "Sheldon",
+            "Shelly"
+          ]
+        }
+      ],
+      "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/tidewhisper-sandcastle/",
+      "allowedSpeciesVerified": true,
+      "allowedSpeciesNotes": "Player-confirmed in-game; AniimoTools recipe table. The Sherro family only works the Level 3 Pearl recipe; at Level 1 and 2 only the Susuta family (Susuta, Popota, Piopiota, Panpanta) can work here."
     },
     {
       "id": "bouncy_brew_keg",
@@ -927,7 +959,23 @@ window.ANIIMO_BUILDINGS_DATA = {
         "https://aniimotools.dev/systems/homeland/stations/dewy-house/",
         "https://aniimo.gg/homeland/object/dewy-house-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "allowedSpecies": [
+        "Fragrancier",
+        "Dewy"
+      ],
+      "familyRecipes": [
+        {
+          "recipe": "Aromathyst (Level 1 and 2)",
+          "species": [
+            "Fragrancier",
+            "Dewy"
+          ]
+        }
+      ],
+      "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/dewy-house/",
+      "allowedSpeciesVerified": true,
+      "allowedSpeciesNotes": "Player-confirmed in-game; AniimoTools recipe table: 'Family only · Fragrancier, Dewy'."
     },
     {
       "id": "joy_wheel_loom",
@@ -1219,7 +1267,36 @@ window.ANIIMO_BUILDINGS_DATA = {
         "https://aniimotools.dev/systems/homeland/stations/nimbus-bed/",
         "https://aniimo.gg/homeland/object/nimbus-bed-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "allowedSpecies": [
+        "Turbo",
+        "Dreaple",
+        "Nimbi",
+        "Irisal",
+        "Irisalis",
+        "Iris"
+      ],
+      "familyRecipes": [
+        {
+          "recipe": "Wool (Level 1 and 2)",
+          "species": [
+            "Turbo",
+            "Dreaple",
+            "Nimbi"
+          ]
+        },
+        {
+          "recipe": "Petals (Level 3)",
+          "species": [
+            "Irisal",
+            "Irisalis",
+            "Iris"
+          ]
+        }
+      ],
+      "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/nimbus-bed/",
+      "allowedSpeciesVerified": false,
+      "allowedSpeciesNotes": "AniimoTools recipe table; not yet checked in-game. The Iris family only works the Level 3 Petals recipe."
     },
     {
       "id": "crackle_generator",
@@ -1303,7 +1380,23 @@ window.ANIIMO_BUILDINGS_DATA = {
         "https://aniimotools.dev/systems/homeland/stations/starfall-hammock/",
         "https://aniimo.gg/homeland/object/starfall-hammock/"
       ],
-      "verified": true
+      "verified": true,
+      "allowedSpecies": [
+        "Stellarys",
+        "Celestis"
+      ],
+      "familyRecipes": [
+        {
+          "recipe": "Star",
+          "species": [
+            "Stellarys",
+            "Celestis"
+          ]
+        }
+      ],
+      "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/starfall-hammock/",
+      "allowedSpeciesVerified": false,
+      "allowedSpeciesNotes": "AniimoTools recipe table; not yet checked in-game."
     },
     {
       "id": "floral_windmill",
@@ -1339,7 +1432,25 @@ window.ANIIMO_BUILDINGS_DATA = {
         "https://aniimotools.dev/systems/homeland/stations/floral-windmill/",
         "https://aniimo.gg/homeland/object/floral-windmill/"
       ],
-      "verified": true
+      "verified": true,
+      "allowedSpecies": [
+        "Somniwing",
+        "Gracewing",
+        "Flutternym"
+      ],
+      "familyRecipes": [
+        {
+          "recipe": "Scales",
+          "species": [
+            "Somniwing",
+            "Gracewing",
+            "Flutternym"
+          ]
+        }
+      ],
+      "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/floral-windmill/",
+      "allowedSpeciesVerified": false,
+      "allowedSpeciesNotes": "AniimoTools recipe table; not yet checked in-game."
     }
   ],
   "removedBuildings": [

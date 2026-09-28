@@ -65,6 +65,9 @@
   const DEFAULT_POOL = {
     includePrismana: false,
     includeLegendary: false,
+    // Species name of the player's starter ("Lunara" or "Helion"); null until chosen. A player only ever has
+    // one, so the other is never suggested, and neither is until one is chosen.
+    starter: null,
     picks: {},
   };
 
@@ -252,6 +255,7 @@
     if (rawPool && typeof rawPool === "object") {
       pool.includePrismana = rawPool.includePrismana === true;
       pool.includeLegendary = rawPool.includeLegendary === true;
+      pool.starter = starterSpecies().includes(rawPool.starter) ? rawPool.starter : null;
       for (const [id, value] of Object.entries(rawPool.picks || {})) {
         if (known.has(id) && typeof value === "boolean") pool.picks[id] = value;
       }
@@ -273,8 +277,21 @@
     return window.AniimoOptimizer.aniimoCategory(entry);
   }
 
+  function aniimoLookup() {
+    if (!app.aniimoById) app.aniimoById = new Map((app.data.aniimo.aniimo || []).map((entry) => [entry.id, entry]));
+    return app.aniimoById;
+  }
+
+  function poolStatus(entry) {
+    return window.AniimoOptimizer.poolStatus(entry, app.state.pool, aniimoLookup());
+  }
+
   function isInPool(entry) {
-    return window.AniimoOptimizer.isInPool(entry, app.state.pool);
+    return poolStatus(entry).inPool;
+  }
+
+  function starterSpecies() {
+    return [...new Set((app.data.aniimo.aniimo || []).filter((entry) => entry.starter).map((entry) => entry.species))];
   }
 
   function getBuildingLimit(building, rvLevel = app.state?.homeland?.rvLevel) {
@@ -476,15 +493,23 @@
       const entry = getAniimo(checkbox.dataset.poolPick);
       if (!entry) return;
       const id = entry.id;
+      if (entry.starter) return;
       delete app.state.pool.picks[id];
       // Only remember a tick that differs from what the toggles above would give.
       if (isInPool(entry) !== checkbox.checked) app.state.pool.picks[id] = checkbox.checked;
-      checkbox.closest("tr")?.classList.toggle("is-excluded", !checkbox.checked);
       markDirty();
-      renderPoolSummary();
+      // A tick can change which lower stages are covered, so redraw the rows.
+      renderRoster();
     });
 
     document.querySelector(".pool-toggles").addEventListener("change", (event) => {
+      const starterInput = event.target.closest("[data-starter]");
+      if (starterInput) {
+        app.state.pool.starter = starterInput.value || null;
+        markDirty();
+        renderRoster();
+        return;
+      }
       const input = event.target.closest("[data-pool-toggle]");
       if (!input) return;
       const category = input.dataset.poolToggle;
@@ -916,6 +941,7 @@
   function renderBuildingModel(building) {
     let items;
     let note;
+    let family = "";
     if (building.behavior === "continuous") {
       items = (building.requirements || []).map((requirement) => {
         const level = Number(requirement.minLevel || 1);
@@ -924,6 +950,12 @@
       const slots = Number(building.slotsPerUnit || 1);
       const role = window.AniimoOptimizer.buildingRole(building);
       const skillsText = (building.requirements || []).map((requirement) => requirement.skill).join("/");
+      if (Array.isArray(building.allowedSpecies) && building.allowedSpecies.length) {
+        const names = building.allowedSpecies;
+        const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}` : names[0];
+        const unconfirmed = building.allowedSpeciesVerified === false ? " (unconfirmed)" : "";
+        family = `<span class="family-note" title="${escapeAttr(building.allowedSpeciesNotes || "")}">Only ${escapeHtml(list)} Aniimo${unconfirmed}</span>`;
+      }
       if (role === "processor") note = `Only busy while it has inputs; any ${skillsText} Aniimo can take a turn`;
       else if (role === "climate") note = "Holds 1 Aniimo that does no other work";
       else if (role === "power") note = "Holds 1 Aniimo that does no other work; powers E-mode";
@@ -933,7 +965,7 @@
       note = `Shared: each step takes about ${getActionDurationSeconds()} s per plot, so one Aniimo per step covers many plots`;
     }
     const joiner = building.behavior === "continuous" ? '<span class="work-or">or</span>' : "";
-    return `<div class="work-list">${items.join(joiner)}</div><span class="work-note">${escapeHtml(note)}</span>`;
+    return `<div class="work-list">${items.join(joiner)}</div>${family}<span class="work-note">${escapeHtml(note)}</span>`;
   }
 
   function workItem(skill, label) {
@@ -955,7 +987,15 @@
       const category = aniimoCategory(entry);
       if (category in counts) counts[category] += 1;
     }
-    document.getElementById("poolSummary").textContent = `${inPool} of ${all.length} Aniimo available to the planner.`;
+    const covered = all.filter((entry) => poolStatus(entry).reason === "dominated").length;
+    document.getElementById("poolSummary").textContent =
+      `${inPool} of ${all.length} Aniimo available to the planner.` +
+      (covered ? ` ${covered} lower evolution stages are left out because an Aniimo they evolve into is at least as good at every job.` : "");
+    const starter = app.state.pool.starter;
+    document.querySelectorAll("[data-starter]").forEach((input) => {
+      input.checked = (input.value || null) === starter;
+    });
+    document.getElementById("starterPrompt").classList.toggle("is-hidden", Boolean(starter));
     document.getElementById("includePrismana").checked = app.state.pool.includePrismana;
     document.getElementById("includeLegendary").checked = app.state.pool.includeLegendary;
     document.getElementById("prismanaCount").textContent = `${counts.prismana} forms`;
@@ -990,20 +1030,23 @@
 
     tbody.innerHTML = rows
       .map((entry) => {
-        const included = isInPool(entry);
+        const status = poolStatus(entry);
+        const included = status.inPool;
         const formLine = getFormLabel(entry);
         const name = getDisplayName(entry);
+        const note = rosterNote(entry, status);
         return `
           <tr class="${included ? "" : "is-excluded"}">
             <td class="use-col">
-              <input class="use-checkbox" type="checkbox" id="pool-${escapeAttr(entry.id)}" data-pool-pick="${escapeAttr(entry.id)}" ${included ? "checked" : ""} aria-label="Let the planner use ${escapeAttr(name)}" />
+              <input class="use-checkbox" type="checkbox" id="pool-${escapeAttr(entry.id)}" data-pool-pick="${escapeAttr(entry.id)}" ${included ? "checked" : ""} ${entry.starter ? "disabled" : ""} aria-label="Let the planner use ${escapeAttr(name)}" />
             </td>
             <td>
               <label class="aniimo-name" for="pool-${escapeAttr(entry.id)}">
                 <img class="aniimo-head" src="${escapeAttr(entry.image || FALLBACK_MARK)}" alt="" loading="lazy" />
                 <span class="aniimo-title">
-                  <strong>${dexTag(entry)}${escapeHtml(entry.name)} ${categoryBadge(entry)}</strong>
+                  <strong>${dexTag(entry)}${escapeHtml(entry.name)} ${categoryBadge(entry)}${tierBadge(entry)}</strong>
                   ${formLine ? `<span>${escapeHtml(formLine)}</span>` : ""}
+                  ${note ? `<small class="roster-note">${escapeHtml(note)}</small>` : ""}
                 </span>
               </label>
             </td>
@@ -1014,6 +1057,30 @@
       .join("");
 
     wireImageFallback(tbody);
+  }
+
+  // Evolution stage name (Lumin, Gamma, Nova, Legendary) as a small badge.
+  function tierBadge(entry) {
+    if (!entry.tierName) return "";
+    const final = Number(entry.finalStage) > Number(entry.stage) ? "" : " is-final";
+    const title = entry.evolutionLine
+      ? `Stage ${entry.stage} of the ${entry.evolutionLine}${final ? " (its last stage)" : ""}`
+      : `Stage ${entry.stage || 1}`;
+    return ` <span class="tier-badge${final}" title="${escapeAttr(title)}">${escapeHtml(entry.tierName)}</span>`;
+  }
+
+  // Why a row is in or out of the pool, when it isn't just the category toggles.
+  function rosterNote(entry, status) {
+    if (status.reason === "starterUnchosen") return "Starter – choose your starter above to use it.";
+    if (status.reason === "otherStarter") return "Not your starter.";
+    if (entry.starter) return "Your starter.";
+    if (status.reason === "dominated") {
+      const names = [...new Set(status.coveredBy.map((other) => getDisplayName(other)))];
+      const list = names.length > 2 ? `${names.slice(0, 2).join(", ")} and others` : names.join(" and ");
+      return `Left out: it evolves into ${list}, at least as good at every job. Tick to use it anyway.`;
+    }
+    if (status.reason === "pick" && status.inPool && entry.dominatedBy?.length) return "Lower stage, ticked by you.";
+    return "";
   }
 
   // Aniilog order (the data is already sorted; this keeps imported or older data in order too). Stable, so
@@ -1347,6 +1414,7 @@
       panel.innerHTML = `
         <h3 id="optionsTitle">Processor busy levels</h3>
         <p class="panel-help">${hasProcessors ? `Every processor uses its own busy % from the Homeland tab, so there is one plan.` : "You have no processors built, so there is one plan."}</p>
+        ${starterNote()}
         ${hideoutLine()}
       `;
       return;
@@ -1391,8 +1459,14 @@
         </table>
       </div>
       <p class="options-max">${escapeHtml(maxFitText(options))}</p>
+      ${starterNote()}
       ${hideoutLine()}
     `;
+  }
+
+  function starterNote() {
+    if (app.state.pool.starter) return "";
+    return `<p class="options-link">You haven't chosen your starter, so neither Lunara nor Helion is used (they are the only common Aniimo with Light). Choose it on the <button type="button" class="link-button" data-goto-tab="roster">Available Aniimo tab</button>.</p>`;
   }
 
   function ownBusyCount() {
@@ -1539,7 +1613,7 @@
           <article class="worker-card">
             <img class="aniimo-head" src="${escapeAttr(worker.image || FALLBACK_MARK)}" alt="" />
             <div>
-              <h4>${escapeHtml(worker.displayName)}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""} ${categoryBadge(worker.category || worker)}</h4>
+              <h4>${escapeHtml(worker.displayName)}${worker.copy > 1 ? ` (copy ${worker.copy})` : ""} ${categoryBadge(worker.category || worker)}${tierBadge(aniimoLookup().get(worker.aniimoId) || worker)}</h4>
               <p><strong>Main job:</strong> ${escapeHtml(worker.primaryAssignment)}</p>
               ${
                 worker.secondaryAssignments.length

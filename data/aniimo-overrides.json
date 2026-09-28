@@ -8,7 +8,8 @@
     "categories (optional) sets an Aniimo's category by species (and optional form): common, prismana or legendary. It wins over the scraped category. Use it if the planner offers an Aniimo by default that you cannot normally catch, or hides one you can.",
     "dexNumbers gives an Aniilog number to species whose Aniilog badge is not a number (the starters show 'Starter'). Every kept record needs a number.",
     "exclusions removes records that are not Aniimo a player can own, with the reason shown in scrape.excluded. Match by id, or species (+ optional form). The scraper already removes anything the Aniilog does not number, boss entities and Hideout-only Prismana forms automatically; list a record here only when that isn't enough or a clearer reason helps.",
-    "renames: { from, to, reason } renames a species (all its forms) when aniimo.gg shows a placeholder name for an Aniimo the game names differently."
+    "renames: { from, to, reason } renames a species (all its forms) when aniimo.gg shows a placeholder name for an Aniimo the game names differently.",
+    "starters lists the two starter Aniimo. A player only ever has one of them (confirmed by a player), so the planner asks which one you chose and leaves the other out."
   ],
   "overrides": [
     {
@@ -81,5 +82,15 @@
       "reason": "The Omega Tuckin boss (game ID 9020700, internal editor name '埋埋首领', 'Tuckin boss'). Omega bosses can't be caught. Tuckin itself is obtained by evolving Hummin after defeating Omega Tuckin, so Tuckin and Tuckin (Mountain Form) are kept."
     }
   ],
-  "renames": []
+  "renames": [],
+  "starters": [
+    {
+      "species": "Lunara",
+      "source": "https://aniimotools.dev/guides/starters/ (choose Lunara or Helion at the start)"
+    },
+    {
+      "species": "Helion",
+      "source": "https://aniimotools.dev/guides/starters/ (choose Lunara or Helion at the start)"
+    }
+  ]
 }

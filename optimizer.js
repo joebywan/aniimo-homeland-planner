@@ -139,6 +139,7 @@
       if (level <= 0) continue;
       let bodies = 0;
       for (const job of model.continuousJobs) {
+        if (!speciesAllowed(entry, job)) continue;
         if ((job.requirements || []).some((req) => req.skill === skill && level >= Number(req.minLevel || 1))) {
           bodies += 1;
         }
@@ -167,21 +168,45 @@
     return "common";
   }
 
-  // pool: { includePrismana, includeLegendary, picks: { [id]: true | false } }. A pick (the per-row tick)
-  // always wins. Otherwise common Aniimo are in, Prismana and legendary follow their toggles, and anything
-  // else (old "boss" records) is out.
-  function isInPool(entry, pool) {
+  // pool: { includePrismana, includeLegendary, starter, picks: { [id]: true | false } }.
+  // - Starters: a player only has one (Lunara or Helion). Only the chosen one can be in the pool; until one
+  //   is chosen, neither is (a per-row tick can't override this).
+  // - A per-row tick otherwise always wins.
+  // - Common Aniimo are in, Prismana and legendary follow their toggles, anything else (old "boss" records)
+  //   is out.
+  // - A lower evolution stage that a higher stage of its line fully covers (dominatedBy) is out, unless none
+  //   of those higher stages is in the pool. That check needs `lookup` (id -> record); without it the lower
+  //   stage is simply left out.
+  function poolStatus(entry, pool, lookup) {
+    if (entry?.starter) {
+      if (!pool?.starter) return { inPool: false, reason: "starterUnchosen" };
+      if (pool.starter !== entry.species) return { inPool: false, reason: "otherStarter" };
+    }
     const pick = pool?.picks?.[entry?.id];
-    if (pick === true || pick === false) return pick;
+    if (pick === true || pick === false) return { inPool: pick, reason: "pick" };
     const category = aniimoCategory(entry);
-    if (category === "common") return true;
-    if (category === "prismana") return Boolean(pool?.includePrismana);
-    if (category === "legendary") return Boolean(pool?.includeLegendary);
-    return false;
+    let inPool = false;
+    if (category === "common") inPool = true;
+    else if (category === "prismana") inPool = Boolean(pool?.includePrismana);
+    else if (category === "legendary") inPool = Boolean(pool?.includeLegendary);
+    if (!inPool) return { inPool: false, reason: "category" };
+    const dominators = Array.isArray(entry?.dominatedBy) ? entry.dominatedBy : [];
+    if (dominators.length) {
+      const coveredBy = lookup
+        ? dominators.map((id) => lookup.get(id)).filter((other) => other && poolStatus(other, pool, lookup).inPool)
+        : dominators;
+      if (coveredBy.length) return { inPool: false, reason: "dominated", coveredBy };
+    }
+    return { inPool: true, reason: "default" };
+  }
+
+  function isInPool(entry, pool, lookup) {
+    return poolStatus(entry, pool, lookup).inPool;
   }
 
   function filterAniimoPool(aniimo, pool) {
-    return (aniimo || []).filter((entry) => isInPool(entry, pool));
+    const lookup = new Map((aniimo || []).map((entry) => [entry.id, entry]));
+    return (aniimo || []).filter((entry) => isInPool(entry, pool, lookup));
   }
 
   function buildWorkers(aniimo, roster, settings, skills, copyCapFor) {
@@ -213,6 +238,10 @@
       form: entry.form,
       image: entry.image || "",
       category: aniimoCategory(entry),
+      species: entry.species || entry.name,
+      stage: Number(entry.stage) || 1,
+      finalStage: Number(entry.finalStage) || Number(entry.stage) || 1,
+      tierName: entry.tierName || "",
       // Only meaningful in owned mode; pool Aniimo are all available.
       owned: owned !== false,
       skills: cloneSkillMap(skills, entry.skills),
@@ -257,6 +286,7 @@
           busyPercent: Math.round(share * 100),
           label: `${building.name}${state.count > 1 ? ` ×${state.count}` : ""}`,
           personalityBonus: building.personalityBonus || null,
+          allowedSpecies: Array.isArray(building.allowedSpecies) && building.allowedSpecies.length ? building.allowedSpecies : null,
           load: state.count * slots * share,
         });
         continue;
@@ -273,6 +303,7 @@
               label: `${building.name} ${slots > 1 ? `${unit}.${slot}` : state.count > 1 ? `${unit}` : ""}`.trim(),
               role: buildingRole(building),
               personalityBonus: building.personalityBonus || null,
+              allowedSpecies: Array.isArray(building.allowedSpecies) && building.allowedSpecies.length ? building.allowedSpecies : null,
               requirements: building.requirements || [],
             });
           }
@@ -307,7 +338,15 @@
     };
   }
 
+  // Buildings some families only can work (e.g. the Dewy House: Fragrancier or Dewy). Any form counts.
+  function speciesAllowed(worker, job) {
+    const allowed = job?.allowedSpecies;
+    if (!Array.isArray(allowed) || !allowed.length) return true;
+    return allowed.includes(worker?.species || worker?.name);
+  }
+
   function workerCanDoJob(worker, job) {
+    if (!speciesAllowed(worker, job)) return false;
     return (job.requirements || []).some((requirement) => {
       return Number(worker.skills?.[requirement.skill] || 0) >= Number(requirement.minLevel || 1);
     });
@@ -449,7 +488,9 @@
     const chunks = splitIntermittentTasks(intermittentTasks, maxLoad)
       .map((chunk) => ({
         ...chunk,
-        candidates: available.filter((worker) => Number(worker.skills?.[chunk.skill] || 0) >= Math.max(1, Number(chunk.minLevel || 1))),
+        candidates: available.filter(
+          (worker) => speciesAllowed(worker, chunk) && Number(worker.skills?.[chunk.skill] || 0) >= Math.max(1, Number(chunk.minLevel || 1))
+        ),
       }))
       .sort((a, b) => a.candidates.length - b.candidates.length || b.load - a.load || a.label.localeCompare(b.label));
 
@@ -572,7 +613,7 @@
       const minLevel = Math.max(1, Number(task.minLevel || 1));
       const order = available
         .map((worker, workerIndex) => ({ worker, workerIndex, level: Number(worker.skills?.[task.skill] || 0) }))
-        .filter((item) => item.level >= minLevel)
+        .filter((item) => item.level >= minLevel && speciesAllowed(item.worker, task))
         .sort((a, b) => b.level - a.level || a.worker.workerId.localeCompare(b.worker.workerId));
       for (const item of order) {
         const nodes = workerNodes[item.workerIndex];
@@ -749,7 +790,10 @@
         worker,
         // Later copies of the same form are progressively less likely to be needed, so they rank
         // lower. This lets a strong form's second copy appear before a weak form's first copy.
-        score: scoreCandidate(worker, relevantSkills, model, requirements) / Math.max(1, Number(worker.copy || 1)),
+        // Lower evolution stages rank a little lower than the final stage of their line.
+        score:
+          (scoreCandidate(worker, relevantSkills, model, requirements) / Math.max(1, Number(worker.copy || 1))) *
+          (1 - 0.04 * Math.max(0, Number(worker.finalStage || 1) - Number(worker.stage || 1))),
       }))
       .filter((item) => item.score > 0)
       .sort((a, b) => {
@@ -979,10 +1023,11 @@
     if (model._jobGroups) return model._jobGroups;
     const groups = new Map();
     for (const job of model.continuousJobs) {
-      const key = (job.requirements || [])
-        .map((requirement) => `${requirement.skill}:${Number(requirement.minLevel || 1)}`)
-        .sort()
-        .join("|");
+      const key =
+        (job.requirements || [])
+          .map((requirement) => `${requirement.skill}:${Number(requirement.minLevel || 1)}`)
+          .sort()
+          .join("|") + (job.allowedSpecies ? `|only:${job.allowedSpecies.join(",")}` : "");
       const group = groups.get(key) || { job, count: 0 };
       group.count += 1;
       groups.set(key, group);
@@ -1014,6 +1059,12 @@
         taken += 1;
         points += Number(worker.skills[skill] || 0);
       }
+    }
+    // Buildings only some families can work: keep enough of those Aniimo too.
+    for (const group of continuousJobGroups(model)) {
+      if (!group.job.allowedSpecies) continue;
+      const eligible = sorted.filter((worker) => workerCanDoJob(worker, group.job));
+      eligible.slice(0, group.count + 2).forEach((worker) => chosen.add(worker));
     }
     for (const worker of sorted) {
       if (chosen.size >= limit) break;
@@ -1371,8 +1422,18 @@
     let bestPartial = emptyState;
     let bestPartialScore = Infinity;
 
+    // A team the search found, then completed by adding part-time Aniimo (see repairPartTime).
+    let repaired = null;
+    const finishRepaired = () => {
+      const { winning, state } = dropRedundantWorkers(repaired.validation, repaired.state, candidates, requirements, skills, model, settings);
+      return finalizeResult(true, winning, state, candidates, allWorkers, requirements, skills, model, settings, {
+        note: "Beam search team completed with part-time Aniimo.",
+      });
+    };
+
     for (let depth = 0; depth <= maxDepth; depth += 1) {
       const solutions = [];
+      let repairTried = false;
 
       for (const state of beam) {
         const stateScore = state.score ?? approximateStateScore(state, context);
@@ -1389,6 +1450,11 @@
         const validation = validateSelection(state, candidates, requirements, skills, model, settings);
         if (validation.ok) {
           solutions.push(validation);
+        } else if (!repaired && !repairTried && validation.continuous.ok && !validation.intermittent.ok) {
+          // The quick checks can't see every clash (e.g. the only Perfumery Aniimo is also the only one
+          // allowed in the Dewy House), so complete the best such team by adding part-time Aniimo.
+          repairTried = true;
+          repaired = repairPartTime(state, validation, candidates, requirements, skills, model, settings);
         }
       }
 
@@ -1407,6 +1473,8 @@
         });
       }
 
+      // A completed team no bigger than anything the next depth could find: use it.
+      if (repaired && repaired.state.indices.length <= depth + 1) return finishRepaired();
       if (depth === maxDepth) break;
 
       const nextStates = [];
@@ -1452,7 +1520,46 @@
       }
     }
 
+    if (repaired) return finishRepaired();
     return buildPartialResult(bestPartial, candidates, allWorkers, requirements, skills, model, settings);
+  }
+
+  // Adds part-time Aniimo to a team whose full-time jobs are staffed but whose part-time work isn't fully
+  // covered, each time the candidate that takes on the most extra part-time work (max flow). Returns
+  // { state, validation } or null if a few extra Aniimo don't cover it.
+  function repairPartTime(state, validation, candidates, requirements, skills, model, settings) {
+    const farmCap = farmCapOf(settings);
+    const busy = validation.continuous.busyWorkerIds;
+    const indices = state.indices.slice();
+    const chosen = new Set(indices);
+    const free = indices.map((index) => candidates[index]).filter((worker) => !busy.has(worker.workerId));
+    const tasks = model.intermittentTasks;
+    const selectedIds = new Set(indices.map((index) => candidates[index].workerId));
+    let current = assignPartTimeFlow(free, tasks, farmCap, true);
+    for (let step = 0; step < 4 && !current.ok; step += 1) {
+      let best = null;
+      for (let index = 0; index < candidates.length; index += 1) {
+        if (chosen.has(index)) continue;
+        const worker = candidates[index];
+        if (worker.copy > 1 && !selectedIds.has(`${worker.aniimoId}#${worker.copy - 1}`)) continue;
+        const value = assignPartTimeFlow(free.concat(worker), tasks, farmCap, true);
+        const gain = value.flow - current.flow;
+        if (gain <= 1e-6) continue;
+        if (!best || gain > best.gain + 1e-9) best = { index, worker, value, gain };
+      }
+      if (!best) return null;
+      indices.push(best.index);
+      chosen.add(best.index);
+      selectedIds.add(best.worker.workerId);
+      free.push(best.worker);
+      current = best.value;
+    }
+    if (!current.ok) return null;
+    const totals = emptySkillMap(skills);
+    for (const index of indices) for (const skill of skills) totals[skill] += Number(candidates[index].skills?.[skill] || 0);
+    const next = { indices, last: Math.max(...indices), totals };
+    const checked = validateSelection(next, candidates, requirements, skills, model, settings, validation.continuous);
+    return checked.ok ? { state: next, validation: checked } : null;
   }
 
   function positiveIntegerOrNull(value) {
@@ -1877,6 +1984,7 @@
       count: group.count,
       skills: (group.items[0].requirements || []).map((requirement) => requirement.skill),
       requirements: group.items[0].requirements || [],
+      allowedSpecies: group.items[0].allowedSpecies || null,
     }));
     const farmSkills = [];
     for (const task of result.unfilledFarmTasks || []) if (!farmSkills.includes(task.skill)) farmSkills.push(task.skill);
@@ -1888,7 +1996,18 @@
     const hasAbility = (list, skill, minLevel = 1) => list.some((entry) => Number(entry.skills?.[skill] || 0) >= minLevel);
     const needs = new Map();
     const addNeed = (skill, minLevel = 1) => needs.set(skill, Math.min(needs.get(skill) ?? Infinity, minLevel));
+    // Buildings only some families can work, with none of those Aniimo in the pool.
+    const noFamily = [];
     for (const group of unstaffed) {
+      if (!group.allowedSpecies) continue;
+      const canWork = (entry) =>
+        speciesAllowed(entry, group) &&
+        group.requirements.some((requirement) => Number(entry.skills?.[requirement.skill] || 0) >= Number(requirement.minLevel || 1));
+      if (pool.some(canWork)) continue;
+      noFamily.push({ name: group.name, buildingId: group.buildingId, allowedSpecies: group.allowedSpecies, elsewhere: catalogue.filter(canWork).length });
+    }
+    for (const group of unstaffed) {
+      if (group.allowedSpecies) continue;
       // A job the pool can't do at all: every accepted ability is missing.
       const doable = group.requirements.some((requirement) => hasAbility(pool, requirement.skill, Number(requirement.minLevel || 1)));
       if (!doable) for (const requirement of group.requirements) addNeed(requirement.skill, Number(requirement.minLevel || 1));
@@ -1912,7 +2031,15 @@
     const lines = [];
     if (idle.length) lines.push(`Left idle: ${formatGroups(idle)}`);
     if (unstaffed.length) lines.push(`No Aniimo for: ${formatGroups(unstaffed)}`);
-    if (farmSkills.length) lines.push(`Farm steps short of helpers: ${farmSkills.join(", ")}`);
+    for (const item of noFamily) {
+      const names = item.allowedSpecies.length > 1
+        ? `${item.allowedSpecies.slice(0, -1).join(", ")} or ${item.allowedSpecies[item.allowedSpecies.length - 1]}`
+        : item.allowedSpecies[0];
+      lines.push(
+        `No Aniimo in your pool can work the ${item.name} – only ${names} can.${item.elsewhere ? " Tick one on the Available Aniimo tab." : ""}`
+      );
+    }
+    if (farmSkills.length) lines.push(`Part-time jobs short of Aniimo: ${farmSkills.join(", ")}`);
     if (short.length) lines.push(`Short on: ${short.map((row) => `${row.skill} ${row.missing}`).join(", ")}`);
     for (const item of noAbility) {
       const level = item.minLevel > 1 ? ` at level ${item.minLevel}+` : "";
@@ -1923,7 +2050,7 @@
       else if (item.otherCount) hint = " Tick one that has it on the Available Aniimo tab.";
       lines.push(`No Aniimo in your pool has ${item.skill}${level}.${hint}`);
     }
-    return { idle, unstaffed, farmSkills, short, noAbility, lines, ok: !lines.length };
+    return { idle, unstaffed, farmSkills, short, noAbility, noFamily, lines, ok: !lines.length };
   }
 
   // input: the optimizeWorkforce input plus
@@ -2377,6 +2504,7 @@
     farmHelperLowerBound,
     filterAniimoPool,
     isInPool,
+    poolStatus,
     optimizeWorkforce,
     personalityRecommendations,
     planForCapacity,

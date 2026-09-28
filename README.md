@@ -63,7 +63,14 @@ Tuckin stays: you get it (and its Mountain Form) by evolving Hummin after beatin
 
 To leave out another record, add `{ "species": "...", "form": "...", "reason": "..." }` (or `{ "id": "...", "reason": "..." }`) to `exclusions`. To fix a placeholder name, add `{ "from": "...", "to": "...", "reason": "..." }` to `renames` (none are needed at the moment). Renames are listed in `scrape.renamed`.
 
-Each record gets a `category`, which decides whether the planner uses it by default:
+#### Evolution stages, lower stages and starters
+
+- The Evolution section of each species page on aniimo.gg gives the evolution tree (who evolves into whom, with branches such as Pebbling → Lavazar → Magmarex and Pebbling → Geodeback → Minespine) and each stage number. Every record gets `stage`, `finalStage` (the highest stage it can reach) and, in a line, `evolutionLine` and `evolvesFrom`.
+- `tierName` is the game's stage name from the stage number: 1 Lumin, 2 Gamma, 3 Nova, 4 Legendary (official wiki, <https://wiki.aniimo.com/>). Some lines skip Gamma (Cozite, stage 1 → Bailite, stage 3). The Available Aniimo tab shows it as a badge.
+- `dominatedBy` lists the Aniimo a record can evolve into (its own descendants only, in the same form: base with base, a regional form with the same regional form, Prismana with Prismana) that have every Homeland ability at least as high. These lower stages are left out of the planner's pool unless ticked, or unless every Aniimo that covers them is left out. The optimiser also ranks lower stages slightly below the last stage of their line.
+- `starter: true` marks Lunara and Helion (from `starters` in `data/aniimo-overrides.json`). A player only has one (confirmed by a player): the Available Aniimo tab asks which, and only that one can be suggested. Until one is chosen neither is. They are the only common Aniimo with Light, which the Sunlamp needs.
+
+
 
 | category | what | used by default |
 | --- | --- | --- |
@@ -146,6 +153,12 @@ Busy-level options:
 - Only the lowest level runs the full search. Each higher level starts from the plan one level down (full-time jobs and Estimated Require targets don't change) and adds part-time Aniimo one at a time, each time the one that takes on the most extra work, then drops any that are no longer needed. The whole table takes about 1 s for a 57-building RV 9 Homeland.
 - If every processor has its own busy %, there is only one plan.
 
+Families:
+
+- Some buildings can only be worked by certain species, whatever their level (`allowedSpecies` in `data/buildings.json`, from the "Family only" recipes on the AniimoTools station pages). Dewy House: Fragrancier or Dewy; Tidewhisper Sandcastle: Panpanta, Piopiota, Popota or Susuta (Sea Salt), and Sherro, Sheldon or Shelly (the Level 3 Pearl recipe) – both confirmed in-game by a player. Nimbus Bed: Turbo, Dreaple, Nimbi (Wool) and Irisal, Irisalis, Iris (Level 3 Petals); Starfall Hammock: Stellarys or Celestis; Floral Windmill: Somniwing, Gracewing or Flutternym – from AniimoTools only, marked `allowedSpeciesVerified: false` and "(unconfirmed)" on the Homeland tab. `familyRecipes` says which family works which recipe; the planner allows every recipe's family.
+- The optimiser only assigns those Aniimo there. If none is in the pool, the summary says so ("No Aniimo in your pool can work the Dewy House – only Fragrancier or Dewy can.").
+- When a team's full-time jobs are covered but a clash hides a part-time shortfall (e.g. the only Perfumery Aniimo, Fragrancier, is also the only one allowed in the Dewy House), the search completes the team by adding the part-time Aniimo that takes on the most work.
+
 Personalities:
 
 - Each building's `personalityBonus` is the personality that works 20% faster there (AniimoTools station pages). Personalities are random on each Aniimo you catch, not fixed per species (confirmed in-game by a player), so the planner recommends a personality per building and ability ("a Practical Fire Aniimo for the Chimney Kiln"), never a species.
@@ -181,7 +194,8 @@ The tests cover:
 
 - Multi-skill continuous double-counting
 - Multiple copies (owned mode, kept as a library option) and unlimited copies (pool mode)
-- Available Aniimo pool filtering by category and explicit ticks
+- Available Aniimo pool filtering by category and explicit ticks; only the chosen starter; lower evolution stages covered by their own evolutions left out unless ticked, and the scraper's evolution tree parsing
+- Family-only buildings get eligible Aniimo only, and a missing family is reported
 - Aniimo data: no excluded (unreleased, boss or NPC) names, every record has an Aniilog number, records sorted by it with forms grouped; the scraper's Aniilog parsing, exclusions and renames
 - RV placement limits (`maxByRv`) and capacity from the RV level alone
 - Intermittent sharing and overload; processors as shares of one Aniimo, per-building busy %, and farm steps capped while processing fills the rest of the day
