@@ -14,6 +14,7 @@ const {
   personalityRecommendations,
   planForCapacity,
   planProcessorOptions,
+  planningCopyCap,
   recommendSpareSpaces,
   resolveHomelandCapacity,
   summarizeShortfalls,
@@ -662,6 +663,43 @@ test("starters: only the chosen starter is in the pool; neither until one is cho
   // A player only has one starter: never two in a plan, never another one as a spare.
   assert.ok(lunaraOnly.selectedWorkers.filter((worker) => worker.species === "Lunara").length <= 1);
   assert.ok(!lunaraOnly.unusedWorkers.some((worker) => worker.species === "Lunara" && worker.copy > 1));
+});
+
+test("starters: never a second copy in the plan, the quality pass or the spare-space suggestions", () => {
+  const starter = { ...aniimo("star", "Star", { Water: 5, Light: 3 }), starter: true, species: "Star" };
+  const drip = aniimo("drip", "Drip", { Water: 1 });
+  const wells = continuousBuilding("well", "Water", 2);
+  const base = { skills: DEFAULT_SKILLS, requirements: skills({}), buildings: [wells], buildingState: {} };
+  assert.equal(planningCopyCap(starter, { continuousJobs: [], intermittentTasks: [] }, skills({ Water: 20 }), {}, DEFAULT_SKILLS), 1);
+
+  // Two Wells: the starter takes one, and the quality pass must not swap it in for the other.
+  const pool = optimizeWorkforce({ ...base, aniimo: [starter, drip], settings: { mode: "pool" } });
+  assert.equal(pool.feasible, true);
+  assert.deepEqual(pool.selectedWorkers.map((worker) => worker.workerId).sort(), ["drip#1", "star#1"]);
+  assert.ok(!pool.unusedWorkers.some((worker) => worker.aniimoId === "star"));
+  // Owned mode: a roster can't claim two of a starter.
+  const owned = optimizeWorkforce({ ...base, aniimo: [starter, drip], roster: roster([["star", 2], ["drip", 1]]), settings: { mode: "owned" } });
+  assert.deepEqual(owned.selectedWorkers.map((worker) => worker.workerId).sort(), ["drip#1", "star#1"]);
+
+  // Player's RV 9 plan with Lunara: even if another Lunara reached the spare list, it is never suggested as a
+  // backup (e.g. for Light), hauler or Homebuilding Zone Aniimo.
+  const plan = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 0 }).options[0].plan.full;
+  const lunara = plan.selectedWorkers.find((worker) => worker.species === "Lunara");
+  assert.ok(lunara, "Lunara is in the plan");
+  const result = { ...plan, unusedWorkers: [{ ...lunara, workerId: "lunara#2", copy: 2 }, ...plan.unusedWorkers] };
+  for (const reserve of [0, 4]) {
+    const spare = recommendSpareSpaces({
+      result,
+      capacity: 26,
+      homebuildingReserve: reserve,
+      homebuildingZone: { preferredSkills: ["Light"] },
+      skills: aniimoData.skills,
+      mode: "pool",
+    });
+    const suggested = [...spare.backups, ...spare.haulers, ...spare.homebuilding.suggestions];
+    assert.ok(suggested.length > 0);
+    assert.ok(!suggested.some((entry) => entry.aniimoId === lunara.aniimoId), `reserve ${reserve}`);
+  }
 });
 
 test("evolution: a lower stage fully covered by a higher stage of its line is left out, unless ticked", () => {
