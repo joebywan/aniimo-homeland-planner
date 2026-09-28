@@ -93,11 +93,15 @@
 
         <h3 class="subsection-title">Buildings</h3>
         <p class="subsection-copy">
-          Counts start at the most you can place at your RV level; lower any you haven't built (0 means not built). <strong>Full-time worker</strong>
-          buildings need one Aniimo working in them the whole time. <strong>Part-time farm work</strong> (Farmland and
-          Woodland plots) only needs help now and then &ndash; loosening soil, planting, watering and harvesting each
-          take about 5 seconds per plot &ndash; so a few Aniimo can look after many plots. All your Aniimo, including any
-          in the Homebuilding Zone, share your RV level's space limit.
+          Counts start at the most you can place at your RV level; lower any you haven't built (0 means not built).
+          Your Aniimo are a pool that moves between buildings; a building only stops while no Aniimo is free to work it.
+          <strong>Full-time producers</strong> (Mine, Well and the Leisure buildings) make goods from nothing, so each
+          keeps one Aniimo busy all the time, and so do <strong>climate</strong> buildings and the generator.
+          <strong>Part-time processors</strong> turn other goods into products, so they only work while they have
+          inputs: the planner compares a few busy levels on the Optimise tab, or type a building's own busy %.
+          <strong>Part-time farm work</strong> (Farmland and Woodland plots) only needs help now and then &ndash;
+          each step takes about 5 seconds per plot. All your Aniimo, including any in the Homebuilding Zone, share your
+          RV level's space limit.
         </p>
         <div class="building-toolbar" id="buildingToolbar"></div>
         <div class="table-shell">
@@ -108,11 +112,16 @@
                 <th>Building</th>
                 <th>Type</th>
                 <th>Who can work here</th>
+                <th title="Aniimo with this personality work 20% faster at this building">Best personality</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
+        <p class="table-footnote">
+          Personalities are random on each Aniimo you catch, so look for the personality on an Aniimo with the right
+          ability. It only speeds up work at its own building.
+        </p>
         <p class="table-footnote">
           * Guides only publish the first and last Farmland, Woodland and Mine limits. The levels in between come from
           the RV upgrade requirements (for example, the game asks you to place 18 Farmland plots before RV 10) and
@@ -180,6 +189,7 @@
           </div>
           <button type="button" class="primary-button" id="optimiseButton">Optimise workforce</button>
         </div>
+        <section id="optionsPanel" class="options-panel is-hidden" aria-labelledby="optionsTitle"></section>
         <div id="capacityNotice" class="notice-panel is-hidden" role="alert"></div>
         <div id="missingPanel" class="notice-panel is-hidden"></div>
         <div class="result-grid">
@@ -208,8 +218,8 @@
           <section class="result-panel">
             <h3>Building Jobs</h3>
             <p class="panel-help">
-              Who works where. Full-time jobs show a number of Aniimo. Farm jobs show how much of one Aniimo's day
-              they take, e.g. 50% means half of one Aniimo's day.
+              Who works where. Full-time jobs show a number of Aniimo. Part-time jobs (processors and farm steps)
+              show how much of one Aniimo's day they take, e.g. 50% means half of one Aniimo's day.
             </p>
             <div class="table-shell compact">
               <table class="data-table compact-table" id="staffingTable">
@@ -225,6 +235,14 @@
               </table>
             </div>
           </section>
+          <section class="result-panel" id="personalityPanel">
+            <h3>Personalities to Look For</h3>
+            <p class="panel-help">
+              Personalities are random on each Aniimo, so look for these on an Aniimo with the ability shown. Each one
+              makes its buildings work 20% faster, only at those buildings.
+            </p>
+            <div id="personalityResults" class="empty-state">Run the optimiser to see suggestions.</div>
+          </section>
           <section class="result-panel result-panel-wide" id="sparePanel">
             <h3>Using Your Spare Spaces</h3>
             <p class="panel-help">
@@ -237,7 +255,7 @@
           <div class="calculating-card">
             <span class="spinner" aria-hidden="true"></span>
             <strong>Calculating…</strong>
-            <span>Trying combinations of Aniimo. This can take a few seconds.</span>
+            <span>Trying combinations of Aniimo at a few processor busy levels. This can take a few seconds.</span>
           </div>
         </div>
       </section>
@@ -294,8 +312,9 @@
               <span>How busy to keep farm helpers (%, 1&ndash;100)</span>
               <input type="number" id="maxUtilizationPercent" min="1" max="100" step="5" />
               <small class="setting-help">
-                How much of each helper's day the planner fills. 50% = half-busy (safe). Raise it to use fewer helpers;
-                lower it if your farm falls behind. Walking time is already covered by the setting above.
+                The most of each helper's day the planner fills with farm steps. 50% = half-busy (safe). Raise it to use
+                fewer helpers; lower it if your farm falls behind. Walking time is already covered by the setting above.
+                Processor work can fill the rest of a helper's day, up to 100%.
               </small>
             </label>
           </fieldset>

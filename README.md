@@ -7,7 +7,8 @@ A static workforce planner for Aniimo Homeland. It recommends which Aniimo bodie
 - Built Homeland facilities
 - The Available Aniimo pool: every commonly catchable Aniimo (base and regional forms), with Prismana forms and legendary Aniimo only when ticked
 - Homeland skill levels
-- Continuous worker slots versus shared intermittent work
+- Full-time buildings versus part-time processors and farm steps, compared at several processor busy levels
+- The personality that works fastest at each building
 
 The app has no backend. Browser state is stored in `localStorage`, and configuration can be exported/imported as JSON.
 
@@ -80,7 +81,7 @@ aniimo.gg also lists copies of some Aniimo under 9-digit IDs (for example `glyns
 
 ### Buildings, crops and Homeland capacity (hand-curated)
 
-- `data/buildings.json`: real facility names, the work ability each one needs, slots, unlock RV level and placement limits. Each entry has `source` and `verified` fields. `placementLimit` is the readable text ("1 from RV 4, 2 from RV 8, …"); `maxByRv` is the same limit as data (`[{ "rv": 4, "max": 1 }, …]`) and drives the building counts. Published sources only give the end points for Farmland, Woodland and Mine, so their in-between steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place that many at RV N) and are marked `maxByRvVerified: false`. Storage Units are not listed as buildings: they are only drop-off points for hauling Aniimo and have no worker of their own (confirmed in-game by a player). Hauling is covered by the Hauling figure in Estimated Require, and spare spaces can go to extra haulers.
+- `data/buildings.json`: real facility names, each one's `role` (primary, processor, climate or power, with `roleSource`) and `personalityBonus`, the work ability each one needs, slots, unlock RV level and placement limits. Each entry has `source` and `verified` fields. `placementLimit` is the readable text ("1 from RV 4, 2 from RV 8, …"); `maxByRv` is the same limit as data (`[{ "rv": 4, "max": 1 }, …]`) and drives the building counts. Published sources only give the end points for Farmland, Woodland and Mine, so their in-between steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place that many at RV N) and are marked `maxByRvVerified: false`. Storage Units are not listed as buildings: they are only drop-off points for hauling Aniimo and have no worker of their own (confirmed in-game by a player). Hauling is covered by the Hauling figure in Estimated Require, and spare spaces can go to extra haulers.
 - `data/crops.json`: Farmland and Woodland crops with grow times (`cycleMinutes`) and yields. The top-level `actionDurationSeconds` (5 s per loosen, plant, water or harvest action) was confirmed in-game by a player and is flagged `actionDurationVerified: true`.
 - `data/homeland.json`: Aniimo capacity for each RV level and details of the Homebuilding Zone.
 
@@ -118,25 +119,43 @@ Buildings:
 - Counts can be lowered, never raised above the max. When the RV level changes, counts that were at the old max follow the new max; counts you lowered yourself are kept (and only lowered if the new max is smaller). "Set all to max" resets every count to the max.
 - Aniimo spaces come from the RV level only (`data/homeland.json`).
 
-Continuous work:
+Building roles (`role` in `data/buildings.json`, each with a `roleSource`):
 
-- Each active continuous worker slot consumes one physical Aniimo body.
-- A multi-skill Aniimo assigned to one continuous job cannot fill another continuous job at the same time.
-- Continuous jobs are matched by skill and minimum level from `data/buildings.json`.
+- Your Aniimo are a pool that moves between buildings; a building only stops while no Aniimo is free to work it (Hideout's Homeland Optimizer models it the same way).
+- `primary` – makes goods from nothing (aniimo.gg "Materials Production", every recipe says "No inputs"): Mine, Well, and the Leisure buildings Dewy House, Tidewhisper Sandcastle, Nimbus Bed, Starfall Hammock and Floral Windmill. Each holds one Aniimo full time ("Full-time producer"). Farmland and Woodland are also primary but keep the shared plot model below.
+- `processor` – turns other goods into products (aniimo.gg "Materials Processing" and "Item Production"): Carousel Mill, Crafting Table, Blazing Stove, Bouncy Brew Keg, Chimney Kiln, Claw Game Cooker, Joy Wheel Loom, Jukebox Dryer, Phonolfactory Table, Pickling Jar, Simmering Pot, Woodworking Bench, Aniipod Maker and Dance Pad Polisher. They only work while inputs last, so each needs a share of one Aniimo ("Part-time processor").
+- `climate` – Cooling Unit, Heat Furnace, Sunlamp: each holds an Aniimo that does no other work.
+- `power` – Crackle Generator: it has one Aniimo slot (aniimo.gg) and only makes power "once an Aniimo with Lightning works it" (AniimoTools), so it also holds a full-time Aniimo. Running other facilities on power in E-mode (RV 12+) is not modelled.
 
-Intermittent work:
+Full-time work:
 
-- Farmland and Woodland are modeled as shared workloads.
-- Load is calculated as `plots * action_seconds / cycle_seconds * overhead_multiplier`.
-- One Aniimo can cover multiple intermittent skills only when the setting is enabled and combined load stays within the "keep farm helpers at most this busy" cap.
-- Aniimo assigned to continuous work are not reused for intermittent work by default.
+- Each full-time job (primary, climate, power) takes one Aniimo that does nothing else.
+- Jobs are matched by ability and minimum level from `data/buildings.json`.
+
+Part-time work (processors and farm steps):
+
+- Farmland and Woodland: load = `plots * action_seconds / cycle_seconds * overhead_multiplier` per step.
+- Processors: load = `count * busy %`. The busy % is the option level (below) unless the building has its own busy % on the Homeland tab.
+- Part-time work is shared by every Aniimo with the ability and can be split between Aniimo, so it is assigned as a max flow: each Aniimo can take up to a full day of part-time work, of which farm steps may fill at most the "keep farm helpers at most this busy" cap (default 50%). The cap protects farm timing; processor work can fill the rest of a helper's day. With "one farm ability per helper" turned off in Settings, a step-by-step search is used instead.
+- Aniimo in full-time jobs are never given part-time work.
+
+Busy-level options:
+
+- `planProcessorOptions` works the plan out with processors 25%, 50%, 75% and 100% busy, and the Optimise tab shows them as a table (busy level, Aniimo needed, fits in your spaces, spare spaces). The highest level that fits is selected; click another to see its plan.
+- It also finds the most that fits, to about 5% ("Your spaces allow processors to run up to about 90% of the time").
+- Only the lowest level runs the full search. Each higher level starts from the plan one level down (full-time jobs and Estimated Require targets don't change) and adds part-time Aniimo one at a time, each time the one that takes on the most extra work, then drops any that are no longer needed. The whole table takes about 1 s for a 57-building RV 9 Homeland.
+- If every processor has its own busy %, there is only one plan.
+
+Personalities:
+
+- Each building's `personalityBonus` is the personality that works 20% faster there (AniimoTools station pages). Personalities are random on each Aniimo you catch, not fixed per species (confirmed in-game by a player), so the planner recommends a personality per building and ability ("a Practical Fire Aniimo for the Chimney Kiln"), never a species.
+- "Personalities to look for" groups them by personality and ability, ranked by how much work they speed up: 1 per full-time building, the busy share for a processor. Farm plots, the Aniipod Maker, Dance Pad Polisher, climate buildings and the generator have no bonus. Because Aniimo roam, a personality only helps at its own building.
 
 Over capacity:
 
 - The RV capacity is one limit shared by production and the Homebuilding Zone, so spaces kept for the zone come off the top.
-- If the full plan needs more Aniimo than that, the result headlines it (for example "Your buildings need 29 Aniimo (27 buildings + 2 farm helpers), but RV 9 has 26 spaces – 3 over.") and says whether Aniimo doubling up on farm steps could bring the number down.
-- `planForCapacity` then builds a best plan that fits: Aniimo only there for ability points go first, then buildings are left idle – spare copies (the 5th Mine, the 2nd Well) before the only building of its kind – while every farm step stays covered. It starts from the full plan's team and only runs a second, size-capped search if that team misses Estimated Require points.
-- The app shows the fitted plan by default when over capacity, with a switch to see the full plan. What's left out is summarised in grouped lines (`summarizeShortfalls`), e.g. "Left idle: Mine ×3" and "Short on: Water 2", and names any ability no Aniimo in the pool has, suggesting Prismana or legendary Aniimo when they would help.
+- With part-time processors this is rare. If even the lowest busy level doesn't fit, the result says so (and how busy processors could be, or that even idle processors don't fit), then `planForCapacity` builds a best plan that fits: Aniimo only there for ability points go first, then full-time buildings are left idle – spare copies (the 5th Mine, the 2nd Well) before the only building of its kind – while every part-time job stays covered.
+- What's left out is summarised in grouped lines (`summarizeShortfalls`), e.g. "Left idle: Mine ×2" and "Short on: Water 2", and names any ability no Aniimo in the pool has, suggesting Prismana or legendary Aniimo when they would help.
 
 Capability targets:
 
@@ -165,12 +184,15 @@ The tests cover:
 - Available Aniimo pool filtering by category and explicit ticks
 - Aniimo data: no excluded (unreleased, boss or NPC) names, every record has an Aniilog number, records sorted by it with forms grouped; the scraper's Aniilog parsing, exclusions and renames
 - RV placement limits (`maxByRv`) and capacity from the RV level alone
-- Intermittent sharing and overload
+- Intermittent sharing and overload; processors as shares of one Aniimo, per-building busy %, and farm steps capped while processing fills the rest of the day
+- Building roles and personality bonuses in the data
 - Fewer-body preference
 - Continuous plus intermittent exclusivity
 - Estimated Require without physical jobs
 - Physical job bodies exceeding a low capability target
-- Over capacity: a real RV 9 setup fitted to 26 spaces (spare copies idled first, farm steps covered, grouped summary), the Homebuilding Zone reserve, and within-capacity plans left unchanged
+- Busy-level options for a real RV 9 setup (26 spaces): the options table, 25% fitting, the highest fitting level selected, the most that fits, speed; the Homebuilding Zone reserve; the lowest level not fitting; one plan when every processor has its own busy %
+- Over capacity at 100% busy (spare copies idled first, part-time jobs covered, grouped summary), and within-capacity plans left unchanged
+- Personalities to look for, ranked by work sped up
 - Grouped shortfalls and the Prismana suggestion for an ability missing from the pool
 
 ## Privacy

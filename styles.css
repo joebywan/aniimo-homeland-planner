@@ -1411,3 +1411,183 @@ kbd {
   font-size: 0.9em;
   line-height: 1.3;
 }
+
+/* Processor busy options: a compact comparison table above the plan. */
+.options-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(32, 37, 54, 0.05);
+}
+
+.options-panel h3 {
+  margin-bottom: 6px;
+}
+
+.options-table td,
+.options-table th {
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.option-row {
+  cursor: pointer;
+}
+
+.option-row.is-selected td {
+  background: #e8f4f0;
+}
+
+.option-row.is-selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.option-row.is-over td {
+  color: var(--muted);
+}
+
+.option-button {
+  min-width: 58px;
+  min-height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.option-button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.option-button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.best-badge {
+  display: inline-block;
+  margin-left: 6px;
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: #eaf6ef;
+  color: #247446;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.options-max {
+  margin: 10px 0 4px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.options-link {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.options-link a {
+  color: var(--accent-strong);
+  font-weight: 750;
+}
+
+/* A processor's own busy % on the Homeland tab. */
+.busy-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.78rem;
+}
+
+.busy-control input {
+  width: 64px;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 6px;
+  font: inherit;
+}
+
+.busy-control input:focus {
+  outline: 2px solid rgba(44, 122, 104, 0.45);
+  outline-offset: 1px;
+}
+
+.has-own-busy .busy-control input,
+.busy-control input:not(:placeholder-shown) {
+  border-color: var(--accent);
+  color: var(--ink);
+  font-weight: 750;
+}
+
+/* Personality bonuses. */
+.personality-cell {
+  white-space: nowrap;
+}
+
+.personality-tag {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1px 8px;
+  background: #f3edfb;
+  color: #5b3a8a;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.personality-bonus {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.personality-tip {
+  margin: 2px 0 6px;
+  color: #5b3a8a;
+}
+
+.personality-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.personality-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+
+.personality-list li:last-child {
+  border-bottom: 0;
+}
+
+.personality-buildings {
+  color: #344054;
+}
+
+.personality-weight {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.muted {
+  color: var(--muted);
+}
