@@ -92,6 +92,9 @@
     // lastResult: the plan currently shown. planView: "fitted" or "full" when over capacity.
     lastPlan: null,
     lastResult: null,
+    // lastOptions: planProcessorOptions output (the plan at each processor busy level); optionIndex: shown one.
+    lastOptions: null,
+    optionIndex: 0,
     planView: "fitted",
     running: false,
   };
@@ -228,7 +231,7 @@
         count = safeNumber(building.defaultCount ?? 0, 0, 0, 999);
       }
       if (limit.locked) count = 0;
-      state.buildingState[building.id] = { count: Math.floor(count), auto };
+      state.buildingState[building.id] = withBusy({ count: Math.floor(count), auto }, hasSaved ? saved.busyPercent : null, building);
     }
 
     for (const key of RETIRED_SETTINGS) delete state.settings[key];
@@ -285,14 +288,37 @@
     return limit.limited && limit.known ? limit.max : 999;
   }
 
+  // A processor's own busy % (null = follow the option chosen on the Optimise tab). Older saves have none.
+  function normaliseBusyPercent(value) {
+    if (value === null || value === undefined || value === "") return null;
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return null;
+    return Math.round(Math.min(100, Math.max(0, numeric)));
+  }
+
+  function isProcessor(building) {
+    return window.AniimoOptimizer.buildingRole(building) === "processor" && building.behavior === "continuous";
+  }
+
+  // Keeps a processor's busy % when its count changes.
+  function withBusy(entry, busyPercent, building) {
+    const busy = building && isProcessor(building) ? normaliseBusyPercent(busyPercent) : null;
+    return busy === null ? entry : { ...entry, busyPercent: busy };
+  }
+
   function setBuildingCount(building, value) {
     const limit = getBuildingLimit(building);
     const count = Math.floor(safeNumber(value, 0, 0, buildingInputMax(building)));
-    app.state.buildingState[building.id] = {
-      count,
-      // A count set to the max keeps following the RV level; anything else is the player's choice.
-      auto: Boolean(limit.limited && limit.known && count === limit.max),
-    };
+    const previous = app.state.buildingState[building.id] || {};
+    app.state.buildingState[building.id] = withBusy(
+      {
+        count,
+        // A count set to the max keeps following the RV level; anything else is the player's choice.
+        auto: Boolean(limit.limited && limit.known && count === limit.max),
+      },
+      previous.busyPercent,
+      building
+    );
     return count;
   }
 
@@ -307,7 +333,7 @@
       const newLimit = getBuildingLimit(building, newLevel);
       if (!newLimit.limited) {
         if (newLimit.locked) saved.count = 0;
-        app.state.buildingState[building.id] = { count: saved.count, auto: false };
+        app.state.buildingState[building.id] = withBusy({ count: saved.count, auto: false }, saved.busyPercent, building);
         continue;
       }
       const followed = saved.auto || (oldLimit.known && before === oldLimit.max);
@@ -325,7 +351,7 @@
       } else if (followed) {
         count = 0;
       }
-      app.state.buildingState[building.id] = { count, auto };
+      app.state.buildingState[building.id] = withBusy({ count, auto }, saved.busyPercent, building);
       if (newLimit.locked && before > 0) summary.locked += 1;
       else if (count > before) summary.raised += 1;
       else if (count < before) summary.lowered += 1;
@@ -379,6 +405,18 @@
     document.querySelector(".capacity-card").addEventListener("change", handleHomelandInput);
 
     document.getElementById("buildingTable").addEventListener("input", (event) => {
+      const busyInput = event.target.closest("[data-building-busy]");
+      if (busyInput) {
+        const building = getBuilding(busyInput.dataset.buildingBusy);
+        if (!building) return;
+        const saved = app.state.buildingState[building.id];
+        const busy = normaliseBusyPercent(busyInput.value);
+        const next = { count: saved.count, auto: saved.auto };
+        app.state.buildingState[building.id] = withBusy(next, busy, building);
+        busyInput.closest("tr")?.classList.toggle("has-own-busy", busy !== null);
+        markDirty();
+        return;
+      }
       const input = event.target.closest("[data-building-count]");
       if (!input) return;
       const building = getBuilding(input.dataset.buildingCount);
@@ -393,6 +431,12 @@
     });
 
     document.getElementById("buildingTable").addEventListener("change", (event) => {
+      const busyInput = event.target.closest("[data-building-busy]");
+      if (busyInput) {
+        const busy = app.state.buildingState[busyInput.dataset.buildingBusy]?.busyPercent;
+        busyInput.value = busy ?? "";
+        return;
+      }
       const input = event.target.closest("[data-building-count]");
       if (!input) return;
       const building = getBuilding(input.dataset.buildingCount);
@@ -490,6 +534,19 @@
     document.getElementById("tab-optimise").addEventListener("click", (event) => {
       const link = event.target.closest("[data-goto-tab]");
       if (link) activateTab(link.dataset.gotoTab);
+      const optionRow = event.target.closest("[data-option-index]");
+      if (optionRow && app.lastOptions) {
+        const index = Number(optionRow.dataset.optionIndex);
+        const option = app.lastOptions.options[index];
+        if (option) {
+          app.optionIndex = index;
+          app.lastPlan = option.plan;
+          app.planView = "fitted";
+          renderResults();
+          document.querySelector(`[data-option-index="${index}"] .option-button`)?.focus();
+        }
+        return;
+      }
       const viewButton = event.target.closest("[data-plan-view]");
       if (viewButton && app.lastPlan) {
         app.planView = viewButton.dataset.planView === "full" ? "full" : "fitted";
@@ -560,7 +617,7 @@
       const limit = getBuildingLimit(building);
       if (!limit.limited || !limit.known) continue;
       if (app.state.buildingState[building.id].count !== limit.max) changed += 1;
-      app.state.buildingState[building.id] = { count: limit.max, auto: true };
+      app.state.buildingState[building.id] = withBusy({ count: limit.max, auto: true }, app.state.buildingState[building.id].busyPercent, building);
     }
     app.buildingNotice = changed
       ? `Set ${changed} building${plural(changed)} to the most you can place at RV ${level}.`
@@ -572,6 +629,7 @@
   function markDirty() {
     app.lastResult = null;
     app.lastPlan = null;
+    app.lastOptions = null;
     saveState();
     renderResultShell();
   }
@@ -756,13 +814,46 @@
                 <strong>${escapeHtml(building.name)}</strong>
               </div>
             </td>
-            <td class="type-text">${building.behavior === "continuous" ? "Full-time worker" : "Part-time farm work"}</td>
+            <td class="type-text">${renderBuildingType(building)}</td>
             <td class="work-model-text">${renderBuildingModel(building)}</td>
+            <td class="personality-cell">${renderPersonality(building)}</td>
           </tr>
         `;
       })
       .join("");
     tbody.querySelectorAll("tr[data-building-row]").forEach((row) => updateBuildingRow(row, getBuilding(row.dataset.buildingRow)));
+  }
+
+  const ROLE_LABELS = {
+    primary: "Full-time producer",
+    processor: "Part-time processor",
+    climate: "Climate – full-time",
+    power: "Power – full-time",
+  };
+
+  function renderBuildingType(building) {
+    if (building.behavior !== "continuous") return "Part-time farm work";
+    const role = window.AniimoOptimizer.buildingRole(building);
+    const label = escapeHtml(ROLE_LABELS[role] || "Full-time producer");
+    if (!isProcessor(building)) return label;
+    const busy = app.state.buildingState[building.id]?.busyPercent;
+    return `
+      ${label}
+      <label class="busy-control" title="How much of the time this building is busy. Leave blank to use the option you pick on the Optimise tab.">
+        <span>Busy</span>
+        <input type="number" min="0" max="100" step="5" placeholder="auto" value="${busy ?? ""}" data-building-busy="${escapeAttr(building.id)}" aria-label="${escapeAttr(building.name)} busy % (blank = auto)" />
+        <span>%</span>
+      </label>
+    `;
+  }
+
+  function personalityPercent() {
+    return Number(app.data.buildings?.personalityBonusPercent) || 20;
+  }
+
+  function renderPersonality(building) {
+    if (!building.personalityBonus) return `<span class="muted" title="No personality works faster here">–</span>`;
+    return `<span class="personality-tag" title="Aniimo with the ${escapeAttr(building.personalityBonus)} personality work ${personalityPercent()}% faster here">${escapeHtml(building.personalityBonus)}</span> <small class="personality-bonus">+${personalityPercent()}%</small>`;
   }
 
   // Updates one row's count, limit note and locked state without re-rendering (keeps focus while typing).
@@ -831,7 +922,12 @@
         return workItem(requirement.skill, level > 1 ? `Lv ${level}+` : "");
       });
       const slots = Number(building.slotsPerUnit || 1);
-      note = `${slots} Aniimo per ${building.countLabel === "facilities" || !building.countLabel ? "facility" : building.countLabel.replace(/s$/, "")}`;
+      const role = window.AniimoOptimizer.buildingRole(building);
+      const skillsText = (building.requirements || []).map((requirement) => requirement.skill).join("/");
+      if (role === "processor") note = `Only busy while it has inputs; any ${skillsText} Aniimo can take a turn`;
+      else if (role === "climate") note = "Holds 1 Aniimo that does no other work";
+      else if (role === "power") note = "Holds 1 Aniimo that does no other work; powers E-mode";
+      else note = `${slots} Aniimo per ${building.countLabel === "facilities" || !building.countLabel ? "facility" : building.countLabel.replace(/s$/, "")}, making goods from nothing, full time`;
     } else {
       items = (building.pools || []).map((pool) => workItem(pool.skill, pool.label || ""));
       note = `Shared: each step takes about ${getActionDurationSeconds()} s per plot, so one Aniimo per step covers many plots`;
@@ -1083,6 +1179,9 @@
         'Press "Optimise workforce" once you\'ve filled in Requirements and Homeland.';
       document.getElementById("missingPanel").classList.add("is-hidden");
       document.getElementById("capacityNotice").classList.add("is-hidden");
+      document.getElementById("optionsPanel").classList.add("is-hidden");
+      document.getElementById("personalityResults").className = "empty-state";
+      document.getElementById("personalityResults").textContent = "Run the optimiser to see suggestions.";
       document.getElementById("workerResults").className = "worker-results empty-state";
       document.getElementById("workerResults").textContent = "No recommendation yet.";
       document.querySelector("#coverageTable tbody").innerHTML = "";
@@ -1129,35 +1228,15 @@
     try {
       await waitForPaint();
       const pool = window.AniimoOptimizer.filterAniimoPool(app.data.aniimo.aniimo, app.state.pool);
-      const run = (aniimo) =>
-        window.AniimoOptimizer.optimizeWorkforce({
-          aniimo,
-          skills: app.data.aniimo.skills,
-          requirements: app.state.requirements,
-          buildings: app.data.buildings.buildings,
-          buildingState: app.state.buildingState,
-          settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds() },
-        });
-      let result = run(pool);
       // The search is a heuristic, and a bigger pool can occasionally lead it to a slightly bigger team.
-      // Ticking Prismana or legendary Aniimo should never make the plan worse, so also try without them
-      // and keep whichever team is smaller.
-      let usedPool = pool;
+      // Ticking Prismana or legendary Aniimo should never make the plan worse, so the optimiser also tries
+      // without them and keeps whichever team is smaller.
       const commonOnly = pool.filter((entry) => aniimoCategory(entry) === "common");
-      if (commonOnly.length && commonOnly.length < pool.length) {
-        const alternative = run(commonOnly);
-        const better =
-          (alternative.feasible && !result.feasible) ||
-          (alternative.feasible === result.feasible && alternative.selectedWorkers.length < result.selectedWorkers.length);
-        if (better) {
-          result = alternative;
-          usedPool = commonOnly;
-        }
-      }
-      // If the full plan needs more Aniimo than the RV allows, also work out the best plan that fits.
       const capacity = getCapacityInfo();
-      app.lastPlan = window.AniimoOptimizer.planForCapacity({
-        aniimo: usedPool,
+      // The plan at several processor busy levels; the highest level that fits the RV spaces is selected.
+      app.lastOptions = window.AniimoOptimizer.planProcessorOptions({
+        aniimo: pool,
+        fallbackAniimo: commonOnly.length && commonOnly.length < pool.length ? commonOnly : null,
         catalogue: app.data.aniimo.aniimo,
         skills: app.data.aniimo.skills,
         requirements: app.state.requirements,
@@ -1166,13 +1245,15 @@
         settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds() },
         capacity: capacity.known ? capacity.capacity : null,
         homebuildingReserve: getHomebuildingReserve(),
-        fullResult: result,
       });
+      app.optionIndex = app.lastOptions.selectedIndex;
+      app.lastPlan = app.lastOptions.options[app.optionIndex].plan;
       app.planView = "fitted";
       renderResults();
     } catch (error) {
       app.lastPlan = null;
       app.lastResult = null;
+      app.lastOptions = null;
       renderResultShell();
       const panel = document.getElementById("missingPanel");
       panel.classList.remove("is-hidden");
@@ -1191,22 +1272,33 @@
     return plan.overCapacity && plan.fitted && app.planView !== "full" ? "fitted" : "full";
   }
 
+  function currentOption() {
+    return app.lastOptions?.options?.[app.optionIndex] || null;
+  }
+
+  // "with processors 75% busy", or "" when the plan doesn't depend on a level.
+  function levelText(option) {
+    return option && Number.isFinite(option.percent) ? ` with processors ${option.percent}% busy` : "";
+  }
+
   function renderResults() {
     const plan = app.lastPlan;
     if (!plan) return;
+    const option = currentOption();
     const view = currentView(plan);
     const result = view === "fitted" ? plan.fitted : plan.full;
     app.lastResult = result;
     const count = result.selectedWorkers.length;
+    const level = levelText(option);
     let summary;
     if (plan.overCapacity && view === "fitted") {
-      summary = `Showing the best plan for your ${plan.budget} space${plural(plan.budget)}: ${count} Aniimo.`;
+      summary = `Showing the best plan for your ${plan.budget} space${plural(plan.budget)}${level}: ${count} Aniimo.`;
     } else if (plan.overCapacity) {
-      summary = `Showing the full plan: ${count} Aniimo – ${plan.overBy} more than you have room for.`;
+      summary = `Showing the full plan${level}: ${count} Aniimo – ${plan.overBy} more than you have room for.`;
     } else {
       summary = result.feasible
-        ? `This plan uses ${count} Aniimo – the smallest team the planner found.`
-        : `Couldn't cover everything. The best attempt uses ${count} Aniimo – see what's missing below.`;
+        ? `This plan uses ${count} Aniimo${level} – the smallest team the planner found.`
+        : `Couldn't cover everything. The best attempt uses ${count} Aniimo${level} – see what's missing below.`;
       if (plan.capacityKnown) {
         const free = plan.capacity - count;
         summary += ` Your Homeland has room for ${plan.capacity}, leaving ${free} spare.`;
@@ -1216,18 +1308,152 @@
     document.getElementById("workforceHelp").textContent =
       view === "fitted"
         ? "The best team that fits your Aniimo spaces, chosen from your Available Aniimo. Buildings left idle get no Aniimo."
-        : "The smallest group of Aniimo that covers your requirements and buildings, chosen from your Available Aniimo.";
+        : "The smallest group of Aniimo that covers your requirements and buildings, chosen from your Available Aniimo. Part-time Aniimo move between the buildings listed.";
 
+    renderOptions();
     renderCapacityNotice(plan, view);
     renderMissing(plan, view);
     renderWorkerResults(result);
     renderCoverage(result);
     renderStaffing(result, view === "fitted" ? plan.shortfalls.idle : []);
+    renderPersonalities(option);
     renderSpareSpaces(result);
   }
 
+  const HIDEOUT_OPTIMIZER_URL = "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer";
+
+  function hideoutLine() {
+    return `<p class="options-link">For what each building should make, see <a href="${HIDEOUT_OPTIMIZER_URL}" target="_blank" rel="noopener noreferrer">Hideout's Homeland Optimizer<span class="visually-hidden"> (opens in a new tab)</span></a>.</p>`;
+  }
+
+  // The processor busy options as a compact comparison table; clicking a row shows that plan.
+  function renderOptions() {
+    const panel = document.getElementById("optionsPanel");
+    const options = app.lastOptions;
+    if (!options) {
+      panel.classList.add("is-hidden");
+      panel.innerHTML = "";
+      return;
+    }
+    panel.classList.remove("is-hidden");
+    const own = ownBusyCount();
+    const ownNote = own
+      ? ` ${own} processor${plural(own)} use${own === 1 ? "s" : ""} ${own === 1 ? "its" : "their"} own busy % from the <button type="button" class="link-button" data-goto-tab="homeland">Homeland tab</button>.`
+      : "";
+    if (!options.variesWithLevel) {
+      const hasProcessors = (app.data.buildings.buildings || []).some(
+        (building) => isProcessor(building) && app.state.buildingState[building.id]?.count > 0
+      );
+      panel.innerHTML = `
+        <h3 id="optionsTitle">Processor busy levels</h3>
+        <p class="panel-help">${hasProcessors ? `Every processor uses its own busy % from the Homeland tab, so there is one plan.` : "You have no processors built, so there is one plan."}</p>
+        ${hideoutLine()}
+      `;
+      return;
+    }
+    const plan0 = options.options[0].plan;
+    const spacesLabel = plan0.capacityKnown ? `Fits in your ${plan0.budget} space${plural(plan0.budget)}?` : "Fits?";
+    const bestIndex = options.options.map((option) => option.fits).lastIndexOf(true);
+    const rows = options.options
+      .map((option, index) => {
+        const selected = index === app.optionIndex;
+        const fitsText =
+          option.fits === null ? "Set your RV level" : option.fits ? "Yes" : `No – ${option.needed - option.plan.budget} over`;
+        const spare = option.fits ? String(option.spare) : "–";
+        const badge = index === bestIndex ? ' <span class="best-badge">Best fit</span>' : "";
+        return `
+          <tr class="option-row${selected ? " is-selected" : ""}${option.fits === false ? " is-over" : ""}" data-option-index="${index}">
+            <td><button type="button" class="option-button" aria-pressed="${selected}">${option.percent}%</button>${badge}</td>
+            <td>${option.needed}</td>
+            <td><span class="status-pill ${option.fits === false ? "missing" : option.fits ? "ok" : "idle"}">${escapeHtml(fitsText)}</span></td>
+            <td>${spare}</td>
+          </tr>
+        `;
+      })
+      .join("");
+    panel.innerHTML = `
+      <h3 id="optionsTitle">How busy are your processors?</h3>
+      <p class="panel-help">
+        Processors (mills, kitchens, looms, crafting) only work while they have inputs, so each needs only part of
+        one Aniimo's day. Here is the plan at a few busy levels; pick one to see its full plan.${ownNote}
+      </p>
+      <div class="table-shell compact">
+        <table class="data-table compact-table options-table">
+          <thead>
+            <tr>
+              <th>Processors busy</th>
+              <th>Aniimo needed</th>
+              <th>${escapeHtml(spacesLabel)}</th>
+              <th>Spare spaces</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p class="options-max">${escapeHtml(maxFitText(options))}</p>
+      ${hideoutLine()}
+    `;
+  }
+
+  function ownBusyCount() {
+    return (app.data.buildings.buildings || []).filter((building) => {
+      const saved = app.state.buildingState[building.id];
+      return isProcessor(building) && saved?.count > 0 && saved.busyPercent !== undefined && saved.busyPercent !== null;
+    }).length;
+  }
+
+  function maxFitText(options) {
+    if (!options.capacityKnown) return "Choose your RV level on the Homeland tab to see which busy levels fit your spaces.";
+    const budget = options.options[0].plan.budget;
+    if (options.allFit) return `Your spaces allow processors to run full time (${options.maxFitPercent}%).`;
+    if (!options.noneFit) return `Your spaces allow processors to run up to about ${options.maxFitPercent}% of the time.`;
+    const lowest = options.options[0].percent;
+    if (options.maxFitPercent === null) {
+      return `Even at ${lowest}% busy this doesn't fit – even with processors idle, your full-time buildings, farm steps and Estimated Require targets need more than your ${budget} spaces. Below is the best plan that fits.`;
+    }
+    if (options.maxFitPercent === 0) {
+      return `Even at ${lowest}% busy this doesn't fit – your other work fills your ${budget} spaces, leaving almost no time for processors. Below is the best plan that fits.`;
+    }
+    return `Even at ${lowest}% busy this doesn't fit – your spaces only allow processors to run about ${options.maxFitPercent}% of the time. Below is the best plan that fits.`;
+  }
+
+  // Personalities worth looking for, grouped by personality and ability, most useful first.
+  function renderPersonalities(option) {
+    const container = document.getElementById("personalityResults");
+    const list = window.AniimoOptimizer.personalityRecommendations({
+      buildings: app.data.buildings.buildings,
+      buildingState: app.state.buildingState,
+      settings: option && Number.isFinite(option.percent) ? { processorBusyPercent: option.percent } : {},
+    });
+    if (!list.length) {
+      container.className = "empty-state";
+      container.textContent = "None of your buildings has a personality that works faster there.";
+      return;
+    }
+    container.className = "";
+    container.innerHTML = `<ul class="personality-list">${list
+      .map((item) => {
+        const buildings = item.buildings.map((building) => `${building.name}${building.count > 1 ? ` ×${building.count}` : ""}`).join(", ");
+        const work = Math.round(item.weight * 100) / 100;
+        return `
+          <li>
+            <span class="personality-tag">${escapeHtml(item.personality)}</span>
+            <span class="work-item">${abilityIcon(item.skill, "small")}<span class="work-skill">${escapeHtml(item.skill)}</span></span>
+            <span class="personality-buildings">– ${escapeHtml(buildings)}</span>
+            <small class="personality-weight">${escapeHtml(`${work} Aniimo's work`)}</small>
+          </li>
+        `;
+      })
+      .join("")}</ul>`;
+  }
+
   function capacityHeadline(plan) {
-    return window.AniimoOptimizer.describeCapacityPlan(plan, { rvLevel: app.state.homeland.rvLevel, zoneName: getZone().name });
+    const option = currentOption();
+    return window.AniimoOptimizer.describeCapacityPlan(plan, {
+      rvLevel: app.state.homeland.rvLevel,
+      zoneName: getZone().name,
+      processorPercent: option && Number.isFinite(option.percent) ? option.percent : undefined,
+    });
   }
 
   function renderCapacityNotice(plan, view) {
@@ -1239,13 +1465,19 @@
     }
     const text = capacityHeadline(plan);
     const fittedSize = plan.fitted ? plan.fitted.selectedWorkers.length : 0;
+    const options = app.lastOptions;
     let fittedBody;
-    if (!plan.fitted) {
+    if (plan.budget <= 0) {
       fittedBody = `<p>There are no spaces left for production Aniimo. Lower the spaces kept for the ${escapeHtml(getZone().name)} on the <button type="button" class="link-button" data-goto-tab="homeland">Homeland tab</button>.</p>`;
+    } else if (!plan.fitted) {
+      // A busy level the player picked that doesn't fit: point back to the ones that do.
+      fittedBody = options?.options.some((option) => option.fits)
+        ? "<p>Pick a lower busy level above to fit your spaces.</p>"
+        : "";
     } else {
       const lines = plan.shortfalls.lines.map((line) => `<li>${escapeHtml(line)}</li>`);
       const farmTasks = plan.fitted.physicalStaffing.filter((row) => row.type === "Intermittent");
-      if (farmTasks.length && !plan.shortfalls.farmSkills.length) lines.push("<li>Every farm step is covered.</li>");
+      if (farmTasks.length && !plan.shortfalls.farmSkills.length) lines.push("<li>Every part-time job is covered.</li>");
       if (!plan.shortfalls.short.length && !plan.shortfalls.noAbility.length) lines.push("<li>Estimated Require totals are still met.</li>");
       fittedBody = `
         <p><strong>Best plan that fits: ${fittedSize} Aniimo.</strong> The rest of your buildings stay idle until you have more room.</p>
@@ -1260,9 +1492,11 @@
         </div>
       `
       : "";
+    const lead = options?.noneFit && plan.fitted ? "<p><strong>Even the lowest busy level doesn't fit.</strong></p>" : "";
     notice.classList.remove("is-hidden");
     notice.innerHTML = `
-      <h3>More buildings than Aniimo spaces</h3>
+      <h3>Doesn't fit your Aniimo spaces</h3>
+      ${lead}
       <p>${escapeHtml(text.headline)}${text.minimum ? ` ${escapeHtml(text.minimum)}` : ""}</p>
       ${fittedBody}
       ${toggle}
@@ -1312,6 +1546,7 @@
                   ? `<ul class="assignment-list">${worker.secondaryAssignments.map((assignment) => `<li>${escapeHtml(assignment)}</li>`).join("")}</ul>`
                   : ""
               }
+              ${personalityTipLine(worker)}
               <div class="worker-skill-row">${skillChips(worker.skills)}</div>
               <p>Why: ${escapeHtml(worker.reason)}</p>
             </div>
@@ -1321,6 +1556,23 @@
       .join("");
 
     wireImageFallback(container);
+  }
+
+  // "Best personality: Practical (+20% at the Chimney Kiln)", grouped when a part-time Aniimo has several.
+  function personalityTipLine(worker) {
+    const tips = worker.personalityTips || [];
+    if (!tips.length) return "";
+    const byPersonality = new Map();
+    for (const tip of tips) {
+      const list = byPersonality.get(tip.personality) || [];
+      if (!list.includes(tip.building)) list.push(tip.building);
+      byPersonality.set(tip.personality, list);
+    }
+    const parts = [...byPersonality].map(
+      ([personality, buildings]) => `<strong>${escapeHtml(personality)}</strong> (+${personalityPercent()}% at the ${escapeHtml(buildings.join(", "))})`
+    );
+    const label = parts.length > 1 ? "Best personalities" : "Best personality";
+    return `<p class="personality-tip">${label}: ${parts.join("; ")}</p>`;
   }
 
   function renderCoverage(result) {
@@ -1348,7 +1600,11 @@
       .map((row) => {
         return `
           <tr>
-            <td>${escapeHtml(row.label)}</td>
+            <td>${escapeHtml(row.label)}${
+              row.personalityBonus
+                ? ` <small class="personality-bonus" title="Best personality for this building">${escapeHtml(row.personalityBonus)} +${personalityPercent()}%</small>`
+                : ""
+            }</td>
             <td>${escapeHtml(row.needLabel)}</td>
             <td>${escapeHtml(row.assignedLabel)}</td>
             <td><span class="status-pill ${row.status === "OK" ? "ok" : "missing"}">${escapeHtml(row.status === "OK" ? "OK" : "Short")}</span></td>
@@ -1396,7 +1652,9 @@
 
     if (plan.overCapacity) {
       container.className = "empty-state";
-      container.textContent = "No spare spaces – this plan needs more room than you have. Switch to the best plan that fits above.";
+      container.textContent = app.lastPlan?.fitted
+        ? "No spare spaces – this plan needs more room than you have. Switch to the best plan that fits above."
+        : "No spare spaces – this plan needs more room than you have. Pick a busy level that fits above.";
       return;
     }
 

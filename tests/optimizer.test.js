@@ -3,11 +3,14 @@ const {
   DEFAULT_SKILLS,
   aniimoCategory,
   buildingMaxForRv,
+  buildingRole,
   filterAniimoPool,
   isInPool,
   describeCapacityPlan,
   optimizeWorkforce,
+  personalityRecommendations,
   planForCapacity,
+  planProcessorOptions,
   recommendSpareSpaces,
   resolveHomelandCapacity,
   summarizeShortfalls,
@@ -576,7 +579,8 @@ test("crop data: farm action time is the player-confirmed 5 seconds", () => {
   assert.ok(cropsData.crops.every((crop) => crop.actionDurationSeconds === undefined || crop.actionDurationSeconds === 5));
 });
 
-// A player's real RV 9 Homeland: 27 full-time buildings plus Farmland/Woodland, 26 Aniimo spaces.
+// A player's real RV 9 Homeland: 57 buildings (20 Farmland, 10 Woodland), 26 Aniimo spaces. In-game the
+// player runs it with about 20 Aniimo.
 const PLAYER_COUNTS = {
   farmland: 20, woodland: 10, carousel_mill: 2, dance_pad_polisher: 1, mine: 5, crafting_table: 1, aniipod_maker: 1,
   well: 2, claw_game_cooker: 1, jukebox_dryer: 1, simmering_pot: 1, tidewhisper_sandcastle: 1, bouncy_brew_keg: 1,
@@ -596,70 +600,226 @@ const playerInput = {
   buildingState: Object.fromEntries(buildingsData.buildings.map((building) => [building.id, { count: PLAYER_COUNTS[building.id] || 0 }])),
   settings: { mode: "pool", actionDurationSeconds: 5, cycleDurationMinutes: 20 },
 };
-let playerFull = null;
-function playerFullResult() {
-  if (!playerFull) playerFull = optimizeWorkforce(playerInput);
-  return playerFull;
+const withLevel = (percent) => ({ ...playerInput, settings: { ...playerInput.settings, processorBusyPercent: percent } });
+const fullCache = new Map();
+function playerFullResult(percent = 100) {
+  if (!fullCache.has(percent)) fullCache.set(percent, optimizeWorkforce(withLevel(percent)));
+  return fullCache.get(percent);
 }
 
-test("over capacity: player's RV 9 setup gets a best plan that fits in 26 spaces", () => {
-  const started = Date.now();
-  const full = playerFullResult();
-  const plan = planForCapacity({ ...playerInput, capacity: 26, homebuildingReserve: 0, fullResult: full });
-  assert.ok(Date.now() - started < 5000, "should stay fast");
+test("roles: every building has a role, matching Hideout's groups and aniimo.gg's recipe data", () => {
+  const expected = {
+    primary: ["farmland", "woodland", "mine", "well", "dewy_house", "tidewhisper_sandcastle", "nimbus_bed", "starfall_hammock", "floral_windmill"],
+    processor: [
+      "carousel_mill", "crafting_table", "blazing_stove", "bouncy_brew_keg", "chimney_kiln", "claw_game_cooker", "joy_wheel_loom",
+      "jukebox_dryer", "phonolfactory_table", "pickling_jar", "simmering_pot", "woodworking_bench", "aniipod_maker", "dance_pad_polisher",
+    ],
+    climate: ["cooling_unit", "heat_furnace", "sunlamp"],
+    power: ["crackle_generator"],
+  };
+  for (const building of buildingsData.buildings) {
+    assert.ok(["primary", "processor", "climate", "power"].includes(building.role), building.id);
+    assert.ok(building.roleSource && building.roleSource.length > 10, `${building.id} has a role source`);
+    assert.equal(buildingRole(building), building.role);
+  }
+  for (const [role, ids] of Object.entries(expected)) {
+    for (const id of ids) assert.equal(buildingsData.buildings.find((building) => building.id === id)?.role, role, id);
+  }
+  assert.equal(buildingsData.buildings.length, Object.values(expected).flat().length);
+});
 
-  // Full plan: 27 buildings each need their own Aniimo, plus farm helpers.
-  assert.equal(plan.breakdown.buildings, 27);
-  assert.ok(plan.breakdown.farmHelpers >= 1);
+test("personalities: every building's bonus matches AniimoTools, none for farms, climate or power", () => {
+  const expected = {
+    carousel_mill: "Tenacious", simmering_pot: "Tenacious", mine: "Playful", pickling_jar: "Playful", crafting_table: "Judicious",
+    tidewhisper_sandcastle: "Judicious", nimbus_bed: "Judicious", well: "Faithful", joy_wheel_loom: "Faithful", starfall_hammock: "Faithful",
+    claw_game_cooker: "Practical", chimney_kiln: "Practical", jukebox_dryer: "Nimble", blazing_stove: "Nimble", floral_windmill: "Nimble",
+    bouncy_brew_keg: "Energetic", woodworking_bench: "Energetic", phonolfactory_table: "Instinctive", dewy_house: "Instinctive",
+  };
+  for (const building of buildingsData.buildings) {
+    assert.equal(building.personalityBonus, expected[building.id] || null, building.id);
+  }
+  assert.equal(buildingsData.personalityBonusPercent, 20);
+});
+
+test("processors: part-time shares of one Aniimo, shared by Aniimo with the ability", () => {
+  const cook = aniimo("cook", "Cook", { Fire: 2 });
+  const processor = (id) => ({ ...continuousBuilding(id, "Fire"), role: "processor", personalityBonus: "Practical" });
+  const input = {
+    aniimo: [cook],
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings: [processor("kiln"), processor("stove")],
+    buildingState: {},
+  };
+  // Two Fire processors at 50% each: one Aniimo covers both.
+  const half = optimizeWorkforce({ ...input, settings: { mode: "pool", processorBusyPercent: 50 } });
+  assert.equal(half.feasible, true);
+  assert.equal(half.selectedWorkers.length, 1);
+  assert.equal(half.selectedWorkers[0].primaryAssignment, "Part-time processor worker");
+  assert.deepEqual(half.selectedWorkers[0].personalityTips.map((tip) => tip.personality), ["Practical", "Practical"]);
+  // At 75% each they need 1.5 Aniimo, so 2.
+  const most = optimizeWorkforce({ ...input, settings: { mode: "pool", processorBusyPercent: 75 } });
+  assert.equal(most.selectedWorkers.length, 2);
+  // A building's own busy % wins over the level.
+  const own = optimizeWorkforce({
+    ...input,
+    buildingState: { kiln: { count: 1, busyPercent: 10 }, stove: { count: 1, busyPercent: 20 } },
+    settings: { mode: "pool", processorBusyPercent: 100 },
+  });
+  assert.equal(own.selectedWorkers.length, 1);
+  const rows = own.physicalStaffing.filter((row) => row.kind === "processor");
+  assert.deepEqual(rows.map((row) => row.needLabel).sort(), ["10%", "20%"]);
+});
+
+test("processors: a farm helper's farm steps stay under the farm cap, processing fills the rest of the day", () => {
+  const helper = aniimo("helper", "Helper", { Water: 2 });
+  const input = {
+    aniimo: [helper],
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings: [
+      intermittentBuilding("farm", [{ skill: "Water", jobsPerUnit: 1, label: "watering" }]),
+      { ...continuousBuilding("keg", "Water"), role: "processor" },
+    ],
+    buildingState: { farm: { count: 48 }, keg: { count: 1 } },
+  };
+  // 48 plots × 5 s every 20 min = 20% farm work, plus a keg at 60%: 80% of one Aniimo's day.
+  const result = optimizeWorkforce({ ...input, settings: { mode: "pool", processorBusyPercent: 60, maxUtilizationPercent: 50 } });
+  assert.equal(result.feasible, true);
+  assert.equal(result.selectedWorkers.length, 1);
+  assert.equal(result.selectedWorkers[0].primaryAssignment, "Part-time: processors and farm steps");
+  // Farm steps alone above the cap need a second helper even though the day isn't full.
+  const busyFarm = optimizeWorkforce({
+    ...input,
+    buildingState: { farm: { count: 144 }, keg: { count: 0 } },
+    settings: { mode: "pool", maxUtilizationPercent: 50 },
+  });
+  assert.equal(busyFarm.selectedWorkers.length, 2);
+});
+
+test("processor options: player's RV 9 setup fits in 26 spaces, highest fitting level selected", () => {
+  const started = Date.now();
+  const options = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 0 });
+  const elapsed = Date.now() - started;
+  assert.ok(elapsed < 3000, `options took ${elapsed} ms`);
+
+  assert.deepEqual(options.options.map((option) => option.percent), [25, 50, 75, 100]);
+  assert.equal(options.variesWithLevel, true);
+  assert.equal(options.autoProcessors, 15);
+  for (const option of options.options) {
+    assert.equal(option.needed, option.plan.needed);
+    assert.equal(option.fits, option.needed <= 26);
+    assert.equal(option.spare, 26 - option.needed);
+    // Full-time: 5 Mines, 2 Wells, Tidewhisper Sandcastle, Dewy House and the three climate buildings.
+    assert.equal(option.plan.breakdown.buildings, 12);
+  }
+  assert.equal(options.options[0].fits, true, "25% fits in 26 spaces");
+  // Needs grow with the busy level.
+  for (let index = 1; index < options.options.length; index += 1) {
+    assert.ok(options.options[index].needed >= options.options[index - 1].needed);
+  }
+  const highest = options.options.map((option) => option.fits).lastIndexOf(true);
+  assert.equal(options.selectedIndex, highest);
+  const selected = options.options[options.selectedIndex];
+  assert.ok(options.maxFitPercent >= selected.percent);
+  if (options.selectedIndex < options.options.length - 1) {
+    assert.ok(options.maxFitPercent < options.options[options.selectedIndex + 1].percent);
+    assert.equal(options.maxFitPercent % 5, 0);
+  }
+
+  // The selected plan covers every building, farm step and Estimated Require target.
+  const plan = selected.plan;
+  assert.equal(plan.overCapacity, false);
+  assert.equal(plan.full.feasible, true);
+  assert.ok(plan.full.selectedWorkers.length <= 26);
+  assert.ok(plan.full.skillCoverage.every((row) => row.status === "OK"));
+  assert.ok(plan.full.physicalStaffing.every((row) => row.status === "OK"));
+  assert.ok(plan.full.physicalStaffing.some((row) => row.kind === "processor"));
+  assert.ok(plan.full.physicalStaffing.some((row) => row.kind === "farm"));
+  const text = describeCapacityPlan(plan, { rvLevel: 9, processorPercent: selected.percent });
+  assert.match(text.headline, /^Your buildings need \d+ Aniimo with processors \d+% busy \(12 full-time \+ \d+ part-time\), and RV 9 has 26 spaces\.$/);
+});
+
+test("processor options: Homebuilding Zone spaces come out of the same limit", () => {
+  const options = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 4 });
+  assert.ok(options.options.every((option) => option.plan.budget === 22));
+  const selected = options.options[options.selectedIndex];
+  assert.ok(selected.fits);
+  assert.ok(selected.needed <= 22);
+  assert.match(describeCapacityPlan(selected.plan, { rvLevel: 9 }).headline, /4 kept for the Homebuilding Zone, leaving 22/);
+});
+
+test("processor options: when even the lowest level doesn't fit, its best plan that fits is shown", () => {
+  const options = planProcessorOptions({ ...playerInput, capacity: 15, homebuildingReserve: 0 });
+  assert.equal(options.noneFit, true);
+  assert.equal(options.selectedIndex, 0);
+  const plan = options.options[0].plan;
+  assert.equal(plan.overCapacity, true);
+  assert.ok(plan.fitted);
+  assert.ok(plan.fitted.selectedWorkers.length <= 15);
+  assert.ok(options.maxFitPercent === null || options.maxFitPercent < 25);
+  // Only spare copies of full-time buildings are left idle.
+  for (const job of plan.idleJobs) assert.ok(PLAYER_COUNTS[job.buildingId] > 1, job.buildingId);
+});
+
+test("processor options: no processors following the level gives a single plan", () => {
+  const buildingState = { ...playerInput.buildingState };
+  for (const building of buildingsData.buildings) {
+    if (building.role === "processor") buildingState[building.id] = { ...buildingState[building.id], busyPercent: 30 };
+  }
+  const options = planProcessorOptions({ ...playerInput, buildingState, capacity: 26, homebuildingReserve: 0 });
+  assert.equal(options.variesWithLevel, false);
+  assert.equal(options.options.length, 1);
+  assert.equal(options.options[0].percent, null);
+  assert.equal(options.options[0].fits, true);
+});
+
+test("over capacity: at 100% busy the player's setup idles spare copies first", () => {
+  const full = playerFullResult(100);
+  const plan = planForCapacity({ ...withLevel(100), capacity: 24, homebuildingReserve: 0, fullResult: full });
+  assert.equal(plan.breakdown.buildings, 12);
   assert.equal(plan.overCapacity, true);
   assert.equal(plan.needed, full.selectedWorkers.length);
-  assert.equal(plan.overBy, plan.needed - 26);
+  assert.equal(plan.overBy, plan.needed - 24);
   assert.ok(plan.minimumPossible <= plan.needed);
-  const text = describeCapacityPlan(plan, { rvLevel: 9 });
-  assert.match(text.headline, /^Your buildings need \d+ Aniimo \(27 buildings \+ \d farm helpers?\), but RV 9 has 26 spaces – \d+ over\.$/);
-  assert.ok(text.minimum.length > 0);
+  const text = describeCapacityPlan(plan, { rvLevel: 9, processorPercent: 100 });
+  assert.match(text.headline, /^Your buildings need \d+ Aniimo with processors 100% busy \(12 full-time \+ \d+ part-time\), but RV 9 has 24 spaces – \d+ over\.$/);
 
-  // Fitted plan: no more than 26 Aniimo, every farm step covered, remaining buildings staffed.
   const fitted = plan.fitted;
   assert.ok(fitted);
-  assert.ok(fitted.selectedWorkers.length <= 26);
+  assert.ok(fitted.selectedWorkers.length <= 24);
   assert.equal(fitted.unfilledFarmTasks.length, 0);
-  assert.equal(fitted.unfilledJobs.length, 0);
-  assert.ok(fitted.physicalStaffing.filter((row) => row.type === "Intermittent").every((row) => row.status === "OK"));
-  assert.ok(fitted.physicalStaffing.some((row) => row.type === "Intermittent"));
-
-  // Only spare copies are left idle: Mines, the 2nd Carousel Mill or the 2nd Well, never the only one.
   const idle = new Map();
   for (const job of plan.idleJobs) idle.set(job.buildingId, (idle.get(job.buildingId) || 0) + 1);
-  assert.equal(plan.idleJobs.length, plan.needed - 26);
   for (const [id, count] of idle) {
     assert.ok(PLAYER_COUNTS[id] > 1, `${id} is the only one of its kind`);
     assert.ok(count < PLAYER_COUNTS[id], `every ${id} left idle`);
   }
-
-  // Grouped summary: one entry per building type, never one line per copy.
-  const summary = plan.shortfalls;
-  assert.equal(summary.idle.reduce((sum, group) => sum + group.count, 0), plan.idleJobs.length);
-  assert.equal(new Set(summary.idle.map((group) => group.name)).size, summary.idle.length);
-  const idleLine = summary.lines.find((line) => line.startsWith("Left idle: "));
+  const idleLine = plan.shortfalls.lines.find((line) => line.startsWith("Left idle: "));
   assert.ok(idleLine);
   assert.match(idleLine, /^Left idle: [A-Za-z ]+ ×\d+(, [A-Za-z ]+ ×\d+)*$/);
-  assert.ok(summary.lines.length <= 4, summary.lines.join(" | "));
-  // Totals shortfalls, if any, are one "Short on" line.
-  assert.ok(summary.lines.filter((line) => line.startsWith("Short on")).length <= 1);
+  assert.ok(plan.shortfalls.lines.length <= 4, plan.shortfalls.lines.join(" | "));
 });
 
-test("over capacity: Homebuilding Zone spaces come out of the same limit", () => {
-  const plan = planForCapacity({ ...playerInput, capacity: 26, homebuildingReserve: 4, fullResult: playerFullResult() });
-  assert.equal(plan.budget, 22);
-  assert.ok(plan.fitted.selectedWorkers.length <= 22);
-  assert.equal(plan.fitted.unfilledFarmTasks.length, 0);
-  assert.match(describeCapacityPlan(plan, { rvLevel: 9 }).headline, /4 kept for the Homebuilding Zone, leaving 22/);
+test("personalities to look for: ranked by work sped up, per building and ability", () => {
+  const list = personalityRecommendations({ ...playerInput, settings: { processorBusyPercent: 50 } });
+  const find = (personality, skill) => list.find((item) => item.personality === personality && item.skill === skill);
+  assert.equal(list[0].personality, "Playful");
+  assert.equal(list[0].skill, "Earth");
+  assert.equal(list[0].weight, 5);
+  const practical = find("Practical", "Fire");
+  assert.deepEqual(practical.buildings.map((item) => item.name).sort(), ["Chimney Kiln", "Claw Game Cooker"]);
+  assert.equal(practical.weight, 1);
+  // Carousel Mill ×2 at 50% is one Aniimo's work.
+  assert.equal(find("Tenacious", "Wind").buildings.find((item) => item.buildingId === "carousel_mill").weight, 1);
+  // No personality speeds up farm plots, the Aniipod Maker or climate buildings.
+  assert.ok(!list.some((item) => item.buildings.some((building) => ["farmland", "woodland", "aniipod_maker", "sunlamp"].includes(building.buildingId))));
+  for (let index = 1; index < list.length; index += 1) assert.ok(list[index - 1].weight >= list[index].weight);
 });
 
 test("within capacity: the full plan is unchanged and no buildings are idled", () => {
-  const full = playerFullResult();
-  const plan = planForCapacity({ ...playerInput, capacity: 40, homebuildingReserve: 0, fullResult: full });
+  const full = playerFullResult(100);
+  const plan = planForCapacity({ ...withLevel(100), capacity: 40, homebuildingReserve: 0, fullResult: full });
   assert.equal(plan.overCapacity, false);
   assert.equal(plan.fitted, null);
   assert.equal(plan.full, full);
