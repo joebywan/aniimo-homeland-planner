@@ -9,7 +9,8 @@ window.ANIIMO_BUILDINGS_DATA = {
     "maxByRv is placementLimit as data: each {rv, max} step gives how many of the building you can place from that RV level on. The planner fills building counts with the max for the chosen RV level. Farmland, Woodland and Mine steps (maxByRvVerified: false) come from the RV upgrade requirements; see maxByRvNotes.",
     "role: 'primary' buildings make goods from nothing (aniimo.gg 'Materials Production', recipes say 'No inputs') and are assumed to run full time; Farmland and Woodland keep the shared plot model. 'processor' buildings (aniimo.gg 'Materials Processing' and 'Item Production') turn other goods into products, so they only work while inputs last and the planner counts them as a share of one Aniimo. 'climate' (Cooling Unit, Heat Furnace, Sunlamp) and 'power' (Crackle Generator) each hold an Aniimo that does no other work (Hideout's Homeland Optimizer). Checked 2026-09-28 against aniimo.gg object pages and AniimoTools station recipe tables.",
     "personalityBonus: the personality that works 20% faster at that building (AniimoTools station pages, e.g. 'Aniimo with the Nimble personality work 20 % faster here'; Hideout: 'a matching personality adds a fifth on top'). Farmland, Woodland, Aniipod Maker, Dance Pad Polisher, climate buildings and the Crackle Generator have none. Personalities are random on each Aniimo you catch, not fixed per species (confirmed in-game by a player), so the planner recommends a personality per building and ability, never per species.",
-    "allowedSpecies: only Aniimo of these species (any form, including Prismana) can work the building, whatever their level (AniimoTools station recipe tables: 'Family only · …'; Dewy House and Tidewhisper Sandcastle confirmed in-game by a player). The list is every recipe's family together; familyRecipes says which family works which recipe. Only the five Leisure buildings have such limits."
+    "allowedSpecies: only Aniimo of these species (any form, including Prismana) can work the building, whatever their level (AniimoTools station recipe tables: 'Family only · …'; Dewy House and Tidewhisper Sandcastle confirmed in-game by a player). The list is every recipe's family together. familyRecipes says which family works which recipe, the facility level that recipe needs (level) and any climate building it relies on (prerequisites: effect 'required' = no work without it, 'slower' = 80% speed without it). With an RV level chosen, the planner assumes each building is at the highest level that RV allows (maxLevelByRv) and only lets the families of recipes at or below that level work there. Only the five Leisure buildings have such limits.",
+    "maxLevelByRv: each {rv, max} step gives the highest facility level (upgrade) you can build from that RV level on, from the 'Unlocks at RV Lv.' column of AniimoTools' station pages, matched by every aniimo.gg level page ('Unlock RV Lv.') and, for the nine production buildings it lists, Hideout's optimiser ('homeLevel'). Checked 2026-09-28. The Crackle Generator's levels follow the Power Module instead (see its maxLevelByRvNotes)."
   ],
   "sources": [
     {
@@ -149,6 +150,42 @@ window.ANIIMO_BUILDINGS_DATA = {
       ],
       "maxByRvVerified": false,
       "maxByRvNotes": "Intermediate steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place this many at RV N, e.g. \"Place 18 farmlands\" before RV 10). They match both published end points (4 from RV 1, up to 40 from RV 19) but the in-game cap at each level has not been confirmed directly.",
+      "maxLevelByRv": [
+        {
+          "rv": 1,
+          "max": 1
+        },
+        {
+          "rv": 2,
+          "max": 2
+        },
+        {
+          "rv": 5,
+          "max": 3
+        },
+        {
+          "rv": 7,
+          "max": 4
+        },
+        {
+          "rv": 9,
+          "max": 5
+        },
+        {
+          "rv": 12,
+          "max": 6
+        },
+        {
+          "rv": 16,
+          "max": 7
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/farmland/",
+        "https://aniimo.gg/homeland/object/farmland-level-7/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "maxByRvSource": "https://aniimotools.dev/systems/homeland/rv-levels/",
       "recommendedLevel": "1",
       "notes": "Worked by Earth, Grass, Water and Dark Aniimo, each doing its own step. A shared crew covers several plots: AniimoTools' simulator uses 1 Aniimo per job for every 8 plots.",
@@ -272,6 +309,38 @@ window.ANIIMO_BUILDINGS_DATA = {
       ],
       "maxByRvVerified": false,
       "maxByRvNotes": "Intermediate steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place this many at RV N, e.g. \"Place 18 farmlands\" before RV 10). They match both published end points (3 from RV 2, up to 20 from RV 19) but the in-game cap at each level has not been confirmed directly.",
+      "maxLevelByRv": [
+        {
+          "rv": 2,
+          "max": 1
+        },
+        {
+          "rv": 4,
+          "max": 2
+        },
+        {
+          "rv": 7,
+          "max": 3
+        },
+        {
+          "rv": 11,
+          "max": 4
+        },
+        {
+          "rv": 14,
+          "max": 5
+        },
+        {
+          "rv": 18,
+          "max": 6
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/woodland/",
+        "https://aniimo.gg/homeland/object/woodland-level-6/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "maxByRvSource": "https://aniimotools.dev/systems/homeland/rv-levels/",
       "recommendedLevel": "1",
       "notes": "Same four work steps as Farmland (Earth, Grass, Water, Dark). AniimoTools' simulator uses 1 Aniimo per job for every 8 plots.",
@@ -314,6 +383,37 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 2,
+          "max": 1
+        },
+        {
+          "rv": 5,
+          "max": 2
+        },
+        {
+          "rv": 9,
+          "max": 3
+        },
+        {
+          "rv": 13,
+          "max": 4
+        },
+        {
+          "rv": 16,
+          "max": 5
+        },
+        {
+          "rv": 18,
+          "max": 6
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/carousel-mill/",
+        "https://aniimo.gg/homeland/object/carousel-mill-level-6/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Tenacious",
       "notes": "Aniimo with the Tenacious personality work 20% faster here. Recipes recommend Wind Lv 1–3; any level can work, higher is faster.",
@@ -350,6 +450,25 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 2,
+          "max": 1
+        },
+        {
+          "rv": 5,
+          "max": 2
+        },
+        {
+          "rv": 7,
+          "max": 3
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/dance-pad-polisher/",
+        "https://aniimo.gg/homeland/object/dance-pad-polisher-level-3/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": null,
       "notes": "Recipes recommend Lightning Lv 1–3; any level can work, higher is faster.",
@@ -419,6 +538,38 @@ window.ANIIMO_BUILDINGS_DATA = {
       ],
       "maxByRvVerified": false,
       "maxByRvNotes": "Intermediate steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place this many at RV N, e.g. \"Place 18 farmlands\" before RV 10). They match both published end points (2 from RV 3, up to 10 from RV 19) but the in-game cap at each level has not been confirmed directly.",
+      "maxLevelByRv": [
+        {
+          "rv": 3,
+          "max": 1
+        },
+        {
+          "rv": 6,
+          "max": 2
+        },
+        {
+          "rv": 9,
+          "max": 3
+        },
+        {
+          "rv": 12,
+          "max": 4
+        },
+        {
+          "rv": 15,
+          "max": 5
+        },
+        {
+          "rv": 18,
+          "max": 6
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/mine/",
+        "https://aniimo.gg/homeland/object/mine-level-6/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "maxByRvSource": "https://aniimotools.dev/systems/homeland/rv-levels/",
       "recommendedLevel": "1–3",
       "personalityBonus": "Playful",
@@ -460,6 +611,45 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 3,
+          "max": 1
+        },
+        {
+          "rv": 5,
+          "max": 2
+        },
+        {
+          "rv": 7,
+          "max": 3
+        },
+        {
+          "rv": 9,
+          "max": 4
+        },
+        {
+          "rv": 12,
+          "max": 5
+        },
+        {
+          "rv": 15,
+          "max": 6
+        },
+        {
+          "rv": 18,
+          "max": 7
+        },
+        {
+          "rv": 20,
+          "max": 8
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/crafting-table/",
+        "https://aniimo.gg/homeland/object/crafting-table-level-8/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Judicious",
       "notes": "Aniimo with the Judicious personality work 20% faster here. Recipes recommend Artisanship Lv 1–3; any level can work, higher is faster.",
@@ -496,6 +686,25 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 3,
+          "max": 1
+        },
+        {
+          "rv": 6,
+          "max": 2
+        },
+        {
+          "rv": 9,
+          "max": 3
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/aniipod-maker/",
+        "https://aniimo.gg/homeland/object/aniipod-maker-level-3/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": null,
       "notes": "Recipes recommend Lightning Lv 1–3; any level can work, higher is faster.",
@@ -544,6 +753,34 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 4,
+          "max": 1
+        },
+        {
+          "rv": 8,
+          "max": 2
+        },
+        {
+          "rv": 11,
+          "max": 3
+        },
+        {
+          "rv": 13,
+          "max": 4
+        },
+        {
+          "rv": 17,
+          "max": 5
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/well/",
+        "https://aniimo.gg/homeland/object/well-level-5/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Faithful",
       "notes": "Aniimo with the Faithful personality work 20% faster here. Recipes recommend Water Lv 1–3; any level can work, higher is faster.",
@@ -584,6 +821,41 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 4,
+          "max": 1
+        },
+        {
+          "rv": 5,
+          "max": 2
+        },
+        {
+          "rv": 7,
+          "max": 3
+        },
+        {
+          "rv": 9,
+          "max": 4
+        },
+        {
+          "rv": 12,
+          "max": 5
+        },
+        {
+          "rv": 16,
+          "max": 6
+        },
+        {
+          "rv": 19,
+          "max": 7
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/claw-game-cooker/",
+        "https://aniimo.gg/homeland/object/claw-game-cooker-level-7/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Practical",
       "notes": "Aniimo with the Practical personality work 20% faster here. Recipes recommend Fire Lv 1–3; any level can work, higher is faster.",
@@ -624,6 +896,41 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 4,
+          "max": 1
+        },
+        {
+          "rv": 5,
+          "max": 2
+        },
+        {
+          "rv": 7,
+          "max": 3
+        },
+        {
+          "rv": 10,
+          "max": 4
+        },
+        {
+          "rv": 12,
+          "max": 5
+        },
+        {
+          "rv": 14,
+          "max": 6
+        },
+        {
+          "rv": 18,
+          "max": 7
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/jukebox-dryer/",
+        "https://aniimo.gg/homeland/object/jukebox-dryer-level-7/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Nimble",
       "notes": "Aniimo with the Nimble personality work 20% faster here. Recipes recommend Dark Lv 1–3; any level can work, higher is faster.",
@@ -664,6 +971,37 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 5,
+          "max": 1
+        },
+        {
+          "rv": 7,
+          "max": 2
+        },
+        {
+          "rv": 9,
+          "max": 3
+        },
+        {
+          "rv": 12,
+          "max": 4
+        },
+        {
+          "rv": 15,
+          "max": 5
+        },
+        {
+          "rv": 18,
+          "max": 6
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/simmering-pot/",
+        "https://aniimo.gg/homeland/object/simmering-pot-level-6/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Tenacious",
       "notes": "Aniimo with the Tenacious personality work 20% faster here. Recipes recommend Fire Lv 1–3; any level can work, higher is faster.",
@@ -704,6 +1042,26 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 5,
+          "max": 1
+        },
+        {
+          "rv": 8,
+          "max": 2
+        },
+        {
+          "rv": 13,
+          "max": 3
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/tidewhisper-sandcastle/",
+        "https://aniimo.gg/homeland/object/tidewhisper-sandcastle-level-3/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Judicious",
       "notes": "Aniimo with the Judicious personality work 20% faster here. Recipes recommend Leisure Lv 1–3; any level can work, higher is faster.",
@@ -724,26 +1082,44 @@ window.ANIIMO_BUILDINGS_DATA = {
       ],
       "familyRecipes": [
         {
-          "recipe": "Sea Salt (Level 1 and 2)",
+          "recipe": "Sea Salt",
+          "family": "Susuta",
+          "level": 1,
           "species": [
             "Panpanta",
             "Piopiota",
             "Popota",
             "Susuta"
-          ]
+          ],
+          "prerequisites": [],
+          "notes": "Level 1 recipe; Level 2 adds a bigger Sea Salt recipe for the same family (Quick Recipe, unlocks with the Lv 2 Resource Detector, RV 8).",
+          "source": "https://aniimotools.dev/systems/homeland/stations/tidewhisper-sandcastle/"
         },
         {
-          "recipe": "Pearl (Level 3, needs a Heat Furnace nearby)",
+          "recipe": "Pearl",
+          "family": "Sherro",
+          "level": 3,
           "species": [
             "Sherro",
             "Sheldon",
             "Shelly"
-          ]
+          ],
+          "prerequisites": [
+            {
+              "buildingId": "heat_furnace",
+              "name": "Heat Furnace",
+              "effect": "slower",
+              "speedWithout": 0.8,
+              "note": "Warmth +1: works at 80% speed without a Heat Furnace nearby"
+            }
+          ],
+          "notes": "Level 3 recipe (Sandcastle Level 3 unlocks at RV 13).",
+          "source": "https://aniimotools.dev/systems/homeland/stations/tidewhisper-sandcastle/"
         }
       ],
       "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/tidewhisper-sandcastle/",
       "allowedSpeciesVerified": true,
-      "allowedSpeciesNotes": "Player-confirmed in-game; AniimoTools recipe table. The Sherro family only works the Level 3 Pearl recipe; at Level 1 and 2 only the Susuta family (Susuta, Popota, Piopiota, Panpanta) can work here."
+      "allowedSpeciesNotes": "Player-confirmed in-game; AniimoTools recipe table. The Sherro family (Sherro, Sheldon, Shelly) only works the Level 3 Pearl recipe (Sandcastle Level 3 from RV 13); at Level 1 and 2 only the Susuta family (Susuta, Popota, Piopiota, Panpanta) can work here."
     },
     {
       "id": "bouncy_brew_keg",
@@ -775,6 +1151,33 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 9,
+          "max": 2
+        },
+        {
+          "rv": 13,
+          "max": 3
+        },
+        {
+          "rv": 17,
+          "max": 4
+        },
+        {
+          "rv": 19,
+          "max": 5
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/bouncy-brew-keg/",
+        "https://aniimo.gg/homeland/object/bouncy-brew-keg-level-5/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Energetic",
       "notes": "Aniimo with the Energetic personality work 20% faster here. Recipes recommend Water Lv 2–3; any level can work, higher is faster.",
@@ -823,6 +1226,29 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 14,
+          "max": 3
+        },
+        {
+          "rv": 18,
+          "max": 4
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/chimney-kiln/",
+        "https://aniimo.gg/homeland/object/chimney-kiln-level-4/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Practical",
       "notes": "Aniimo with the Practical personality work 20% faster here. Recipes recommend Fire Lv 2–3; any level can work, higher is faster.",
@@ -871,6 +1297,29 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 14,
+          "max": 3
+        },
+        {
+          "rv": 18,
+          "max": 4
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/woodworking-bench/",
+        "https://aniimo.gg/homeland/object/woodworking-bench-level-4/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Energetic",
       "notes": "Aniimo with the Energetic personality work 20% faster here. Recipes recommend Artisanship Lv 2–3; any level can work, higher is faster.",
@@ -911,6 +1360,37 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 7,
+          "max": 2
+        },
+        {
+          "rv": 10,
+          "max": 3
+        },
+        {
+          "rv": 14,
+          "max": 4
+        },
+        {
+          "rv": 17,
+          "max": 5
+        },
+        {
+          "rv": 19,
+          "max": 6
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/phonolfactory-table/",
+        "https://aniimo.gg/homeland/object/phonolfactory-table-level-6/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Instinctive",
       "notes": "Aniimo with the Instinctive personality work 20% faster here. Recipes recommend Perfumery Lv 2–3; any level can work, higher is faster.",
@@ -951,6 +1431,22 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 11,
+          "max": 2
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/dewy-house/",
+        "https://aniimo.gg/homeland/object/dewy-house-level-2/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Instinctive",
       "notes": "Aniimo with the Instinctive personality work 20% faster here. Recipes recommend Leisure Lv 2–3; any level can work, higher is faster.",
@@ -966,11 +1462,16 @@ window.ANIIMO_BUILDINGS_DATA = {
       ],
       "familyRecipes": [
         {
-          "recipe": "Aromathyst (Level 1 and 2)",
+          "recipe": "Aromathyst",
+          "family": "Dewy",
+          "level": 1,
           "species": [
             "Fragrancier",
             "Dewy"
-          ]
+          ],
+          "prerequisites": [],
+          "notes": "Level 1 recipe; Level 2 (RV 11) adds a bigger Aromathyst recipe for the same family (unlocks with the Lv 3 Resource Detector).",
+          "source": "https://aniimotools.dev/systems/homeland/stations/dewy-house/"
         }
       ],
       "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/dewy-house/",
@@ -1007,6 +1508,29 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 7,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 15,
+          "max": 3
+        },
+        {
+          "rv": 19,
+          "max": 4
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/joy-wheel-loom/",
+        "https://aniimo.gg/homeland/object/joy-wheel-loom-level-4/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Faithful",
       "notes": "Aniimo with the Faithful personality work 20% faster here. Recipes recommend Wind Lv 2–3; any level can work, higher is faster.",
@@ -1051,6 +1575,17 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 7,
+          "max": 1
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/heat-furnace/",
+        "https://aniimo.gg/homeland/object/heat-furnace/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1 (required)",
       "personalityBonus": null,
       "notes": "Only sets the climate of nearby plots/facilities while a Fire Aniimo works it. Recipes recommend Fire Lv 1 (required); any level can work, higher is faster.",
@@ -1095,6 +1630,17 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 7,
+          "max": 1
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/cooling-unit/",
+        "https://aniimo.gg/homeland/object/cooling-unit/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1–2 (required)",
       "personalityBonus": null,
       "notes": "Only sets the climate of nearby plots/facilities while a Ice Aniimo works it. AniimoTools lists 'Lv 1–2 required'; stronger cold (−2) may need a level 2 Ice Aniimo (unverified). Recipes recommend Ice Lv 1–2 (required); any level can work, higher is faster.",
@@ -1135,6 +1681,33 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 8,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 13,
+          "max": 3
+        },
+        {
+          "rv": 16,
+          "max": 4
+        },
+        {
+          "rv": 18,
+          "max": 5
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/blazing-stove/",
+        "https://aniimo.gg/homeland/object/blazing-stove-level-5/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Nimble",
       "notes": "Aniimo with the Nimble personality work 20% faster here. Recipes recommend Fire Lv 2–3; any level can work, higher is faster.",
@@ -1175,6 +1748,33 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 8,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 13,
+          "max": 3
+        },
+        {
+          "rv": 16,
+          "max": 4
+        },
+        {
+          "rv": 19,
+          "max": 5
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/pickling-jar/",
+        "https://aniimo.gg/homeland/object/pickling-jar-level-5/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Playful",
       "notes": "Aniimo with the Playful personality work 20% faster here. Recipes recommend Dark Lv 2–3; any level can work, higher is faster.",
@@ -1219,6 +1819,17 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 9,
+          "max": 1
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/sunlamp/",
+        "https://aniimo.gg/homeland/object/sunlamp/"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "1 (required)",
       "personalityBonus": null,
       "notes": "Only sets the climate of nearby plots/facilities while a Light Aniimo works it. Recipes recommend Light Lv 1 (required); any level can work, higher is faster.",
@@ -1259,6 +1870,26 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 10,
+          "max": 1
+        },
+        {
+          "rv": 13,
+          "max": 2
+        },
+        {
+          "rv": 16,
+          "max": 3
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/nimbus-bed/",
+        "https://aniimo.gg/homeland/object/nimbus-bed-level-3/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Judicious",
       "notes": "Aniimo with the Judicious personality work 20% faster here. Recipes recommend Leisure Lv 2–3; any level can work, higher is faster.",
@@ -1278,25 +1909,35 @@ window.ANIIMO_BUILDINGS_DATA = {
       ],
       "familyRecipes": [
         {
-          "recipe": "Wool (Level 1 and 2)",
+          "recipe": "Wool",
+          "family": "Nimbi",
+          "level": 1,
           "species": [
             "Turbo",
             "Dreaple",
             "Nimbi"
-          ]
+          ],
+          "prerequisites": [],
+          "notes": "Level 1 recipe; Level 2 (RV 13) adds a bigger Wool recipe for the same family (unlocks with the Lv 5 Resource Detector).",
+          "source": "https://aniimotools.dev/systems/homeland/stations/nimbus-bed/"
         },
         {
-          "recipe": "Petals (Level 3)",
+          "recipe": "Petals",
+          "family": "Iris",
+          "level": 3,
           "species": [
             "Irisal",
             "Irisalis",
             "Iris"
-          ]
+          ],
+          "prerequisites": [],
+          "notes": "Level 3 recipe (Nimbus Bed Level 3 unlocks at RV 16).",
+          "source": "https://aniimotools.dev/systems/homeland/stations/nimbus-bed/"
         }
       ],
       "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/nimbus-bed/",
       "allowedSpeciesVerified": false,
-      "allowedSpeciesNotes": "AniimoTools recipe table; not yet checked in-game. The Iris family only works the Level 3 Petals recipe."
+      "allowedSpeciesNotes": "AniimoTools recipe table; not yet checked in-game. The Iris family (Iris, Irisal, Irisalis) only works the Level 3 Petals recipe (Nimbus Bed Level 3 from RV 16); at Level 1 and 2 only the Nimbi family (Nimbi, Dreaple, Turbo) can work here."
     },
     {
       "id": "crackle_generator",
@@ -1332,6 +1973,35 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 12,
+          "max": 1
+        },
+        {
+          "rv": 14,
+          "max": 2
+        },
+        {
+          "rv": 16,
+          "max": 3
+        },
+        {
+          "rv": 18,
+          "max": 4
+        },
+        {
+          "rv": 20,
+          "max": 5
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/crackle-generator/",
+        "https://aniimotools.dev/systems/homeland/rv-levels/",
+        "https://aniimo.gg/homeland/object/crackle-generator-level-1/"
+      ],
+      "maxLevelByRvVerified": true,
+      "maxLevelByRvNotes": "Crackle Generator levels follow the Power Module (Level N needs Power Module Lv N; AniimoTools and aniimo.gg). The Power Module levels need RV 12, 14, 16, 18 and 20 (AniimoTools RV levels page), so each step here is the RV that allows that Power Module level. The generator's own pages give no RV directly.",
       "recommendedLevel": "1–3",
       "personalityBonus": null,
       "notes": "Powers the Home's E-mode; unlocked by the RV Power Module. Recipes recommend Lightning Lv 1–3; any level can work, higher is faster.",
@@ -1372,6 +2042,18 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 12,
+          "max": 1
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/starfall-hammock/",
+        "https://aniimo.gg/homeland/object/starfall-hammock/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "3",
       "personalityBonus": "Faithful",
       "notes": "Aniimo with the Faithful personality work 20% faster here. Recipes recommend Leisure Lv 3; any level can work, higher is faster.",
@@ -1388,10 +2070,23 @@ window.ANIIMO_BUILDINGS_DATA = {
       "familyRecipes": [
         {
           "recipe": "Star",
+          "family": "Stellarys",
+          "level": 1,
           "species": [
             "Stellarys",
             "Celestis"
-          ]
+          ],
+          "prerequisites": [
+            {
+              "buildingId": "cooling_unit",
+              "name": "Cooling Unit",
+              "effect": "slower",
+              "speedWithout": 0.8,
+              "note": "Cold −1: works at 80% speed without a Cooling Unit nearby"
+            }
+          ],
+          "notes": "The Hammock has only Level 1.",
+          "source": "https://aniimotools.dev/systems/homeland/stations/starfall-hammock/"
         }
       ],
       "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/starfall-hammock/",
@@ -1424,6 +2119,18 @@ window.ANIIMO_BUILDINGS_DATA = {
         }
       ],
       "maxByRvVerified": true,
+      "maxLevelByRv": [
+        {
+          "rv": 18,
+          "max": 1
+        }
+      ],
+      "maxLevelByRvSource": [
+        "https://aniimotools.dev/systems/homeland/stations/floral-windmill/",
+        "https://aniimo.gg/homeland/object/floral-windmill/",
+        "https://www.hideoutgacha.com/games/aniimo/homeland-optimizer"
+      ],
+      "maxLevelByRvVerified": true,
       "recommendedLevel": "3",
       "personalityBonus": "Nimble",
       "notes": "Aniimo with the Nimble personality work 20% faster here. Recipes recommend Leisure Lv 3; any level can work, higher is faster.",
@@ -1441,11 +2148,23 @@ window.ANIIMO_BUILDINGS_DATA = {
       "familyRecipes": [
         {
           "recipe": "Scales",
+          "family": "Somniwing",
+          "level": 1,
           "species": [
             "Somniwing",
             "Gracewing",
             "Flutternym"
-          ]
+          ],
+          "prerequisites": [
+            {
+              "buildingId": "sunlamp",
+              "name": "Sunlamp",
+              "effect": "required",
+              "note": "Light: no work at all without a Sunlamp nearby"
+            }
+          ],
+          "notes": "The Windmill has only Level 1; a second, bigger Scales recipe unlocks with the Lv 8 Resource Detector (RV 19).",
+          "source": "https://aniimotools.dev/systems/homeland/stations/floral-windmill/"
         }
       ],
       "allowedSpeciesSource": "https://aniimotools.dev/systems/homeland/stations/floral-windmill/",

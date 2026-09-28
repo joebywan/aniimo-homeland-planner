@@ -442,6 +442,8 @@
       const count = setBuildingCount(building, input.value);
       if (Number(input.value) !== count) input.value = count;
       updateBuildingRow(input.closest("tr"), building);
+      // A family recipe may need a climate building (the Floral Windmill needs a Sunlamp).
+      refreshFamilyNotes();
       app.buildingNotice = "";
       markDirty();
       renderBuildingToolbar();
@@ -837,6 +839,7 @@
             <td>
               <div class="building-name">
                 <strong>${escapeHtml(building.name)}</strong>
+                <small class="building-level"></small>
               </div>
             </td>
             <td class="type-text">${renderBuildingType(building)}</td>
@@ -902,12 +905,76 @@
     else if (limit.limited) text = limit.unlockRv > 1 ? `from RV ${limit.unlockRv}` : "";
     else text = "your choice";
     note.textContent = text;
+    const levelNote = row.querySelector(".building-level");
+    if (levelNote) {
+      const level = limit.locked ? { text: "", title: "" } : buildingLevelText(building);
+      levelNote.textContent = level.text;
+      levelNote.title = level.title;
+    }
+    const familyNote = row.querySelector("[data-family-note]");
+    if (familyNote) familyNote.textContent = familyNoteText(building);
     note.title =
       building.maxByRvVerified === false && !limit.locked
         ? building.maxByRvNotes || "Not yet confirmed in-game."
         : building.placementLimit
           ? `How many you can place: ${building.placementLimit}`
           : "";
+  }
+
+  function orList(names) {
+    return names.length > 1 ? `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}` : names[0] || "";
+  }
+
+  function getFamilyEligibility(building) {
+    return window.AniimoOptimizer.familyEligibility(building, {
+      rvLevel: app.state.homeland.rvLevel,
+      buildingState: app.state.buildingState,
+      buildings: app.data.buildings.buildings,
+    });
+  }
+
+  // "Only … Aniimo" for a family-only building: the families of recipes open at the assumed level, then any
+  // family whose recipe needs a higher level ("Sherro family from Lv 3") or a missing climate building.
+  function familyNoteText(building) {
+    const info = getFamilyEligibility(building);
+    if (!info) return "";
+    const unconfirmed = building.allowedSpeciesVerified === false ? " (unconfirmed)" : "";
+    // Before the building unlocks, describe it as it will be at Level 1.
+    const lockedBuilding = info.levelKnown && info.level < 1;
+    const aboveLevel = (recipe) => (lockedBuilding ? recipe.level > 1 : recipe.status === "level");
+    const species = [];
+    const later = [];
+    const missing = [];
+    for (const recipe of info.recipes) {
+      if (aboveLevel(recipe)) {
+        later.push(`${recipe.family} family from Lv ${recipe.level}${recipe.unlockRv ? ` (RV ${recipe.unlockRv})` : ""}`);
+        continue;
+      }
+      if (!info.levelKnown && recipe.level > 1) later.push(`${recipe.family} family only at Lv ${recipe.level}+`);
+      for (const name of recipe.species) if (!species.includes(name)) species.push(name);
+      for (const name of recipe.status === "prerequisite" ? recipe.missing : []) if (!missing.includes(name)) missing.push(name);
+    }
+    const parts = [`Only ${orList(species)} Aniimo${unconfirmed}`];
+    if (missing.length) parts.push(`no work without a ${orList(missing)}`);
+    return [...parts, ...later].join(" · ");
+  }
+
+  // Assumed facility level: the most the chosen RV level allows.
+  function buildingLevelText(building) {
+    const info = window.AniimoOptimizer.buildingLevelForRv(building, app.state.homeland.rvLevel);
+    if (!info.known || info.level < 1) return { text: "", title: "" };
+    const next = info.next ? ` Lv ${info.next.level} unlocks at RV ${info.next.rv}.` : " That is its top level.";
+    return {
+      text: `Lv ${info.level} (max for RV ${info.rv})`,
+      title: `Assumed upgraded to the highest level RV ${info.rv} allows.${next}`,
+    };
+  }
+
+  function refreshFamilyNotes() {
+    document.querySelectorAll("#buildingTable tr[data-building-row]").forEach((row) => {
+      const note = row.querySelector("[data-family-note]");
+      if (note) note.textContent = familyNoteText(getBuilding(row.dataset.buildingRow));
+    });
   }
 
   function renderBuildingToolbar() {
@@ -951,10 +1018,8 @@
       const role = window.AniimoOptimizer.buildingRole(building);
       const skillsText = (building.requirements || []).map((requirement) => requirement.skill).join("/");
       if (Array.isArray(building.allowedSpecies) && building.allowedSpecies.length) {
-        const names = building.allowedSpecies;
-        const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}` : names[0];
-        const unconfirmed = building.allowedSpeciesVerified === false ? " (unconfirmed)" : "";
-        family = `<span class="family-note" title="${escapeAttr(building.allowedSpeciesNotes || "")}">Only ${escapeHtml(list)} Aniimo${unconfirmed}</span>`;
+        // Filled by updateBuildingRow: it depends on the RV level and on the climate buildings placed.
+        family = `<span class="family-note" data-family-note title="${escapeAttr(building.allowedSpeciesNotes || "")}"></span>`;
       }
       if (role === "processor") note = `Only busy while it has inputs; any ${skillsText} Aniimo can take a turn`;
       else if (role === "climate") note = "Holds 1 Aniimo that does no other work";
@@ -1309,7 +1374,8 @@
         requirements: app.state.requirements,
         buildings: app.data.buildings.buildings,
         buildingState: app.state.buildingState,
-        settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds() },
+        // The RV level sets each building's assumed level, and so which families can work family-only buildings.
+        settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds(), rvLevel: app.state.homeland.rvLevel },
         capacity: capacity.known ? capacity.capacity : null,
         homebuildingReserve: getHomebuildingReserve(),
       });
@@ -1497,7 +1563,10 @@
     const list = window.AniimoOptimizer.personalityRecommendations({
       buildings: app.data.buildings.buildings,
       buildingState: app.state.buildingState,
-      settings: option && Number.isFinite(option.percent) ? { processorBusyPercent: option.percent } : {},
+      settings: {
+        rvLevel: app.state.homeland.rvLevel,
+        ...(option && Number.isFinite(option.percent) ? { processorBusyPercent: option.percent } : {}),
+      },
     });
     if (!list.length) {
       container.className = "empty-state";

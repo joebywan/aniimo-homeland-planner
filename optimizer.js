@@ -265,9 +265,18 @@
     const cycleSeconds = clampNumber(settings.cycleDurationMinutes, 20, 0.1, 10080) * 60;
     const overhead = clampNumber(settings.overheadMultiplier, 1, 0.1, 20);
 
+    const inactiveBuildings = [];
     for (const building of buildings || []) {
       const state = getBuildingState(building, buildingState);
       if (!state.enabled || state.count <= 0) continue;
+      // Family-only buildings: only the families of recipes open at the building's assumed level.
+      const family = familyEligibility(building, { rvLevel: settings.rvLevel, buildingState, buildings });
+      const allowedSpecies = family ? family.species : null;
+      if (family && !allowedSpecies.length) {
+        // No recipe can run (every one is above the level, or needs a missing climate building): nothing to staff.
+        inactiveBuildings.push({ buildingId: building.id, name: building.name, count: state.count, recipes: family.recipes });
+        continue;
+      }
 
       if (isPartTimeProcessor(building)) {
         // Part-time processor: a share of one Aniimo per building, shared by every Aniimo with the ability.
@@ -286,7 +295,7 @@
           busyPercent: Math.round(share * 100),
           label: `${building.name}${state.count > 1 ? ` ×${state.count}` : ""}`,
           personalityBonus: building.personalityBonus || null,
-          allowedSpecies: Array.isArray(building.allowedSpecies) && building.allowedSpecies.length ? building.allowedSpecies : null,
+          allowedSpecies,
           load: state.count * slots * share,
         });
         continue;
@@ -303,7 +312,7 @@
               label: `${building.name} ${slots > 1 ? `${unit}.${slot}` : state.count > 1 ? `${unit}` : ""}`.trim(),
               role: buildingRole(building),
               personalityBonus: building.personalityBonus || null,
-              allowedSpecies: Array.isArray(building.allowedSpecies) && building.allowedSpecies.length ? building.allowedSpecies : null,
+              allowedSpecies,
               requirements: building.requirements || [],
             });
           }
@@ -335,6 +344,7 @@
     return {
       continuousJobs,
       intermittentTasks: [...intermittentByKey.values()].filter((task) => task.load > 0.0001),
+      inactiveBuildings,
     };
   }
 
@@ -1605,6 +1615,72 @@
     return { limited: true, known: true, max: Math.floor(max), locked: false, unlockRv };
   }
 
+  // Highest facility level (upgrade) a building can have at an RV level: building.maxLevelByRv = [{ rv, max }].
+  // Returns { known: false } without data or without an RV level; otherwise { known: true, level, rv, maxLevel,
+  // next } where level is 0 before the building unlocks and next is the next upgrade ({ level, rv }) or null.
+  function buildingLevelForRv(building, rvLevel) {
+    const steps = (Array.isArray(building?.maxLevelByRv) ? building.maxLevelByRv : [])
+      .map((step) => ({ rv: Number(step?.rv), max: Number(step?.max) }))
+      .filter((step) => Number.isFinite(step.rv) && Number.isFinite(step.max) && step.max >= 0)
+      .sort((a, b) => a.rv - b.rv || a.max - b.max);
+    const rv = positiveIntegerOrNull(rvLevel);
+    const maxLevel = steps.reduce((best, step) => Math.max(best, step.max), 0) || null;
+    if (!steps.length || rv === null || rv < 1) return { known: false, level: null, rv, maxLevel };
+    let level = 0;
+    for (const step of steps) if (step.rv <= rv) level = Math.max(level, step.max);
+    const upcoming = steps.find((step) => step.rv > rv && step.max > level);
+    return { known: true, level, rv, maxLevel, next: upcoming ? { level: upcoming.max, rv: upcoming.rv } : null };
+  }
+
+  // Which families can work a family-only building. The building is assumed to be at the highest level the
+  // RV level allows, so a recipe above that level (e.g. the Sandcastle's Level 3 Pearl for the Sherro family)
+  // is locked. A recipe whose climate building is required ("no work without it") is blocked when the plan
+  // has none of that building. Without an RV level every recipe counts (the older behaviour).
+  //   options: { rvLevel, buildingState, buildings } (buildings lets defaults count when a state is missing)
+  // Returns null for a building anyone can work; otherwise { species, recipes, levelKnown, level, rv }, where
+  // each recipe has { recipe, level, species, status: "open" | "level" | "prerequisite", unlockRv, missing }.
+  function familyEligibility(building, options = {}) {
+    const union = Array.isArray(building?.allowedSpecies) && building.allowedSpecies.length ? building.allowedSpecies : null;
+    if (!union) return null;
+    const recipes = Array.isArray(building.familyRecipes) && building.familyRecipes.length
+      ? building.familyRecipes
+      : [{ recipe: building.name, level: 1, species: union }];
+    const levelInfo = buildingLevelForRv(building, options.rvLevel);
+    const state = options.buildingState || null;
+    const levelSteps = Array.isArray(building.maxLevelByRv) ? building.maxLevelByRv : [];
+    const rows = recipes.map((recipe) => {
+      const level = Math.max(1, Number(recipe.level) || 1);
+      const unlockStep = levelSteps
+        .filter((step) => Number(step?.max) >= level)
+        .sort((a, b) => Number(a.rv) - Number(b.rv))[0];
+      const row = {
+        recipe: recipe.recipe,
+        family: recipe.family || (Array.isArray(recipe.species) ? recipe.species[0] : ""),
+        level,
+        species: Array.isArray(recipe.species) ? recipe.species : [],
+        unlockRv: unlockStep ? Number(unlockStep.rv) : null,
+        status: "open",
+        missing: [],
+        slower: [],
+      };
+      for (const need of recipe.prerequisites || []) {
+        if (!need?.buildingId) continue;
+        const other = (options.buildings || []).find((item) => item?.id === need.buildingId) || { id: need.buildingId, defaultCount: 0 };
+        const built = state ? getBuildingState(other, state) : null;
+        const has = !built || (built.enabled && built.count > 0);
+        if (has) continue;
+        if (need.effect === "required") row.missing.push(need.name || need.buildingId);
+        else row.slower.push(need.name || need.buildingId);
+      }
+      if (levelInfo.known && level > levelInfo.level) row.status = "level";
+      else if (row.missing.length) row.status = "prerequisite";
+      return row;
+    });
+    const species = [];
+    for (const row of rows) if (row.status === "open") for (const name of row.species) if (!species.includes(name)) species.push(name);
+    return { species, recipes: rows, levelKnown: levelInfo.known, level: levelInfo.level, rv: levelInfo.rv };
+  }
+
   function spareEntry(worker, reason, extra = {}) {
     return {
       workerId: worker.workerId,
@@ -2498,9 +2574,11 @@
     assignContinuous,
     assignIntermittent,
     buildWorkModel,
+    buildingLevelForRv,
     buildingMaxForRv,
     buildingRole,
     describeCapacityPlan,
+    familyEligibility,
     farmHelperLowerBound,
     filterAniimoPool,
     isInPool,

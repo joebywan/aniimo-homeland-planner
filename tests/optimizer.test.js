@@ -2,8 +2,10 @@ const assert = require("assert");
 const {
   DEFAULT_SKILLS,
   aniimoCategory,
+  buildingLevelForRv,
   buildingMaxForRv,
   buildingRole,
+  familyEligibility,
   filterAniimoPool,
   isInPool,
   poolStatus,
@@ -601,7 +603,7 @@ const playerInput = {
   requirements: PLAYER_REQUIREMENTS,
   buildings: buildingsData.buildings,
   buildingState: Object.fromEntries(buildingsData.buildings.map((building) => [building.id, { count: PLAYER_COUNTS[building.id] || 0 }])),
-  settings: { mode: "pool", actionDurationSeconds: 5, cycleDurationMinutes: 20 },
+  settings: { mode: "pool", actionDurationSeconds: 5, cycleDurationMinutes: 20, rvLevel: 9 },
 };
 const withLevel = (percent) => ({ ...playerInput, settings: { ...playerInput.settings, processorBusyPercent: percent } });
 const fullCache = new Map();
@@ -763,6 +765,107 @@ test("families: restricted buildings only get Aniimo of their families", () => {
   assert.equal(without.feasible, false);
   const summary = summarizeShortfalls(without, { pool: [outsider], catalogue: [outsider, dewy], skills: DEFAULT_SKILLS });
   assert.ok(summary.lines.includes("No Aniimo in your pool can work the Dewy House – only Dewy can. Tick one on the Available Aniimo tab."), summary.lines.join(" | "));
+});
+
+test("facility levels: every building has max level by RV, matching the AniimoTools level tables", () => {
+  const expected = {
+    farmland: [1, 2, 5, 7, 9, 12, 16], woodland: [2, 4, 7, 11, 14, 18], mine: [3, 6, 9, 12, 15, 18],
+    crafting_table: [3, 5, 7, 9, 12, 15, 18, 20], tidewhisper_sandcastle: [5, 8, 13], nimbus_bed: [10, 13, 16],
+    dewy_house: [6, 11], starfall_hammock: [12], floral_windmill: [18], crackle_generator: [12, 14, 16, 18, 20],
+  };
+  for (const building of buildingsData.buildings) {
+    const steps = building.maxLevelByRv;
+    assert.ok(Array.isArray(steps) && steps.length, `${building.id} has maxLevelByRv`);
+    assert.deepEqual(steps.map((step) => step.max), steps.map((_, index) => index + 1), `${building.id} levels go 1, 2, 3…`);
+    assert.ok(steps.every((step, index) => index === 0 || step.rv > steps[index - 1].rv), `${building.id} RV rises`);
+    assert.equal(steps[0].rv, building.unlockRv, `${building.id}: Level 1 unlocks when the building does`);
+    assert.ok(building.maxLevelByRvSource?.length && typeof building.maxLevelByRvVerified === "boolean", building.id);
+    if (expected[building.id]) assert.deepEqual(steps.map((step) => step.rv), expected[building.id], building.id);
+  }
+  const mine = buildingsData.buildings.find((building) => building.id === "mine");
+  assert.deepEqual(buildingLevelForRv(mine, 9), { known: true, level: 3, rv: 9, maxLevel: 6, next: { level: 4, rv: 12 } });
+  assert.equal(buildingLevelForRv(mine, 2).level, 0);
+  assert.equal(buildingLevelForRv(mine, 20).next, null);
+  assert.equal(buildingLevelForRv(mine, null).known, false);
+  // Every family recipe says which facility level it needs.
+  for (const building of buildingsData.buildings.filter((item) => item.familyRecipes)) {
+    for (const recipe of building.familyRecipes) {
+      assert.ok(Number.isInteger(recipe.level) && recipe.level >= 1, `${building.id} ${recipe.recipe}`);
+      assert.ok(recipe.level <= building.maxLevelByRv.length, `${building.id} ${recipe.recipe} level exists`);
+      assert.ok(Array.isArray(recipe.prerequisites) && recipe.family, `${building.id} ${recipe.recipe}`);
+    }
+  }
+});
+
+test("families: a recipe above the building's level for the RV is locked (Sherro family needs Sandcastle Lv 3)", () => {
+  const sandcastle = buildingsData.buildings.find((building) => building.id === "tidewhisper_sandcastle");
+  const nimbusBed = buildingsData.buildings.find((building) => building.id === "nimbus_bed");
+  const susuta = ["Panpanta", "Piopiota", "Popota", "Susuta"];
+  // RV 9 (the player's): Sandcastle Lv 2, so only the Susuta family.
+  const rv9 = familyEligibility(sandcastle, { rvLevel: 9 });
+  assert.deepEqual(rv9.species, susuta);
+  assert.equal(rv9.level, 2);
+  assert.deepEqual(rv9.recipes.map((recipe) => [recipe.family, recipe.status, recipe.unlockRv]), [["Susuta", "open", 5], ["Sherro", "level", 13]]);
+  assert.deepEqual(familyEligibility(sandcastle, { rvLevel: 12 }).species, susuta);
+  // RV 13: Lv 3, Pearl opens for the Sherro family.
+  assert.deepEqual(familyEligibility(sandcastle, { rvLevel: 13 }).species, [...susuta, "Sherro", "Sheldon", "Shelly"]);
+  // No RV level: every recipe's family (the older behaviour).
+  assert.deepEqual(familyEligibility(sandcastle, {}).species, sandcastle.allowedSpecies);
+  assert.deepEqual(familyEligibility(nimbusBed, { rvLevel: 13 }).species, ["Turbo", "Dreaple", "Nimbi"]);
+  assert.deepEqual(familyEligibility(nimbusBed, { rvLevel: 16 }).species, ["Turbo", "Dreaple", "Nimbi", "Irisal", "Irisalis", "Iris"]);
+
+  // The optimiser: only a Sherro in the pool, so at RV 9 nobody can work the Sandcastle; at RV 13 the Sherro can.
+  const sherro = { ...aniimo("sherro", "Sherro", { Leisure: 3 }), species: "Sherro" };
+  const input = {
+    aniimo: [sherro],
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings: [sandcastle],
+    buildingState: { tidewhisper_sandcastle: { count: 1 } },
+  };
+  const at9 = optimizeWorkforce({ ...input, settings: { mode: "pool", rvLevel: 9 } });
+  assert.equal(at9.feasible, false);
+  assert.deepEqual(at9.continuousAssignments, []);
+  const summary = summarizeShortfalls(at9, { pool: [sherro], catalogue: [sherro], skills: DEFAULT_SKILLS });
+  assert.ok(summary.lines.some((line) => line.includes("only Panpanta, Piopiota, Popota or Susuta can")), summary.lines.join(" | "));
+  const at13 = optimizeWorkforce({ ...input, settings: { mode: "pool", rvLevel: 13 } });
+  assert.equal(at13.feasible, true);
+  assert.deepEqual(at13.continuousAssignments.map((item) => item.worker.species), ["Sherro"]);
+  // Without an RV level the union still applies.
+  assert.equal(optimizeWorkforce({ ...input, settings: { mode: "pool" } }).feasible, true);
+
+  // The player's RV 9 plan never puts the Sherro family on the Sandcastle.
+  for (const percent of [50, 100]) {
+    for (const item of playerFullResult(percent).continuousAssignments) {
+      if (item.job.buildingId === "tidewhisper_sandcastle") assert.ok(susuta.includes(item.worker.species), item.worker.species);
+    }
+  }
+});
+
+test("families: a recipe that needs a missing climate building can't run (Floral Windmill without a Sunlamp)", () => {
+  const windmill = buildingsData.buildings.find((building) => building.id === "floral_windmill");
+  const buildings = buildingsData.buildings;
+  const without = familyEligibility(windmill, { rvLevel: 18, buildingState: { floral_windmill: { count: 1 }, sunlamp: { count: 0 } }, buildings });
+  assert.deepEqual(without.species, []);
+  assert.deepEqual(without.recipes[0].missing, ["Sunlamp"]);
+  const withLamp = familyEligibility(windmill, { rvLevel: 18, buildingState: { floral_windmill: { count: 1 }, sunlamp: { count: 1 } }, buildings });
+  assert.deepEqual(withLamp.species, ["Somniwing", "Gracewing", "Flutternym"]);
+  // No Sunlamp: the Windmill does no work, so it isn't staffed.
+  const gracewing = { ...aniimo("grace", "Gracewing", { Leisure: 3 }), species: "Gracewing" };
+  const result = optimizeWorkforce({
+    aniimo: [gracewing],
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings: [windmill, buildings.find((building) => building.id === "sunlamp")],
+    buildingState: { floral_windmill: { count: 1 }, sunlamp: { count: 0 } },
+    settings: { mode: "pool", rvLevel: 18 },
+  });
+  assert.deepEqual(result.continuousAssignments, []);
+  // The Heat Furnace only speeds the Pearl recipe up, so it never blocks it.
+  const sandcastle = buildings.find((building) => building.id === "tidewhisper_sandcastle");
+  const noFurnace = familyEligibility(sandcastle, { rvLevel: 13, buildingState: { heat_furnace: { count: 0 } }, buildings });
+  assert.ok(noFurnace.species.includes("Sherro"));
+  assert.deepEqual(noFurnace.recipes[1].slower, ["Heat Furnace"]);
 });
 
 test("processors: part-time shares of one Aniimo, shared by Aniimo with the ability", () => {
