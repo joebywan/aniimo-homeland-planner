@@ -1,5 +1,17 @@
 const assert = require("assert");
-const { DEFAULT_SKILLS, optimizeWorkforce, recommendSpareSpaces, resolveHomelandCapacity } = require("../optimizer");
+const {
+  DEFAULT_SKILLS,
+  aniimoCategory,
+  buildingMaxForRv,
+  filterAniimoPool,
+  isInPool,
+  optimizeWorkforce,
+  recommendSpareSpaces,
+  resolveHomelandCapacity,
+} = require("../optimizer");
+const buildingsData = require("../data/buildings.json");
+const homelandData = require("../data/homeland.json");
+const aniimoData = require("../data/aniimo.json");
 
 function skills(values) {
   return Object.fromEntries(DEFAULT_SKILLS.map((skill) => [skill, Number(values[skill] || 0)]));
@@ -213,12 +225,12 @@ test("physical jobs can exceed a low capability target", () => {
   assert.equal(result.selectedWorkers.length, 3);
 });
 
-test("planning mode treats unowned Aniimo as unlimited copies", () => {
+test("pool mode treats every Aniimo as unlimited copies", () => {
   const result = optimize({
     workers: [aniimo("a", "Aniimo A", { Fire: 2 }), aniimo("b", "Aniimo B", { Water: 1 })],
     owned: [],
     buildings: [continuousBuilding("fire", "Fire", 4)],
-    settings: { mode: "theorycraft" },
+    settings: { mode: "pool" },
   });
 
   assert.equal(result.feasible, true);
@@ -231,7 +243,7 @@ test("planning mode treats unowned Aniimo as unlimited copies", () => {
   );
 });
 
-test("planning mode ignores legacy theorycraftCopies setting", () => {
+test("legacy theorycraft mode behaves like pool mode and ignores theorycraftCopies", () => {
   const result = optimize({
     workers: [aniimo("a", "Aniimo A", { Water: 4 })],
     owned: [],
@@ -253,13 +265,110 @@ test("owned mode still limits to owned copies", () => {
   assert.equal(result.feasible, false);
 });
 
-test("capacity resolves from manual override, then RV level data, else unknown", () => {
+test("capacity comes from the RV level only; a legacy manual number is ignored", () => {
   const data = { rvLevels: [{ level: 1, aniimoCapacity: 6 }, { level: 2, aniimoCapacity: null }] };
-  assert.deepEqual(resolveHomelandCapacity(data, 1, null).capacity, 6);
-  assert.equal(resolveHomelandCapacity(data, 1, 9).capacity, 9);
-  assert.equal(resolveHomelandCapacity(data, 2, "").known, false);
-  assert.equal(resolveHomelandCapacity(undefined, 3, null).known, false);
-  assert.equal(resolveHomelandCapacity(undefined, null, 12).capacity, 12);
+  assert.equal(resolveHomelandCapacity(data, 1).capacity, 6);
+  assert.equal(resolveHomelandCapacity(data, 1, 9).capacity, 6, "third (old override) argument is ignored");
+  assert.equal(resolveHomelandCapacity(data, 2).known, false);
+  assert.equal(resolveHomelandCapacity(undefined, 3).known, false);
+  assert.equal(resolveHomelandCapacity(undefined, null, 12).known, false);
+  assert.equal(resolveHomelandCapacity(homelandData, 9).capacity, 26);
+  assert.equal(resolveHomelandCapacity(homelandData, 20).capacity, 45);
+  assert.equal(resolveHomelandCapacity(homelandData, 1).known, false, "RV 1 has no Aniimo spaces");
+});
+
+test("building max follows the maxByRv steps and locks before unlock", () => {
+  const well = { id: "well", unlockRv: 4, maxByRv: [{ rv: 4, max: 1 }, { rv: 8, max: 2 }, { rv: 14, max: 3 }, { rv: 19, max: 4 }] };
+  assert.deepEqual(buildingMaxForRv(well, 3), { limited: true, known: true, max: 0, locked: true, unlockRv: 4 });
+  assert.equal(buildingMaxForRv(well, 4).max, 1);
+  assert.equal(buildingMaxForRv(well, 7).max, 1);
+  assert.equal(buildingMaxForRv(well, 8).max, 2);
+  assert.equal(buildingMaxForRv(well, 13).max, 2);
+  assert.equal(buildingMaxForRv(well, 20).max, 4);
+  assert.equal(buildingMaxForRv(well, null).known, false);
+  assert.equal(buildingMaxForRv({ id: "storage" }, 9).limited, false, "no maxByRv means no limit");
+});
+
+test("every building's maxByRv matches its placementLimit text", () => {
+  for (const building of buildingsData.buildings) {
+    if (!building.maxByRv) {
+      assert.equal(building.id, "storage_hauling", `${building.id} is missing maxByRv`);
+      continue;
+    }
+    const steps = [...String(building.placementLimit).matchAll(/(\d+)\s+from\s+RV\s*(\d+)/gi)].map((m) => ({
+      rv: Number(m[2]),
+      max: Number(m[1]),
+    }));
+    assert.ok(steps.length, `${building.id} placementLimit has steps`);
+    for (const step of steps) {
+      assert.equal(buildingMaxForRv(building, step.rv).max, step.max, `${building.id} at RV ${step.rv}`);
+    }
+    if (building.unlockRv > 1) {
+      assert.equal(buildingMaxForRv(building, building.unlockRv - 1).max, 0, `${building.id} locked before RV ${building.unlockRv}`);
+    }
+    const maxes = building.maxByRv.map((step) => step.max);
+    assert.deepEqual(maxes, [...maxes].sort((a, b) => a - b), `${building.id} steps never go down`);
+  }
+  const at9 = Object.fromEntries(buildingsData.buildings.map((b) => [b.id, buildingMaxForRv(b, 9)]));
+  assert.equal(at9.farmland.max, 20);
+  assert.equal(at9.woodland.max, 10);
+  assert.equal(at9.mine.max, 5);
+  assert.equal(at9.carousel_mill.max, 2);
+  assert.equal(at9.nimbus_bed.locked, true);
+});
+
+test("pool: common in by default, Prismana/legendary/BOSS out, explicit ticks win", () => {
+  const entries = [
+    { id: "c", name: "Common", form: "Base", category: "common" },
+    { id: "r", name: "Regional", form: "Snowfield Form", category: "common" },
+    { id: "p", name: "Prismana X", form: "Prismana", category: "prismana" },
+    { id: "l", name: "Legend", form: "Base", category: "legendary" },
+    { id: "b", name: "Big BOSS", form: "BOSS", category: "boss" },
+    { id: "old", name: "Old Prismana", form: "Prismana" },
+  ];
+  const ids = (pool) => filterAniimoPool(entries, pool).map((entry) => entry.id);
+  assert.deepEqual(ids({}), ["c", "r"]);
+  assert.deepEqual(ids({ includePrismana: true }), ["c", "r", "p", "old"]);
+  assert.deepEqual(ids({ includeLegendary: true }), ["c", "r", "l"]);
+  assert.deepEqual(ids({ picks: { p: true, c: false } }), ["r", "p"]);
+  assert.deepEqual(ids({ includePrismana: true, picks: { p: false, b: true } }), ["c", "r", "b", "old"]);
+  assert.equal(aniimoCategory(entries[5]), "prismana", "records without category fall back to the form");
+  assert.equal(isInPool(entries[4], { includePrismana: true, includeLegendary: true }), false, "BOSS never by default");
+});
+
+test("real data: default pool has no Prismana, legendary or BOSS records", () => {
+  const pool = filterAniimoPool(aniimoData.aniimo, {});
+  assert.ok(pool.length > 150);
+  assert.ok(pool.every((entry) => entry.category === "common"));
+  assert.ok(!pool.some((entry) => /prismana|boss/i.test(entry.form) || entry.species === "Irisalis"));
+  const legendary = aniimoData.aniimo.filter((entry) => entry.category === "legendary").map((entry) => entry.species);
+  assert.ok(legendary.includes("Irisalis"));
+  assert.ok(aniimoData.aniimo.filter((entry) => entry.form === "Prismana").every((entry) => entry.category === "prismana"));
+  assert.equal(Object.keys(aniimoData.abilityIcons).join(","), DEFAULT_SKILLS.join(","), "an icon for every ability, in game order");
+});
+
+test("pool mode: optimiser only picks from the filtered pool", () => {
+  const workers = [
+    { ...aniimo("prism", "Prismana Star", { Fire: 5, Water: 5 }), form: "Prismana", category: "prismana" },
+    { ...aniimo("fire", "Fire Pup", { Fire: 2 }), category: "common" },
+    { ...aniimo("water", "Water Pup", { Water: 2 }), category: "common" },
+  ];
+  const run = (pool) =>
+    optimizeWorkforce({
+      aniimo: filterAniimoPool(workers, pool),
+      skills: DEFAULT_SKILLS,
+      requirements: skills({ Fire: 4, Water: 4 }),
+      buildings: [],
+      buildingState: {},
+      settings: { mode: "pool", maxSearchWorkers: 10 },
+    });
+  const common = run({});
+  assert.equal(common.feasible, true);
+  assert.ok(common.selectedWorkers.every((worker) => worker.category === "common"));
+  assert.equal(common.selectedWorkers.length, 4);
+  const withPrismana = run({ includePrismana: true });
+  assert.equal(withPrismana.selectedWorkers.length, 1);
+  assert.equal(withPrismana.selectedWorkers[0].aniimoId, "prism");
 });
 
 function spareScenario() {
@@ -332,6 +441,22 @@ test("spare spaces: unknown capacity returns no suggestions", () => {
   const plan = recommendSpareSpaces({ result, capacity: null, skills: DEFAULT_SKILLS, mode: "owned" });
   assert.equal(plan.capacityKnown, false);
   assert.equal(plan.haulers.length, 0);
+});
+
+test("spare spaces: pool mode suggests from the pool, one of each form per list", () => {
+  const workers = [aniimo("fire", "Fire Worker", { Fire: 3 }), aniimo("hauler", "Big Hauler", { Hauling: 4 })];
+  const result = optimizeWorkforce({
+    aniimo: workers,
+    skills: DEFAULT_SKILLS,
+    requirements: skills({ Fire: 3 }),
+    buildings: [],
+    buildingState: {},
+    settings: { mode: "pool", maxSearchWorkers: 10 },
+  });
+  assert.equal(result.selectedWorkers.length, 1);
+  const plan = recommendSpareSpaces({ result, capacity: 10, skills: DEFAULT_SKILLS, mode: "pool" });
+  assert.equal(plan.haulers.filter((item) => item.aniimoId === "hauler").length, 1);
+  assert.ok(plan.backups.some((item) => item.aniimoId === "fire"));
 });
 
 test("spare spaces: owned mode never suggests unowned Aniimo", () => {

@@ -5,7 +5,8 @@
     "Every production facility has 1 Aniimo slot per facility (aniimo.gg 'Pet slots: 1'). Upgrading a facility (Level 1, 2, ...) adds recipes, not slots.",
     "requirements.minLevel is 1 because any level can work a station; recipes recommend a level (recommendedLevel) and Aniimo above it work faster, below it slower.",
     "Farmland and Woodland are shared intermittent workloads: four steps (Earth, Grass, Water, Dark), with one Aniimo per step able to cover several plots (AniimoTools uses 8).",
-    "Hatchinator also has 1 Aniimo slot on aniimo.gg but no work type is documented, so it is omitted."
+    "Hatchinator also has 1 Aniimo slot on aniimo.gg but no work type is documented, so it is omitted.",
+    "maxByRv is placementLimit as data: each {rv, max} step gives how many of the building you can place from that RV level on. The planner fills building counts with the max for the chosen RV level. Farmland, Woodland and Mine steps (maxByRvVerified: false) come from the RV upgrade requirements; see maxByRvNotes."
   ],
   "sources": [
     {
@@ -58,6 +59,87 @@
       "plotsPerWorker": 8,
       "unlockRv": 1,
       "placementLimit": "4 from RV 1, up to 40 from RV 19",
+      "maxByRv": [
+        {
+          "rv": 1,
+          "max": 4
+        },
+        {
+          "rv": 2,
+          "max": 6
+        },
+        {
+          "rv": 3,
+          "max": 8
+        },
+        {
+          "rv": 4,
+          "max": 10
+        },
+        {
+          "rv": 5,
+          "max": 12
+        },
+        {
+          "rv": 6,
+          "max": 14
+        },
+        {
+          "rv": 7,
+          "max": 16
+        },
+        {
+          "rv": 8,
+          "max": 18
+        },
+        {
+          "rv": 9,
+          "max": 20
+        },
+        {
+          "rv": 10,
+          "max": 22
+        },
+        {
+          "rv": 11,
+          "max": 24
+        },
+        {
+          "rv": 12,
+          "max": 26
+        },
+        {
+          "rv": 13,
+          "max": 28
+        },
+        {
+          "rv": 14,
+          "max": 30
+        },
+        {
+          "rv": 15,
+          "max": 32
+        },
+        {
+          "rv": 16,
+          "max": 34
+        },
+        {
+          "rv": 17,
+          "max": 36
+        },
+        {
+          "rv": 18,
+          "max": 38
+        },
+        {
+          "rv": 19,
+          "max": 40
+        }
+      ],
+      "maxByRvVerified": false,
+      "maxByRvNotes": "Intermediate steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place this many at RV N, e.g. \"Place 18 farmlands\" before RV 10). They match both published end points (4 from RV 1, up to 40 from RV 19) but the in-game cap at each level has not been confirmed directly.",
+      "maxByRvSource": "https://aniimotools.dev/systems/homeland/rv-levels/",
       "recommendedLevel": "1",
       "notes": "Worked by Earth, Grass, Water and Dark Aniimo, each doing its own step. A shared crew covers several plots: AniimoTools' simulator uses 1 Aniimo per job for every 8 plots.",
       "source": "https://aniimotools.dev/systems/homeland/stations/farmland/",
@@ -101,6 +183,83 @@
       "plotsPerWorker": 8,
       "unlockRv": 2,
       "placementLimit": "3 from RV 2, up to 20 from RV 19",
+      "maxByRv": [
+        {
+          "rv": 2,
+          "max": 3
+        },
+        {
+          "rv": 3,
+          "max": 4
+        },
+        {
+          "rv": 4,
+          "max": 5
+        },
+        {
+          "rv": 5,
+          "max": 6
+        },
+        {
+          "rv": 6,
+          "max": 7
+        },
+        {
+          "rv": 7,
+          "max": 8
+        },
+        {
+          "rv": 8,
+          "max": 9
+        },
+        {
+          "rv": 9,
+          "max": 10
+        },
+        {
+          "rv": 10,
+          "max": 11
+        },
+        {
+          "rv": 11,
+          "max": 12
+        },
+        {
+          "rv": 12,
+          "max": 13
+        },
+        {
+          "rv": 13,
+          "max": 14
+        },
+        {
+          "rv": 14,
+          "max": 15
+        },
+        {
+          "rv": 15,
+          "max": 16
+        },
+        {
+          "rv": 16,
+          "max": 17
+        },
+        {
+          "rv": 17,
+          "max": 18
+        },
+        {
+          "rv": 18,
+          "max": 19
+        },
+        {
+          "rv": 19,
+          "max": 20
+        }
+      ],
+      "maxByRvVerified": false,
+      "maxByRvNotes": "Intermediate steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place this many at RV N, e.g. \"Place 18 farmlands\" before RV 10). They match both published end points (3 from RV 2, up to 20 from RV 19) but the in-game cap at each level has not been confirmed directly.",
+      "maxByRvSource": "https://aniimotools.dev/systems/homeland/rv-levels/",
       "recommendedLevel": "1",
       "notes": "Same four work steps as Farmland (Earth, Grass, Water, Dark). AniimoTools' simulator uses 1 Aniimo per job for every 8 plots.",
       "source": "https://aniimotools.dev/systems/homeland/stations/woodland/",
@@ -128,6 +287,17 @@
       ],
       "unlockRv": 2,
       "placementLimit": "1 from RV 2, 2 from RV 9",
+      "maxByRv": [
+        {
+          "rv": 2,
+          "max": 1
+        },
+        {
+          "rv": 9,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Tenacious",
       "notes": "Aniimo with the Tenacious personality work 20% faster here. Recipes recommend Wind Lv 1–3; any level can work, higher is faster.",
@@ -155,6 +325,13 @@
       ],
       "unlockRv": 2,
       "placementLimit": "1 from RV 2",
+      "maxByRv": [
+        {
+          "rv": 2,
+          "max": 1
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": null,
       "notes": "Recipes recommend Lightning Lv 1–3; any level can work, higher is faster.",
@@ -182,6 +359,47 @@
       ],
       "unlockRv": 3,
       "placementLimit": "2 from RV 3, up to 10 from RV 19",
+      "maxByRv": [
+        {
+          "rv": 3,
+          "max": 2
+        },
+        {
+          "rv": 5,
+          "max": 3
+        },
+        {
+          "rv": 7,
+          "max": 4
+        },
+        {
+          "rv": 9,
+          "max": 5
+        },
+        {
+          "rv": 11,
+          "max": 6
+        },
+        {
+          "rv": 13,
+          "max": 7
+        },
+        {
+          "rv": 15,
+          "max": 8
+        },
+        {
+          "rv": 17,
+          "max": 9
+        },
+        {
+          "rv": 19,
+          "max": 10
+        }
+      ],
+      "maxByRvVerified": false,
+      "maxByRvNotes": "Intermediate steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place this many at RV N, e.g. \"Place 18 farmlands\" before RV 10). They match both published end points (2 from RV 3, up to 10 from RV 19) but the in-game cap at each level has not been confirmed directly.",
+      "maxByRvSource": "https://aniimotools.dev/systems/homeland/rv-levels/",
       "recommendedLevel": "1–3",
       "personalityBonus": "Playful",
       "notes": "Aniimo with the Playful personality work 20% faster here. Recipes recommend Earth Lv 1–3; any level can work, higher is faster.",
@@ -209,6 +427,17 @@
       ],
       "unlockRv": 3,
       "placementLimit": "1 from RV 3, 2 from RV 10",
+      "maxByRv": [
+        {
+          "rv": 3,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Judicious",
       "notes": "Aniimo with the Judicious personality work 20% faster here. Recipes recommend Artisanship Lv 1–3; any level can work, higher is faster.",
@@ -236,6 +465,13 @@
       ],
       "unlockRv": 3,
       "placementLimit": "1 from RV 3",
+      "maxByRv": [
+        {
+          "rv": 3,
+          "max": 1
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": null,
       "notes": "Recipes recommend Lightning Lv 1–3; any level can work, higher is faster.",
@@ -263,6 +499,25 @@
       ],
       "unlockRv": 4,
       "placementLimit": "1 from RV 4, 2 from RV 8, 3 from RV 14, 4 from RV 19",
+      "maxByRv": [
+        {
+          "rv": 4,
+          "max": 1
+        },
+        {
+          "rv": 8,
+          "max": 2
+        },
+        {
+          "rv": 14,
+          "max": 3
+        },
+        {
+          "rv": 19,
+          "max": 4
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Faithful",
       "notes": "Aniimo with the Faithful personality work 20% faster here. Recipes recommend Water Lv 1–3; any level can work, higher is faster.",
@@ -290,6 +545,17 @@
       ],
       "unlockRv": 4,
       "placementLimit": "1 from RV 4, 2 from RV 11",
+      "maxByRv": [
+        {
+          "rv": 4,
+          "max": 1
+        },
+        {
+          "rv": 11,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Practical",
       "notes": "Aniimo with the Practical personality work 20% faster here. Recipes recommend Fire Lv 1–3; any level can work, higher is faster.",
@@ -317,6 +583,17 @@
       ],
       "unlockRv": 4,
       "placementLimit": "1 from RV 4, 2 from RV 11",
+      "maxByRv": [
+        {
+          "rv": 4,
+          "max": 1
+        },
+        {
+          "rv": 11,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Nimble",
       "notes": "Aniimo with the Nimble personality work 20% faster here. Recipes recommend Dark Lv 1–3; any level can work, higher is faster.",
@@ -344,6 +621,17 @@
       ],
       "unlockRv": 5,
       "placementLimit": "1 from RV 5, 2 from RV 12",
+      "maxByRv": [
+        {
+          "rv": 5,
+          "max": 1
+        },
+        {
+          "rv": 12,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Tenacious",
       "notes": "Aniimo with the Tenacious personality work 20% faster here. Recipes recommend Fire Lv 1–3; any level can work, higher is faster.",
@@ -371,6 +659,17 @@
       ],
       "unlockRv": 5,
       "placementLimit": "1 from RV 5, 2 from RV 14",
+      "maxByRv": [
+        {
+          "rv": 5,
+          "max": 1
+        },
+        {
+          "rv": 14,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": "Judicious",
       "notes": "Aniimo with the Judicious personality work 20% faster here. Recipes recommend Leisure Lv 1–3; any level can work, higher is faster.",
@@ -398,6 +697,17 @@
       ],
       "unlockRv": 6,
       "placementLimit": "1 from RV 6, 2 from RV 13",
+      "maxByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 13,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Energetic",
       "notes": "Aniimo with the Energetic personality work 20% faster here. Recipes recommend Water Lv 2–3; any level can work, higher is faster.",
@@ -425,6 +735,25 @@
       ],
       "unlockRv": 6,
       "placementLimit": "1 from RV 6, 2 from RV 10, 3 from RV 14, 4 from RV 18",
+      "maxByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 14,
+          "max": 3
+        },
+        {
+          "rv": 18,
+          "max": 4
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Practical",
       "notes": "Aniimo with the Practical personality work 20% faster here. Recipes recommend Fire Lv 2–3; any level can work, higher is faster.",
@@ -452,6 +781,25 @@
       ],
       "unlockRv": 6,
       "placementLimit": "1 from RV 6, 2 from RV 10, 3 from RV 14, 4 from RV 18",
+      "maxByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 10,
+          "max": 2
+        },
+        {
+          "rv": 14,
+          "max": 3
+        },
+        {
+          "rv": 18,
+          "max": 4
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Energetic",
       "notes": "Aniimo with the Energetic personality work 20% faster here. Recipes recommend Artisanship Lv 2–3; any level can work, higher is faster.",
@@ -479,6 +827,17 @@
       ],
       "unlockRv": 6,
       "placementLimit": "1 from RV 6, 2 from RV 13",
+      "maxByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 13,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Instinctive",
       "notes": "Aniimo with the Instinctive personality work 20% faster here. Recipes recommend Perfumery Lv 2–3; any level can work, higher is faster.",
@@ -506,6 +865,17 @@
       ],
       "unlockRv": 6,
       "placementLimit": "1 from RV 6, 2 from RV 17",
+      "maxByRv": [
+        {
+          "rv": 6,
+          "max": 1
+        },
+        {
+          "rv": 17,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Instinctive",
       "notes": "Aniimo with the Instinctive personality work 20% faster here. Recipes recommend Leisure Lv 2–3; any level can work, higher is faster.",
@@ -533,6 +903,17 @@
       ],
       "unlockRv": 7,
       "placementLimit": "1 from RV 7, 2 from RV 14",
+      "maxByRv": [
+        {
+          "rv": 7,
+          "max": 1
+        },
+        {
+          "rv": 14,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Faithful",
       "notes": "Aniimo with the Faithful personality work 20% faster here. Recipes recommend Wind Lv 2–3; any level can work, higher is faster.",
@@ -560,6 +941,21 @@
       ],
       "unlockRv": 7,
       "placementLimit": "1 from RV 7, 2 from RV 12, 3 from RV 17",
+      "maxByRv": [
+        {
+          "rv": 7,
+          "max": 1
+        },
+        {
+          "rv": 12,
+          "max": 2
+        },
+        {
+          "rv": 17,
+          "max": 3
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1 (required)",
       "personalityBonus": null,
       "notes": "Only sets the climate of nearby plots/facilities while a Fire Aniimo works it. Recipes recommend Fire Lv 1 (required); any level can work, higher is faster.",
@@ -587,6 +983,21 @@
       ],
       "unlockRv": 7,
       "placementLimit": "1 from RV 7, 2 from RV 13, 3 from RV 17",
+      "maxByRv": [
+        {
+          "rv": 7,
+          "max": 1
+        },
+        {
+          "rv": 13,
+          "max": 2
+        },
+        {
+          "rv": 17,
+          "max": 3
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–2 (required)",
       "personalityBonus": null,
       "notes": "Only sets the climate of nearby plots/facilities while a Ice Aniimo works it. AniimoTools lists 'Lv 1–2 required'; stronger cold (−2) may need a level 2 Ice Aniimo (unverified). Recipes recommend Ice Lv 1–2 (required); any level can work, higher is faster.",
@@ -614,6 +1025,17 @@
       ],
       "unlockRv": 8,
       "placementLimit": "1 from RV 8, 2 from RV 15",
+      "maxByRv": [
+        {
+          "rv": 8,
+          "max": 1
+        },
+        {
+          "rv": 15,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Nimble",
       "notes": "Aniimo with the Nimble personality work 20% faster here. Recipes recommend Fire Lv 2–3; any level can work, higher is faster.",
@@ -641,6 +1063,17 @@
       ],
       "unlockRv": 8,
       "placementLimit": "1 from RV 8, 2 from RV 15",
+      "maxByRv": [
+        {
+          "rv": 8,
+          "max": 1
+        },
+        {
+          "rv": 15,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Playful",
       "notes": "Aniimo with the Playful personality work 20% faster here. Recipes recommend Dark Lv 2–3; any level can work, higher is faster.",
@@ -668,6 +1101,21 @@
       ],
       "unlockRv": 9,
       "placementLimit": "1 from RV 9, 2 from RV 13, 3 from RV 19",
+      "maxByRv": [
+        {
+          "rv": 9,
+          "max": 1
+        },
+        {
+          "rv": 13,
+          "max": 2
+        },
+        {
+          "rv": 19,
+          "max": 3
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1 (required)",
       "personalityBonus": null,
       "notes": "Only sets the climate of nearby plots/facilities while a Light Aniimo works it. Recipes recommend Light Lv 1 (required); any level can work, higher is faster.",
@@ -695,6 +1143,17 @@
       ],
       "unlockRv": 10,
       "placementLimit": "1 from RV 10, 2 from RV 16",
+      "maxByRv": [
+        {
+          "rv": 10,
+          "max": 1
+        },
+        {
+          "rv": 16,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "2–3",
       "personalityBonus": "Judicious",
       "notes": "Aniimo with the Judicious personality work 20% faster here. Recipes recommend Leisure Lv 2–3; any level can work, higher is faster.",
@@ -722,6 +1181,21 @@
       ],
       "unlockRv": 12,
       "placementLimit": "1 from RV 12, 2 from RV 15, 3 from RV 18 (needs RV Power Module)",
+      "maxByRv": [
+        {
+          "rv": 12,
+          "max": 1
+        },
+        {
+          "rv": 15,
+          "max": 2
+        },
+        {
+          "rv": 18,
+          "max": 3
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "1–3",
       "personalityBonus": null,
       "notes": "Powers the Home's E-mode; unlocked by the RV Power Module. Recipes recommend Lightning Lv 1–3; any level can work, higher is faster.",
@@ -749,6 +1223,17 @@
       ],
       "unlockRv": 12,
       "placementLimit": "1 from RV 12, 2 from RV 18",
+      "maxByRv": [
+        {
+          "rv": 12,
+          "max": 1
+        },
+        {
+          "rv": 18,
+          "max": 2
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "3",
       "personalityBonus": "Faithful",
       "notes": "Aniimo with the Faithful personality work 20% faster here. Recipes recommend Leisure Lv 3; any level can work, higher is faster.",
@@ -776,6 +1261,13 @@
       ],
       "unlockRv": 18,
       "placementLimit": "1 from RV 18",
+      "maxByRv": [
+        {
+          "rv": 18,
+          "max": 1
+        }
+      ],
+      "maxByRvVerified": true,
       "recommendedLevel": "3",
       "personalityBonus": "Nimble",
       "notes": "Aniimo with the Nimble personality work 20% faster here. Recipes recommend Leisure Lv 3; any level can work, higher is faster.",
