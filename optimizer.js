@@ -92,6 +92,8 @@
     return settings?.mode === "owned";
   }
 
+  // "boss" only appears in data from before boss/NPC entities were removed from the Aniimo list (for example
+  // an old imported file); such records stay out unless ticked.
   const CATEGORIES = ["common", "prismana", "legendary", "boss"];
 
   // Which group an Aniimo belongs to. Data records carry `category`; older data falls back to the form.
@@ -103,8 +105,8 @@
   }
 
   // pool: { includePrismana, includeLegendary, picks: { [id]: true | false } }. A pick (the per-row tick)
-  // always wins. Otherwise common Aniimo are in, Prismana and legendary follow their toggles, and BOSS
-  // forms are out.
+  // always wins. Otherwise common Aniimo are in, Prismana and legendary follow their toggles, and anything
+  // else (old "boss" records) is out.
   function isInPool(entry, pool) {
     const pick = pool?.picks?.[entry?.id];
     if (pick === true || pick === false) return pick;

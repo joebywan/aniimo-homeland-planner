@@ -871,14 +871,18 @@
     const tbody = document.querySelector("#rosterTable tbody");
     const query = app.filters.rosterSearch;
     const skillFilter = app.filters.skillFilter;
-    const rows = app.data.aniimo.aniimo.filter((entry) => {
+    // Typing "12" or "#012" finds Aniilog #012.
+    const dexQuery = query.match(/^#?(\d+)$/);
+    const rows = sortByDex(app.data.aniimo.aniimo).filter((entry) => {
       const displayName = getDisplayName(entry).toLowerCase();
       const skillNames = Object.keys(entry.skills || {})
         .filter((skill) => Number(entry.skills[skill]) > 0)
         .join(" ")
         .toLowerCase();
       const category = (CATEGORY_BADGES[aniimoCategory(entry)] || "").toLowerCase();
-      const matchesQuery = !query || displayName.includes(query) || skillNames.includes(query) || (category && category.includes(query));
+      const matchesQuery = dexQuery
+        ? Number(entry.dexNumber) === Number(dexQuery[1])
+        : !query || displayName.includes(query) || skillNames.includes(query) || (category && category.includes(query));
       const matchesSkill = skillFilter === "All" || Number(entry.skills?.[skillFilter] || 0) > 0;
       return matchesQuery && matchesSkill;
     });
@@ -902,7 +906,7 @@
               <label class="aniimo-name" for="pool-${escapeAttr(entry.id)}">
                 <img class="aniimo-head" src="${escapeAttr(entry.image || FALLBACK_MARK)}" alt="" loading="lazy" />
                 <span class="aniimo-title">
-                  <strong>${escapeHtml(entry.name)} ${categoryBadge(entry)}</strong>
+                  <strong>${dexTag(entry)}${escapeHtml(entry.name)} ${categoryBadge(entry)}</strong>
                   ${formLine ? `<span>${escapeHtml(formLine)}</span>` : ""}
                 </span>
               </label>
@@ -914,6 +918,25 @@
       .join("");
 
     wireImageFallback(tbody);
+  }
+
+  // Aniilog order (the data is already sorted; this keeps imported or older data in order too). Stable, so
+  // each species' forms stay in their data order: base, regional forms, Prismana.
+  function sortByDex(entries) {
+    const dex = (entry) => (Number.isFinite(Number(entry.dexNumber)) && entry.dexNumber !== null ? Number(entry.dexNumber) : Infinity);
+    return [...(entries || [])].sort((a, b) => dex(a) - dex(b));
+  }
+
+  // "#012" as the game's Aniilog shows it ("Starter" for the two starters).
+  function dexLabel(entry) {
+    if (entry.dexLabel) return entry.dexLabel;
+    const number = Number(entry.dexNumber);
+    return entry.dexNumber !== null && entry.dexNumber !== undefined && Number.isFinite(number) ? `#${String(number).padStart(3, "0")}` : "";
+  }
+
+  function dexTag(entry) {
+    const label = dexLabel(entry);
+    return label ? `<span class="dex-number">${escapeHtml(label)}</span> ` : "";
   }
 
   // All crops with an id. A crop whose growth time isn't known (no positive cycleMinutes, or
