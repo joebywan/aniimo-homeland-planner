@@ -88,7 +88,11 @@
     },
     failedIcons: new Set(),
     buildingNotice: "",
+    // lastPlan: planForCapacity output (full plan plus, when over capacity, the best plan that fits).
+    // lastResult: the plan currently shown. planView: "fitted" or "full" when over capacity.
+    lastPlan: null,
     lastResult: null,
+    planView: "fitted",
     running: false,
   };
 
@@ -486,6 +490,11 @@
     document.getElementById("tab-optimise").addEventListener("click", (event) => {
       const link = event.target.closest("[data-goto-tab]");
       if (link) activateTab(link.dataset.gotoTab);
+      const viewButton = event.target.closest("[data-plan-view]");
+      if (viewButton && app.lastPlan) {
+        app.planView = viewButton.dataset.planView === "full" ? "full" : "fitted";
+        renderResults();
+      }
     });
 
     document.getElementById("optimiseButton").addEventListener("click", runOptimisation);
@@ -510,14 +519,15 @@
       renderBuildings();
       return;
     } else if (target.id === "homebuildingReserve") {
-      app.state.homeland.homebuildingReserve = optionalCount(target.value, 999);
+      const reserve = optionalCount(target.value, 999);
+      if (reserve === app.state.homeland.homebuildingReserve) return;
+      app.state.homeland.homebuildingReserve = reserve;
     } else {
       return;
     }
-    // Capacity doesn't change the minimum workforce, only the spare-space advice, so keep the result.
-    saveState();
+    // The zone's spaces come out of the same RV limit, so they change the best plan that fits.
+    markDirty();
     renderCapacityStatus();
-    if (app.lastResult) renderSpareSpaces(app.lastResult);
   }
 
   function hasAnyRequirement() {
@@ -561,6 +571,7 @@
 
   function markDirty() {
     app.lastResult = null;
+    app.lastPlan = null;
     saveState();
     renderResultShell();
   }
@@ -826,8 +837,7 @@
           : `${slots} Aniimo per ${building.countLabel === "facilities" || !building.countLabel ? "facility" : building.countLabel.replace(/s$/, "")}`;
     } else {
       items = (building.pools || []).map((pool) => workItem(pool.skill, pool.label || ""));
-      const perWorker = Number(building.plotsPerWorker);
-      note = perWorker > 0 ? `Shared: 1 Aniimo per step looks after about ${perWorker} plots` : "Shared between plots";
+      note = `Shared: each step takes about ${getActionDurationSeconds()} s per plot, so one Aniimo per step covers many plots`;
     }
     const joiner = building.behavior === "continuous" ? '<span class="work-or">or</span>' : "";
     return `<div class="work-list">${items.join(joiner)}</div><span class="work-note">${escapeHtml(note)}</span>`;
@@ -1048,7 +1058,7 @@
   }
 
   function renderResultShell() {
-    if (!app.lastResult) {
+    if (!app.lastPlan) {
       document.getElementById("resultSummary").textContent =
         'Press "Optimise workforce" once you\'ve filled in Requirements and Homeland.';
       document.getElementById("missingPanel").classList.add("is-hidden");
@@ -1062,7 +1072,7 @@
       return;
     }
 
-    renderResults(app.lastResult);
+    renderResults();
   }
 
   function waitForPaint() {
@@ -1112,17 +1122,36 @@
       // The search is a heuristic, and a bigger pool can occasionally lead it to a slightly bigger team.
       // Ticking Prismana or legendary Aniimo should never make the plan worse, so also try without them
       // and keep whichever team is smaller.
+      let usedPool = pool;
       const commonOnly = pool.filter((entry) => aniimoCategory(entry) === "common");
       if (commonOnly.length && commonOnly.length < pool.length) {
         const alternative = run(commonOnly);
         const better =
           (alternative.feasible && !result.feasible) ||
           (alternative.feasible === result.feasible && alternative.selectedWorkers.length < result.selectedWorkers.length);
-        if (better) result = alternative;
+        if (better) {
+          result = alternative;
+          usedPool = commonOnly;
+        }
       }
-      app.lastResult = result;
-      renderResults(result);
+      // If the full plan needs more Aniimo than the RV allows, also work out the best plan that fits.
+      const capacity = getCapacityInfo();
+      app.lastPlan = window.AniimoOptimizer.planForCapacity({
+        aniimo: usedPool,
+        catalogue: app.data.aniimo.aniimo,
+        skills: app.data.aniimo.skills,
+        requirements: app.state.requirements,
+        buildings: app.data.buildings.buildings,
+        buildingState: app.state.buildingState,
+        settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds() },
+        capacity: capacity.known ? capacity.capacity : null,
+        homebuildingReserve: getHomebuildingReserve(),
+        fullResult: result,
+      });
+      app.planView = "fitted";
+      renderResults();
     } catch (error) {
+      app.lastPlan = null;
       app.lastResult = null;
       renderResultShell();
       const panel = document.getElementById("missingPanel");
@@ -1137,42 +1166,106 @@
     }
   }
 
-  function renderResults(result) {
+  // The plan on screen: the best plan that fits when over capacity (unless the full plan is chosen).
+  function currentView(plan) {
+    return plan.overCapacity && plan.fitted && app.planView !== "full" ? "fitted" : "full";
+  }
+
+  function renderResults() {
+    const plan = app.lastPlan;
+    if (!plan) return;
+    const view = currentView(plan);
+    const result = view === "fitted" ? plan.fitted : plan.full;
+    app.lastResult = result;
     const count = result.selectedWorkers.length;
-    const capacity = getCapacityInfo();
-    let summary = result.feasible
-      ? `This plan uses ${count} Aniimo – the smallest team the planner found.`
-      : `Couldn't cover everything. The best attempt uses ${count} Aniimo – see what's missing below.`;
-    if (capacity.known) {
-      const free = capacity.capacity - count;
-      summary +=
-        free >= 0
-          ? ` Your Homeland has room for ${capacity.capacity}, leaving ${free} spare.`
-          : ` Your Homeland only has room for ${capacity.capacity}.`;
+    let summary;
+    if (plan.overCapacity && view === "fitted") {
+      summary = `Showing the best plan for your ${plan.budget} space${plural(plan.budget)}: ${count} Aniimo.`;
+    } else if (plan.overCapacity) {
+      summary = `Showing the full plan: ${count} Aniimo – ${plan.overBy} more than you have room for.`;
+    } else {
+      summary = result.feasible
+        ? `This plan uses ${count} Aniimo – the smallest team the planner found.`
+        : `Couldn't cover everything. The best attempt uses ${count} Aniimo – see what's missing below.`;
+      if (plan.capacityKnown) {
+        const free = plan.capacity - count;
+        summary += ` Your Homeland has room for ${plan.capacity}, leaving ${free} spare.`;
+      }
     }
     document.getElementById("resultSummary").textContent = summary;
+    document.getElementById("workforceHelp").textContent =
+      view === "fitted"
+        ? "The best team that fits your Aniimo spaces, chosen from your Available Aniimo. Buildings left idle get no Aniimo."
+        : "The smallest group of Aniimo that covers your requirements and buildings, chosen from your Available Aniimo.";
 
-    renderMissing(result);
+    renderCapacityNotice(plan, view);
+    renderMissing(plan, view);
     renderWorkerResults(result);
     renderCoverage(result);
-    renderStaffing(result);
+    renderStaffing(result, view === "fitted" ? plan.shortfalls.idle : []);
     renderSpareSpaces(result);
   }
 
-  function renderMissing(result) {
+  function capacityHeadline(plan) {
+    return window.AniimoOptimizer.describeCapacityPlan(plan, { rvLevel: app.state.homeland.rvLevel, zoneName: getZone().name });
+  }
+
+  function renderCapacityNotice(plan, view) {
+    const notice = document.getElementById("capacityNotice");
+    if (!plan.overCapacity) {
+      notice.classList.add("is-hidden");
+      notice.innerHTML = "";
+      return;
+    }
+    const text = capacityHeadline(plan);
+    const fittedSize = plan.fitted ? plan.fitted.selectedWorkers.length : 0;
+    let fittedBody;
+    if (!plan.fitted) {
+      fittedBody = `<p>There are no spaces left for production Aniimo. Lower the spaces kept for the ${escapeHtml(getZone().name)} on the <button type="button" class="link-button" data-goto-tab="homeland">Homeland tab</button>.</p>`;
+    } else {
+      const lines = plan.shortfalls.lines.map((line) => `<li>${escapeHtml(line)}</li>`);
+      const farmTasks = plan.fitted.physicalStaffing.filter((row) => row.type === "Intermittent");
+      if (farmTasks.length && !plan.shortfalls.farmSkills.length) lines.push("<li>Every farm step is covered.</li>");
+      if (!plan.shortfalls.short.length && !plan.shortfalls.noAbility.length) lines.push("<li>Estimated Require totals are still met.</li>");
+      fittedBody = `
+        <p><strong>Best plan that fits: ${fittedSize} Aniimo.</strong> The rest of your buildings stay idle until you have more room.</p>
+        <ul class="shortfall-list">${lines.join("")}</ul>
+      `;
+    }
+    const toggle = plan.fitted
+      ? `
+        <div class="plan-switch" role="group" aria-label="Which plan to show">
+          <button type="button" class="plan-switch-button${view === "fitted" ? " is-active" : ""}" data-plan-view="fitted" aria-pressed="${view === "fitted"}">Best plan for ${plan.budget} space${plural(plan.budget)}</button>
+          <button type="button" class="plan-switch-button${view === "full" ? " is-active" : ""}" data-plan-view="full" aria-pressed="${view === "full"}">Full plan (${plan.full.selectedWorkers.length} Aniimo)</button>
+        </div>
+      `
+      : "";
+    notice.classList.remove("is-hidden");
+    notice.innerHTML = `
+      <h3>More buildings than Aniimo spaces</h3>
+      <p>${escapeHtml(text.headline)}${text.minimum ? ` ${escapeHtml(text.minimum)}` : ""}</p>
+      ${fittedBody}
+      ${toggle}
+    `;
+  }
+
+  // What the shown plan still lacks, as a short grouped list (never one line per building copy).
+  function renderMissing(plan, view) {
     const panel = document.getElementById("missingPanel");
-    if (result.feasible || !result.missing.length) {
+    const shortfalls = view === "fitted" ? null : plan.fullShortfalls;
+    // The best plan that fits lists its own gaps in the capacity notice above.
+    if (!shortfalls || shortfalls.ok) {
       panel.classList.add("is-hidden");
       panel.innerHTML = "";
       return;
     }
-
-    const hint =
-      "Try lowering a requirement or building count, or let the planner use more Aniimo on the Available Aniimo tab (for example Prismana forms).";
+    const hint = shortfalls.noAbility.length
+      ? "Or lower that building count or requirement."
+      : "Try lowering a requirement or building count, or let the planner use more Aniimo on the Available Aniimo tab (for example Prismana forms).";
     panel.classList.remove("is-hidden");
     panel.innerHTML = `
       <h3>Still missing</h3>
-      <ul>${result.missing.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      <ul class="shortfall-list">${shortfalls.lines.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
       <p>${escapeHtml(hint)}</p>
     `;
   }
@@ -1225,9 +1318,9 @@
       .join("");
   }
 
-  function renderStaffing(result) {
+  function renderStaffing(result, idle = []) {
     const tbody = document.querySelector("#staffingTable tbody");
-    if (!result.physicalStaffing.length) {
+    if (!result.physicalStaffing.length && !idle.length) {
       tbody.innerHTML = `<tr><td colspan="4" class="work-model-text">No buildings need staff. Add some on the Homeland tab.</td></tr>`;
       return;
     }
@@ -1242,12 +1335,23 @@
           </tr>
         `;
       })
-      .join("");
+      .join("") +
+      idle
+        .map(
+          (group) => `
+          <tr class="is-idle">
+            <td>${escapeHtml(group.name)} (left idle)</td>
+            <td>${group.count} Aniimo</td>
+            <td>0 Aniimo</td>
+            <td><span class="status-pill idle">Idle</span></td>
+          </tr>
+        `
+        )
+        .join("");
   }
 
   function renderSpareSpaces(result) {
     const container = document.getElementById("spareResults");
-    const notice = document.getElementById("capacityNotice");
     const capacity = getCapacityInfo();
     const zone = getZone();
     const plan = window.AniimoOptimizer.recommendSpareSpaces({
@@ -1258,21 +1362,6 @@
       skills: app.data.aniimo.skills,
       mode: "pool",
     });
-
-    if (plan.overCapacity) {
-      notice.classList.remove("is-hidden");
-      notice.innerHTML = `
-        <h3>Too many Aniimo for your Homeland</h3>
-        <p>
-          Your Homeland has room for <strong>${plan.capacity}</strong> Aniimo, but this plan needs
-          <strong>${plan.used}</strong> – that's ${plan.overBy} too many. Raise your RV level, build fewer
-          buildings, lower some requirements, or look for Aniimo with more abilities so fewer can do the work.
-        </p>
-      `;
-    } else {
-      notice.classList.add("is-hidden");
-      notice.innerHTML = "";
-    }
 
     if (!plan.capacityKnown) {
       container.className = "empty-state";
@@ -1287,7 +1376,7 @@
 
     if (plan.overCapacity) {
       container.className = "empty-state";
-      container.textContent = "No spare spaces – the plan already needs more room than you have.";
+      container.textContent = "No spare spaces – this plan needs more room than you have. Switch to the best plan that fits above.";
       return;
     }
 
@@ -1413,6 +1502,7 @@
       const importedState = payload.state || payload;
       app.state = normalizeState(importedState);
       app.lastResult = null;
+      app.lastPlan = null;
       saveState();
       renderAll();
     } catch (error) {
@@ -1429,6 +1519,7 @@
     }
     app.state = normalizeState(defaultState());
     app.lastResult = null;
+    app.lastPlan = null;
     renderAll();
   }
 

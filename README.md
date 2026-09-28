@@ -63,7 +63,7 @@ aniimo.gg also lists copies of some Aniimo under 9-digit IDs (for example `glyns
 ### Buildings, crops and Homeland capacity (hand-curated)
 
 - `data/buildings.json`: real facility names, the work ability each one needs, slots, unlock RV level and placement limits. Each entry has `source` and `verified` fields. `placementLimit` is the readable text ("1 from RV 4, 2 from RV 8, …"); `maxByRv` is the same limit as data (`[{ "rv": 4, "max": 1 }, …]`) and drives the building counts. Published sources only give the end points for Farmland, Woodland and Mine, so their in-between steps come from the RV upgrade requirements (to build RV N+1 the game asks you to place that many at RV N) and are marked `maxByRvVerified: false`. The Storage Unit has no `maxByRv`: the number of haulers is the player's choice.
-- `data/crops.json`: Farmland and Woodland crops with grow times (`cycleMinutes`) and yields. The top-level `actionDurationSeconds` (6 s) is an estimate and is flagged `actionDurationVerified: false`.
+- `data/crops.json`: Farmland and Woodland crops with grow times (`cycleMinutes`) and yields. The top-level `actionDurationSeconds` (5 s per loosen, plant, water or harvest action) was confirmed in-game by a player and is flagged `actionDurationVerified: true`.
 - `data/homeland.json`: Aniimo capacity for each RV level and details of the Homebuilding Zone.
 
 Sources: <https://aniimo.gg/homeland/rv/>, <https://aniimo.gg/homeland/furniture/functional-facilities/>, <https://aniimo.gg/homeland/plots/>, <https://aniimotools.dev/systems/homeland/stations/> and <https://aniimotools.dev/systems/homeland/rv-levels/>.
@@ -113,6 +113,13 @@ Intermittent work:
 - One Aniimo can cover multiple intermittent skills only when the setting is enabled and combined load stays within the "keep farm helpers at most this busy" cap.
 - Aniimo assigned to continuous work are not reused for intermittent work by default.
 
+Over capacity:
+
+- The RV capacity is one limit shared by production and the Homebuilding Zone, so spaces kept for the zone come off the top.
+- If the full plan needs more Aniimo than that, the result headlines it (for example "Your buildings need 29 Aniimo (27 buildings + 2 farm helpers), but RV 9 has 26 spaces – 3 over.") and says whether Aniimo doubling up on farm steps could bring the number down.
+- `planForCapacity` then builds a best plan that fits: Aniimo only there for ability points go first, then buildings are left idle – spare copies (the 5th Mine, the 2nd Well) before the only building of its kind – while every farm step stays covered. It starts from the full plan's team and only runs a second, size-capped search if that team misses Estimated Require points.
+- The app shows the fitted plan by default when over capacity, with a switch to see the full plan. What's left out is summarised in grouped lines (`summarizeShortfalls`), e.g. "Left idle: Mine ×3" and "Short on: Water 2", and names any ability no Aniimo in the pool has, suggesting Prismana or legendary Aniimo when they would help.
+
 Capability targets:
 
 - Estimated Require values are treated as skill capability targets.
@@ -121,7 +128,7 @@ Capability targets:
 
 ## Assumptions
 
-- Farm/woodland action time comes from `data/crops.json` (currently an estimated 6 seconds per plot, flagged unverified); crop growth time is chosen in Settings.
+- Farm/woodland action time comes from `data/crops.json` (about 5 seconds per action, confirmed in-game by a player); crop growth time is chosen in Settings.
 - Walking between plots is represented by the "Walking time allowance" advanced setting.
 - Facilities come from `data/buildings.json`, sourced from aniimo.gg and aniimotools.dev; entries marked `verified: false` (e.g. hauler count) are estimates.
 - Aniimo capacity per RV level comes from `data/homeland.json`; this is one shared limit across the Homebuilding Zone and all production areas (confirmed in-game).
@@ -144,6 +151,8 @@ The tests cover:
 - Continuous plus intermittent exclusivity
 - Estimated Require without physical jobs
 - Physical job bodies exceeding a low capability target
+- Over capacity: a real RV 9 setup fitted to 26 spaces (spare copies idled first, farm steps covered, grouped summary), the Homebuilding Zone reserve, and within-capacity plans left unchanged
+- Grouped shortfalls and the Prismana suggestion for an ability missing from the pool
 
 ## Privacy
 

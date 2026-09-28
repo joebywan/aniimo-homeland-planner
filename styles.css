@@ -1150,6 +1150,75 @@ legend {
   color: inherit;
 }
 
+.shortfall-list {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 !important;
+}
+
+.shortfall-list li {
+  overflow-wrap: anywhere;
+}
+
+/* Switch between the best plan that fits and the full plan. */
+.plan-switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  max-width: 100%;
+}
+
+.plan-switch-button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.plan-switch-button.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.plan-switch-button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .plan-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .plan-switch-button {
+    border-radius: 9px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+.status-pill.idle {
+  border-color: rgba(184, 109, 31, 0.25);
+  background: #fff6ea;
+  color: #8a4f12;
+}
+
+tr.is-idle td {
+  color: var(--muted);
+}
+
 .link-button {
   border: 0;
   padding: 0;
