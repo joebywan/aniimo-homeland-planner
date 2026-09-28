@@ -1492,7 +1492,13 @@
       .map((option, index) => {
         const selected = index === app.optionIndex;
         const fitsText =
-          option.fits === null ? "Set your RV level" : option.fits ? "Yes" : `No – ${option.needed - option.plan.budget} over`;
+          option.fits === null
+            ? "Set your RV level"
+            : option.fits
+              ? "Yes"
+              : option.underCapacity && option.complete === false
+                ? "No – can't staff everything"
+                : `No – ${option.needed - option.plan.budget} over`;
         const spare = option.fits ? String(option.spare) : "–";
         const badge = index === bestIndex ? ' <span class="best-badge">Best fit</span>' : "";
         return `
@@ -1544,6 +1550,9 @@
 
   function maxFitText(options) {
     if (!options.capacityKnown) return "Choose your RV level on the Homeland tab to see which busy levels fit your spaces.";
+    if (options.incomplete) {
+      return "Your Available Aniimo can't staff everything at any busy level – see Still missing below for what to add.";
+    }
     const budget = options.options[0].plan.budget;
     if (options.allFit) return `Your spaces allow processors to run full time (${options.maxFitPercent}%).`;
     if (!options.noneFit) return `Your spaces allow processors to run up to about ${options.maxFitPercent}% of the time.`;
@@ -1676,7 +1685,7 @@
       return;
     }
 
-    container.innerHTML = result.selectedWorkers
+    const cards = result.selectedWorkers
       .map((worker) => {
         return `
           <article class="worker-card">
@@ -1698,7 +1707,65 @@
       })
       .join("");
 
+    const groups = chooseGroups(result.selectedWorkers);
+    container.innerHTML = `
+      <div class="choose-block">
+        <h4 class="choose-title">Choose these</h4>
+        <ul class="choose-list">${groups.map(chooseItem).join("")}</ul>
+      </div>
+      <details class="workforce-details">
+        <summary>Details for each Aniimo (${result.selectedWorkers.length})</summary>
+        <div class="worker-cards">${cards}</div>
+      </details>
+    `;
+
     wireImageFallback(container);
+  }
+
+  // The plan's Aniimo grouped by form (copies together), in plan order.
+  function chooseGroups(workers) {
+    const groups = new Map();
+    for (const worker of workers) {
+      const group = groups.get(worker.aniimoId) || { worker, count: 0, fullTime: new Map(), partTime: new Map(), boosters: 0 };
+      group.count += 1;
+      const work = worker.work || { fullTime: null, partTime: [] };
+      if (work.fullTime) group.fullTime.set(work.fullTime.name, (group.fullTime.get(work.fullTime.name) || 0) + 1);
+      for (const item of work.partTime || []) group.partTime.set(item.name, (group.partTime.get(item.name) || 0) + item.load);
+      if (!work.fullTime && !(work.partTime || []).length) group.boosters += 1;
+      groups.set(worker.aniimoId, group);
+    }
+    return [...groups.values()];
+  }
+
+  // "2× Piopiota (Nighttime Form) – Tidewhisper Sandcastle, Well" with portrait, stage and ability levels.
+  function chooseItem(group) {
+    const worker = group.worker;
+    const entry = aniimoLookup().get(worker.aniimoId) || worker;
+    const jobs = [];
+    for (const [name, count] of group.fullTime) jobs.push(`${name}${count > 1 ? ` ×${count}` : ""}`);
+    const partTime = [...group.partTime].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name);
+    if (partTime.length) {
+      const shown = partTime.slice(0, 3).join(", ");
+      const more = partTime.length > 3 ? ` +${partTime.length - 3} more` : "";
+      jobs.push(`part-time: ${shown}${more}`);
+    }
+    if (group.boosters) jobs.push("ability points");
+    const abilities = app.data.aniimo.skills
+      .filter((skill) => Number(worker.skills?.[skill] || 0) > 0)
+      .map((skill) => `<span class="choose-ability" title="${escapeAttr(`${skill} ${worker.skills[skill]}`)}">${abilityIcon(skill, "small")}<span>${Number(worker.skills[skill])}</span></span>`)
+      .join("");
+    const full = group.fullTime.size ? "Full time" : "";
+    const title = [full, partTime.length ? `Part-time at ${partTime.join(", ")}` : ""].filter(Boolean).join("; ");
+    return `
+      <li class="choose-item">
+        <img class="aniimo-head" src="${escapeAttr(worker.image || FALLBACK_MARK)}" alt="" />
+        <div class="choose-main">
+          <p class="choose-name">${group.count > 1 ? `<span class="choose-count">${group.count}×</span> ` : ""}<strong>${escapeHtml(worker.displayName)}</strong>${categoryBadge(worker.category || worker)}${tierBadge(entry)}</p>
+          <p class="choose-jobs" title="${escapeAttr(title)}">${escapeHtml(jobs.join(" · "))}</p>
+        </div>
+        <div class="choose-abilities" aria-label="${escapeAttr(app.data.aniimo.skills.filter((skill) => worker.skills?.[skill] > 0).map((skill) => `${skill} ${worker.skills[skill]}`).join(", "))}">${abilities}</div>
+      </li>
+    `;
   }
 
   // "Best personality: Practical (+20% at the Chimney Kiln)", grouped when a part-time Aniimo has several.

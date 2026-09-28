@@ -659,6 +659,9 @@ test("starters: only the chosen starter is in the pool; neither until one is cho
   // The optimiser never suggests the other starter.
   const lunaraOnly = optimizeWorkforce({ ...playerInput, aniimo: filterAniimoPool(aniimoData.aniimo, { starter: "Lunara" }) });
   assert.ok(!lunaraOnly.selectedWorkers.some((worker) => worker.species === "Helion"));
+  // A player only has one starter: never two in a plan, never another one as a spare.
+  assert.ok(lunaraOnly.selectedWorkers.filter((worker) => worker.species === "Lunara").length <= 1);
+  assert.ok(!lunaraOnly.unusedWorkers.some((worker) => worker.species === "Lunara" && worker.copy > 1));
 });
 
 test("evolution: a lower stage fully covered by a higher stage of its line is left out, unless ticked", () => {
@@ -882,7 +885,7 @@ test("processors: part-time shares of one Aniimo, shared by Aniimo with the abil
   const half = optimizeWorkforce({ ...input, settings: { mode: "pool", processorBusyPercent: 50 } });
   assert.equal(half.feasible, true);
   assert.equal(half.selectedWorkers.length, 1);
-  assert.equal(half.selectedWorkers[0].primaryAssignment, "Part-time processor worker");
+  assert.equal(half.selectedWorkers[0].primaryAssignment, "Part-time processor worker (2 buildings)");
   assert.deepEqual(half.selectedWorkers[0].personalityTips.map((tip) => tip.personality), ["Practical", "Practical"]);
   // At 75% each they need 1.5 Aniimo, so 2.
   const most = optimizeWorkforce({ ...input, settings: { mode: "pool", processorBusyPercent: 75 } });
@@ -914,7 +917,7 @@ test("processors: a farm helper's farm steps stay under the farm cap, processing
   const result = optimizeWorkforce({ ...input, settings: { mode: "pool", processorBusyPercent: 60, maxUtilizationPercent: 50 } });
   assert.equal(result.feasible, true);
   assert.equal(result.selectedWorkers.length, 1);
-  assert.equal(result.selectedWorkers[0].primaryAssignment, "Part-time: processors and farm steps");
+  assert.equal(result.selectedWorkers[0].primaryAssignment, "Part-time: processors and farm steps (2 buildings)");
   // Farm steps alone above the cap need a second helper even though the day isn't full.
   const busyFarm = optimizeWorkforce({
     ...input,
@@ -1108,4 +1111,99 @@ test("shortfalls: missing jobs are grouped and a missing ability suggests tickin
   assert.equal(summary.noAbility[0].skill, "Light");
   assert.ok(summary.lines.some((line) => /No Aniimo in your pool has Light\. Ticking Prismana forms/.test(line)));
   assert.ok(summary.lines.length <= 3);
+});
+
+test("quality: among plans of the same size, stronger Aniimo win (full-time, part-time and requirement points)", () => {
+  const weak = aniimo("aweak", "Aweak", { Fire: 2, Ice: 1 });
+  const strong = aniimo("bstrong", "Bstrong", { Fire: 3 });
+  const furnace = { ...continuousBuilding("furnace", "Fire"), role: "climate" };
+  const base = { aniimo: [weak, strong], skills: DEFAULT_SKILLS, requirements: skills({}), buildingState: {} };
+  // Owned mode (no quality pass, one of each): the search's pick is the weaker one.
+  const owned = optimizeWorkforce({ ...base, roster: roster([["aweak", 1], ["bstrong", 1]]), buildings: [furnace], settings: { mode: "owned" } });
+  assert.deepEqual(owned.selectedWorkers.map((worker) => worker.name), ["Aweak"]);
+  // Pool mode: same headcount, the Fire 3 Aniimo takes the furnace.
+  const full = optimizeWorkforce({ ...base, buildings: [furnace], settings: { mode: "pool" } });
+  assert.equal(full.feasible, true);
+  assert.deepEqual(full.selectedWorkers.map((worker) => worker.name), ["Bstrong"]);
+  assert.deepEqual(full.continuousAssignments.map((item) => item.worker.name), ["Bstrong"]);
+  // Part-time processor work goes to the higher level too.
+  const kiln = { ...continuousBuilding("kiln", "Fire"), role: "processor" };
+  const part = optimizeWorkforce({ ...base, buildings: [kiln], settings: { mode: "pool", processorBusyPercent: 50 } });
+  assert.deepEqual(part.selectedWorkers.map((worker) => worker.name), ["Bstrong"]);
+  // Same Earth level at the Mines, but one also brings the Grass point the requirements ask for: two of it.
+  const bailite = aniimo("bailite", "Bailite", { Earth: 3, Hauling: 3 });
+  const shrub = aniimo("shrubclaw", "Shrubclaw", { Grass: 2, Earth: 3, Hauling: 3 });
+  const mines = optimizeWorkforce({
+    aniimo: [bailite, shrub],
+    skills: DEFAULT_SKILLS,
+    requirements: skills({ Grass: 1 }),
+    buildings: [continuousBuilding("mine", "Earth", 2)],
+    buildingState: {},
+    settings: { mode: "pool" },
+  });
+  assert.equal(mines.selectedWorkers.length, 2);
+  assert.deepEqual(mines.selectedWorkers.map((worker) => worker.workerId).sort(), ["shrubclaw#1", "shrubclaw#2"]);
+});
+
+test("player's RV 9 plan: every building staffed by an eligible Aniimo, stronger picks, no one on two full-time jobs", () => {
+  const options = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 0 });
+  const byId = new Map(aniimoData.aniimo.map((entry) => [entry.id, entry]));
+  const susuta = ["Panpanta", "Piopiota", "Popota", "Susuta"];
+  for (const option of options.options) {
+    // An option is never reported as fitting with something left unstaffed.
+    if (option.fits) assert.equal(option.plan.full.feasible, true, `${option.percent}%`);
+    const result = option.plan.full;
+    assert.ok(result.physicalStaffing.every((row) => row.status === "OK"), `${option.percent}%`);
+    // Full-time workers hold exactly one building and do no part-time work.
+    const fullTimeIds = result.continuousAssignments.map((item) => item.worker.workerId);
+    assert.equal(new Set(fullTimeIds).size, fullTimeIds.length, `${option.percent}%: a worker on two full-time buildings`);
+    const partTimeIds = new Set(result.intermittentAssignments.map((item) => item.worker.workerId));
+    assert.ok(fullTimeIds.every((id) => !partTimeIds.has(id)), `${option.percent}%: a full-time worker also doing part-time work`);
+    for (const worker of result.selectedWorkers) {
+      if (worker.work.fullTime) assert.equal(worker.work.partTime.length, 0, worker.displayName);
+    }
+    assert.equal(new Set(result.selectedWorkers.map((worker) => worker.workerId)).size, result.selectedWorkers.length);
+  }
+
+  const selected = options.options[options.selectedIndex];
+  assert.equal(selected.fits, true);
+  const result = selected.plan.full;
+  const workerAt = (buildingId) => result.continuousAssignments.filter((item) => item.job.buildingId === buildingId).map((item) => item.worker);
+  // Tidewhisper Sandcastle: a Susuta-line Aniimo (Level 2 at RV 9).
+  const sand = workerAt("tidewhisper_sandcastle");
+  assert.equal(sand.length, 1);
+  assert.ok(susuta.includes(sand[0].species), sand[0].species);
+  // Dewy House: a Fragrancier (the Dewy stage is covered by it), and the Perfumery processor still has someone
+  // else – so the plan has a second Fragrancier (or another Perfumery Aniimo).
+  const dewy = workerAt("dewy_house");
+  assert.equal(dewy.length, 1);
+  assert.equal(dewy[0].species, "Fragrancier");
+  const perfumers = result.intermittentAssignments.filter((item) => item.tasks.some((task) => task.buildingId === "phonolfactory_table"));
+  assert.ok(perfumers.length >= 1 && perfumers.every((item) => item.worker.workerId !== dewy[0].workerId));
+  assert.ok(result.selectedWorkers.filter((worker) => worker.species === "Fragrancier").length >= 2);
+
+  // Quality: no full-time worker is outclassed at its own building by a pool Aniimo that also keeps
+  // every Estimated Require target – e.g. no Squashel (Fire 2) on the Heat Furnace, no Cornet (Water 2) at a
+  // Well, and Mines go to Earth 3 Aniimo that also bring Grass (Shrubclaw) rather than Bailite or Bouldus.
+  const names = result.selectedWorkers.map((worker) => worker.name);
+  for (const name of ["Squashel", "Cornet", "Bailite", "Bouldus"]) assert.ok(!names.includes(name), `${name} in ${names.join(", ")}`);
+  for (const item of result.continuousAssignments) {
+    const skill = item.job.requirements[0].skill;
+    const best = Math.max(
+      ...playerInput.aniimo.filter((entry) => !item.job.allowedSpecies || item.job.allowedSpecies.includes(entry.species)).map((entry) => entry.skills[skill] || 0)
+    );
+    assert.equal(item.worker.skills[skill], best, `${item.worker.displayName} at ${item.job.label}`);
+  }
+  assert.ok(result.selectedWorkers.every((worker) => !byId.get(worker.aniimoId).dominatedBy));
+});
+
+test("processor options: a plan with room but an unstaffable building is never reported as fitting", () => {
+  // No Susuta-line Aniimo in the pool: the Sandcastle can't be staffed at RV 9.
+  const noSusuta = playerInput.aniimo.filter((entry) => !["Panpanta", "Piopiota", "Popota", "Susuta"].includes(entry.species));
+  const options = planProcessorOptions({ ...playerInput, aniimo: noSusuta, capacity: 40, homebuildingReserve: 0 });
+  assert.ok(options.options.every((option) => option.fits === false && option.complete === false));
+  assert.equal(options.incomplete, true);
+  assert.equal(options.noneFit, false);
+  const plan = options.options[options.selectedIndex].plan;
+  assert.ok(plan.fullShortfalls.lines.some((line) => line.includes("Tidewhisper Sandcastle")), plan.fullShortfalls.lines.join(" | "));
 });

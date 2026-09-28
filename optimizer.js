@@ -218,7 +218,8 @@
       if (ownedState.excluded) continue;
 
       const ownedQuantity = owned ? Math.floor(clampNumber(ownedState.quantity, 0, 0, 99)) : 0;
-      const poolCopies = owned ? 0 : copyCapFor ? copyCapFor(entry) : 1;
+      // A player only ever has one starter, so it is never duplicated.
+      const poolCopies = owned ? 0 : entry.starter ? 1 : copyCapFor ? copyCapFor(entry) : 1;
       const quantity = Math.max(ownedQuantity, poolCopies);
 
       for (let copy = 1; copy <= quantity; copy += 1) {
@@ -242,6 +243,7 @@
       stage: Number(entry.stage) || 1,
       finalStage: Number(entry.finalStage) || Number(entry.stage) || 1,
       tierName: entry.tierName || "",
+      starter: Boolean(entry.starter),
       // Only meaningful in owned mode; pool Aniimo are all available.
       owned: owned !== false,
       skills: cloneSkillMap(skills, entry.skills),
@@ -701,6 +703,110 @@
       unfilled,
       workerLoads: loadState,
     };
+  }
+
+  // The same part-time network as assignPartTimeFlow, but among all ways to cover the work it picks the one
+  // that gives each piece of work to the Aniimo with the highest level in that ability (min-cost max flow,
+  // cost = -level per share of a day). Only used to polish a team that is already known to cover the work.
+  function assignPartTimeBest(available, tasks, farmCap) {
+    const EPS = 1e-9;
+    const graph = [];
+    const addNode = () => graph.push([]) - 1;
+    const addEdge = (from, to, cap, cost) => {
+      const forward = { to, cap, cost, flow: 0, rev: null };
+      const backward = { to: from, cap: 0, cost: -cost, flow: 0, rev: forward };
+      forward.rev = backward;
+      graph[from].push(forward);
+      graph[to].push(backward);
+      return forward;
+    };
+    const source = addNode();
+    const sink = addNode();
+    const taskNodes = tasks.map((task) => {
+      const node = addNode();
+      addEdge(source, node, task.load, 0);
+      return node;
+    });
+    const workerNodes = available.map(() => {
+      const main = addNode();
+      const farm = addNode();
+      addEdge(farm, main, farmCap, 0);
+      addEdge(main, sink, WORKER_DAY, 0);
+      return { main, farm };
+    });
+    const links = [];
+    tasks.forEach((task, taskIndex) => {
+      const minLevel = Math.max(1, Number(task.minLevel || 1));
+      available.forEach((worker, workerIndex) => {
+        const level = Number(worker.skills?.[task.skill] || 0);
+        if (level < minLevel || !speciesAllowed(worker, task)) return;
+        const nodes = workerNodes[workerIndex];
+        const edge = addEdge(taskNodes[taskIndex], task.kind === "processor" ? nodes.main : nodes.farm, task.load, -level);
+        links.push({ edge, task, workerIndex });
+      });
+    });
+
+    const total = tasks.reduce((sum, task) => sum + task.load, 0);
+    let flow = 0;
+    // Successive shortest paths (Bellman-Ford: costs are negative).
+    for (let guard = 0; guard < 5000 && flow < total - 1e-7; guard += 1) {
+      const dist = new Array(graph.length).fill(Infinity);
+      const prevEdge = new Array(graph.length).fill(null);
+      const inQueue = new Array(graph.length).fill(false);
+      dist[source] = 0;
+      const queue = [source];
+      inQueue[source] = true;
+      let relaxations = 0;
+      while (queue.length && relaxations < 200000) {
+        const node = queue.shift();
+        inQueue[node] = false;
+        for (const edge of graph[node]) {
+          if (edge.cap - edge.flow <= EPS) continue;
+          const next = dist[node] + edge.cost;
+          if (next < dist[edge.to] - 1e-12) {
+            relaxations += 1;
+            dist[edge.to] = next;
+            prevEdge[edge.to] = edge;
+            if (!inQueue[edge.to]) {
+              inQueue[edge.to] = true;
+              queue.push(edge.to);
+            }
+          }
+        }
+      }
+      if (dist[sink] === Infinity) break;
+      let pushed = Infinity;
+      for (let node = sink; node !== source; node = prevEdge[node].rev.to) {
+        const edge = prevEdge[node];
+        pushed = Math.min(pushed, edge.cap - edge.flow);
+      }
+      if (!(pushed > EPS)) break;
+      for (let node = sink; node !== source; node = prevEdge[node].rev.to) {
+        const edge = prevEdge[node];
+        edge.flow += pushed;
+        edge.rev.flow -= pushed;
+      }
+      flow += pushed;
+    }
+    if (flow < total - 1e-6) return null;
+
+    const loadState = new Map();
+    for (const worker of available) {
+      loadState.set(worker.workerId, { worker, total: 0, farm: 0, skills: new Set(), farmSkills: new Set(), chunks: [] });
+    }
+    for (const link of links) {
+      const amount = link.edge.flow;
+      if (amount <= 1e-7) continue;
+      const state = loadState.get(available[link.workerIndex].workerId);
+      state.total += amount;
+      if (link.task.kind !== "processor") {
+        state.farm += amount;
+        state.farmSkills.add(link.task.skill);
+      }
+      state.skills.add(link.task.skill);
+      state.chunks.push({ ...link.task, chunkId: `${link.task.id}:${link.workerIndex}`, load: amount });
+    }
+    return { ok: true, assignments: summarizeIntermittent(loadState), unfilled: [], workerLoads: loadState };
   }
 
   function summarizeIntermittent(loadState) {
@@ -1171,12 +1277,22 @@
       const doesProcessing = partTimeTasks.some((task) => task.kind === "processor");
       const doesFarm = partTimeTasks.some((task) => task.kind !== "processor");
 
+      // Where this Aniimo works, one entry per building: a full-time building holds it all day (never
+      // more than one); part-time work lists each building with its share of the day.
+      const partTimeByBuilding = new Map();
+      for (const task of partTimeTasks) {
+        const entry = partTimeByBuilding.get(task.buildingId) || { buildingId: task.buildingId, name: task.buildingName, kind: task.kind || "farm", load: 0 };
+        entry.load += task.load;
+        partTimeByBuilding.set(task.buildingId, entry);
+      }
+      const partTime = [...partTimeByBuilding.values()].sort((a, b) => b.load - a.load || a.name.localeCompare(b.name));
+      const buildingWord = (count) => `${count} building${count === 1 ? "" : "s"}`;
       if (continuousJob) {
         primaryAssignment = continuousJob.label;
       } else if (doesProcessing && doesFarm) {
-        primaryAssignment = "Part-time: processors and farm steps";
+        primaryAssignment = `Part-time: processors and farm steps (${buildingWord(partTime.length)})`;
       } else if (doesProcessing) {
-        primaryAssignment = "Part-time processor worker";
+        primaryAssignment = `Part-time processor worker (${buildingWord(partTime.length)})`;
       } else if (intermittent) {
         primaryAssignment = "Farm helper";
       }
@@ -1210,6 +1326,11 @@
         displayName: displayWorkerName(worker),
         primaryAssignment,
         secondaryAssignments,
+        work: {
+          fullTime: continuousJob ? { buildingId: continuousJob.buildingId, name: continuousJob.name, label: continuousJob.label } : null,
+          partTime,
+          partTimeLoad: intermittent ? intermittent.totalLoad : 0,
+        },
         personalityTips,
         contributingSkills,
         reason: reasonParts.join("; "),
@@ -1284,7 +1405,172 @@
     });
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // Plan quality. The search finds the fewest Aniimo; among teams of that size this pass prefers stronger
+  // ones. For each Aniimo in the plan it looks for any Aniimo in the pool (unlimited copies) that can do
+  // exactly the same work – the same full-time building, or the same part-time shares – without dropping
+  // any Estimated Require total below its target, and swaps it in when that is better on, in order:
+  //   1. work quality: the level of the ability used at its full-time building, or the sum over its
+  //      part-time work of share of the day × ability level;
+  //   2. points towards the Estimated Require abilities (more headroom);
+  //   3. how many of the plan's needed abilities it has;
+  //   4. total ability points.
+  // Part-time work is first handed to the highest-level Aniimo that can take it (min-cost flow). It repeats
+  // until nothing improves. The team size and every assignment stay valid throughout.
+  function workerQualityKey(worker, work, requirements, relevant, skills) {
+    let workScore = 0;
+    if (work.job) workScore += jobMatchLevel(worker, work.job);
+    for (const task of work.tasks) workScore += task.load * Number(worker.skills?.[task.skill] || 0);
+    let points = 0;
+    let coverage = 0;
+    for (const skill of skills) {
+      const level = Number(worker.skills?.[skill] || 0);
+      if (level <= 0) continue;
+      if (Number(requirements?.[skill] || 0) > 0) points += level;
+      if (relevant.has(skill)) coverage += 1;
+    }
+    return [workScore, points, coverage, totalSkillPower(worker, skills)];
+  }
+
+  function compareQualityKeys(a, b) {
+    for (let index = 0; index < a.length; index += 1) {
+      const difference = a[index] - b[index];
+      if (Math.abs(difference) > 1e-9) return difference;
+    }
+    return 0;
+  }
+
+  function planWorkQuality(result, skills) {
+    let score = 0;
+    for (const assignment of result.continuous?.assignments || []) score += jobMatchLevel(assignment.worker, assignment.job);
+    for (const assignment of result.intermittent?.assignments || []) {
+      for (const task of assignment.tasks) score += task.load * Number(assignment.worker.skills?.[task.skill] || 0);
+    }
+    return score;
+  }
+
+  function improvePlanQuality(result, allWorkers, requirements, skills, model, settings) {
+    if (isOwnedMode(settings) || !result.ok || !result.selectedWorkers.length) return result;
+    const templates = new Map();
+    for (const worker of allWorkers) {
+      if (!templates.has(worker.aniimoId) || worker.copy < templates.get(worker.aniimoId).copy) templates.set(worker.aniimoId, worker);
+    }
+    const pool = [...templates.values()];
+    const relevant = relevantSkillSet(requirements, model);
+    const taskInfo = new Map(model.intermittentTasks.map((task) => [`${task.buildingId}:${task.skill}`, task]));
+    const farmCap = farmCapOf(settings);
+
+    let selected = result.selectedWorkers.slice();
+    const jobOf = new Map((result.continuous.assignments || []).map((item) => [item.worker.workerId, item.job]));
+    let intermittent = result.intermittent;
+    let serial = 0;
+
+    const totals = emptySkillMap(skills);
+    for (const worker of selected) for (const skill of skills) totals[skill] += Number(worker.skills?.[skill] || 0);
+
+    for (let round = 0; round < 6; round += 1) {
+      let changed = false;
+      // Hand part-time work to the highest-level Aniimo that can take it.
+      if (model.intermittentTasks.length) {
+        const free = selected.filter((worker) => !jobOf.has(worker.workerId));
+        const best = assignPartTimeBest(free, model.intermittentTasks, farmCap);
+        if (best) intermittent = best;
+      }
+      const tasksOf = new Map((intermittent.assignments || []).map((item) => [item.worker.workerId, item.tasks]));
+
+      for (let slot = 0; slot < selected.length; slot += 1) {
+        const current = selected[slot];
+        const work = { job: jobOf.get(current.workerId) || null, tasks: tasksOf.get(current.workerId) || [] };
+        const canDo = (worker) => {
+          if (work.job && !workerCanDoJob(worker, work.job)) return false;
+          for (const task of work.tasks) {
+            const info = taskInfo.get(`${task.buildingId}:${task.skill}`) || task;
+            if (Number(worker.skills?.[task.skill] || 0) < Math.max(1, Number(info.minLevel || 1))) return false;
+            if (!speciesAllowed(worker, info)) return false;
+          }
+          // Never let an Estimated Require total fall below its target (or below where it already is).
+          for (const skill of skills) {
+            const after = totals[skill] - Number(current.skills?.[skill] || 0) + Number(worker.skills?.[skill] || 0);
+            if (after < Math.min(Number(requirements?.[skill] || 0), totals[skill])) return false;
+          }
+          return true;
+        };
+        let bestKey = workerQualityKey(current, work, requirements, relevant, skills);
+        let bestWorker = null;
+        for (const candidate of pool) {
+          if (candidate.aniimoId === current.aniimoId) continue;
+          const key = workerQualityKey(candidate, work, requirements, relevant, skills);
+          if (compareQualityKeys(key, bestKey) <= 0) continue;
+          if (!canDo(candidate)) continue;
+          bestKey = key;
+          bestWorker = candidate;
+        }
+        if (!bestWorker) continue;
+        serial += 1;
+        const replacement = { ...bestWorker, workerId: `${bestWorker.aniimoId}#swap${serial}`, copy: 1000 + serial };
+        for (const skill of skills) {
+          totals[skill] += Number(replacement.skills?.[skill] || 0) - Number(current.skills?.[skill] || 0);
+        }
+        selected[slot] = replacement;
+        if (work.job) {
+          jobOf.delete(current.workerId);
+          jobOf.set(replacement.workerId, work.job);
+        }
+        intermittent = {
+          ...intermittent,
+          assignments: (intermittent.assignments || []).map((item) =>
+            item.worker.workerId === current.workerId ? { ...item, worker: replacement } : item
+          ),
+        };
+        tasksOf.set(replacement.workerId, work.tasks);
+        changed = true;
+      }
+      if (!changed) break;
+    }
+
+    // Number copies of each form 1, 2, 3… in plan order.
+    const copyCount = new Map();
+    const renamed = new Map();
+    selected = selected.map((worker) => {
+      const copy = (copyCount.get(worker.aniimoId) || 0) + 1;
+      copyCount.set(worker.aniimoId, copy);
+      const next = { ...worker, workerId: `${worker.aniimoId}#${copy}`, copy };
+      renamed.set(worker.workerId, next);
+      return next;
+    });
+    const rename = (worker) => renamed.get(worker.workerId) || worker;
+    const continuousAssignments = [];
+    for (const [workerId, job] of jobOf) continuousAssignments.push({ job, worker: renamed.get(workerId) });
+    continuousAssignments.sort((a, b) => a.job.label.localeCompare(b.job.label));
+    const continuous = {
+      ...result.continuous,
+      assignments: continuousAssignments,
+      busyWorkerIds: new Set(continuousAssignments.map((item) => item.worker.workerId)),
+    };
+    const newIntermittent = {
+      ...intermittent,
+      assignments: (intermittent.assignments || [])
+        .map((item) => ({ ...item, worker: rename(item.worker) }))
+        .sort((a, b) => displayWorkerName(a.worker).localeCompare(displayWorkerName(b.worker))),
+      workerLoads: undefined,
+    };
+    const skillCoverage = computeSkillCoverage(totals, requirements, skills);
+    return {
+      ...result,
+      ok: result.ok && skillTargetsMet(totals, requirements, skills),
+      selectedWorkers: selected,
+      skillCoverage,
+      continuous,
+      intermittent: newIntermittent,
+      missing: buildMissing(skillCoverage, continuous, newIntermittent),
+    };
+  }
+
   function finalizeResult(feasible, result, state, candidates, allWorkers, requirements, skills, model, settings, diagnostics) {
+    // The team as the search left it, before the quality pass: a higher processor level is built from it
+    // (the search's team shares part-time work more flexibly, so it needs no more Aniimo).
+    const searchTeam = result.selectedWorkers.slice();
+    if (feasible && result.ok) result = improvePlanQuality(result, allWorkers, requirements, skills, model, settings);
     const selectedIds = new Set(result.selectedWorkers.map((worker) => worker.workerId));
     const unusedWorkers = allWorkers.filter((worker) => !selectedIds.has(worker.workerId));
     if (!isOwnedMode(settings)) {
@@ -1296,14 +1582,14 @@
         if (!lastCopy.has(worker.aniimoId) || lastCopy.get(worker.aniimoId).copy < worker.copy) lastCopy.set(worker.aniimoId, worker);
       }
       for (const [aniimoId, worker] of lastCopy) {
-        if (unusedForms.has(aniimoId)) continue;
+        if (unusedForms.has(aniimoId) || worker.starter) continue;
         const copy = worker.copy + 1;
         unusedWorkers.push({ ...worker, workerId: `${aniimoId}#${copy}`, copy });
       }
     }
     const selectedWorkers = decorateSelectedWorkers(result, requirements, skills);
 
-    return {
+    const output = {
       feasible,
       selectedWorkers,
       unusedWorkers,
@@ -1325,6 +1611,8 @@
         ...diagnostics,
       },
     };
+    Object.defineProperty(output, "searchTeam", { value: searchTeam, enumerable: false });
+    return output;
   }
 
   // Farm chunks that couldn't be placed, merged back to one entry per farm task.
@@ -2287,7 +2575,7 @@
     const model = buildWorkModel(input.buildings || [], input.buildingState || {}, settings);
     const farmCap = farmCapOf(settings);
     const owned = isOwnedMode(settings);
-    const team = (base.selectedWorkers || []).slice();
+    const team = (base.searchTeam || base.selectedWorkers || []).slice();
     const continuous = assignContinuous(team, model.continuousJobs);
     const free = team.filter((worker) => !continuous.busyWorkerIds.has(worker.workerId));
     const tasks = model.intermittentTasks;
@@ -2444,11 +2732,17 @@
         entry.fitted = computeFitted;
       }
       const plan = entry.plan;
+      // An option only "fits" when its plan also staffs everything: a plan that leaves a building,
+      // farm step or processor without an Aniimo (or misses a target) is never reported as complete.
+      const underCapacity = plan.capacityKnown ? !plan.overCapacity : null;
+      const complete = Boolean(plan.full.feasible);
       return {
         percent,
         plan,
         needed: plan.needed,
-        fits: plan.capacityKnown ? !plan.overCapacity : null,
+        complete,
+        underCapacity,
+        fits: underCapacity === null ? null : underCapacity && complete,
         spare: plan.capacityKnown ? plan.budget - plan.needed : null,
       };
     }
@@ -2484,6 +2778,7 @@
       maxFitPercent: null,
       noneFit: false,
       allFit: false,
+      incomplete: false,
       capacityKnown: false,
     };
 
@@ -2492,7 +2787,8 @@
       const only = run(null, true);
       base.options = [only];
       base.capacityKnown = only.plan.capacityKnown;
-      base.noneFit = only.fits === false;
+      base.noneFit = only.underCapacity === false;
+      base.incomplete = only.underCapacity === true && !only.complete;
       base.allFit = only.fits === true;
       base.diagnostics = { runs, ms: Date.now() - started };
       return base;
@@ -2511,7 +2807,14 @@
     base.options.forEach((option, index) => {
       if (option.fits) highest = index;
     });
-    if (highest >= 0) {
+    const highestUnder = base.options.map((option) => option.underCapacity).lastIndexOf(true);
+    if (highest < 0 && highestUnder >= 0) {
+      // Room enough, but the Available Aniimo can't staff everything at any level (e.g. nobody of a
+      // family-only building's families): show the highest level with room, and what it's missing.
+      base.incomplete = true;
+      base.selectedIndex = highestUnder;
+      base.options[highestUnder] = run(levels[highestUnder], true);
+    } else if (highest >= 0) {
       base.selectedIndex = highest;
       base.allFit = highest === levels.length - 1;
       base.maxFitPercent = base.allFit ? levels[highest] : searchMaxFit(levels[highest], levels[highest + 1]);
