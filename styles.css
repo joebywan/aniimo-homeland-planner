@@ -1672,3 +1672,98 @@ kbd {
 .building-level:empty {
   display: none;
 }
+
+/* "Choose these": one compact line per recommended Aniimo form, the detailed cards below in a disclosure. */
+.choose-title {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+}
+
+.choose-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choose-item {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #fbfdfd;
+}
+
+.choose-main {
+  min-width: 0;
+}
+
+.choose-name,
+.choose-jobs {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.choose-name {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.choose-count {
+  display: inline-block;
+  min-width: 2ch;
+  color: var(--accent-strong);
+  font-weight: 850;
+}
+
+.choose-jobs {
+  color: #425466;
+  font-size: 0.8rem;
+}
+
+.choose-abilities {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 8px;
+}
+
+.choose-ability {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.workforce-details {
+  margin-top: 12px;
+}
+
+.workforce-details > summary {
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 750;
+  font-size: 0.88rem;
+}
+
+.worker-cards {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+@media (max-width: 560px) {
+  .choose-item {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .choose-abilities {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
