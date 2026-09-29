@@ -1346,6 +1346,24 @@ test("choose these: farm-step abilities are only must-haves when nobody else in 
   assert.equal(busy.farmSteps.note, "");
 });
 
+test("choose these: a farm-step ability is asked for at the level the Aniimo has, as higher levels work faster", () => {
+  const worker = { workerId: "Solo#1", aniimoId: "Solo", name: "Solo", form: "Base", species: "Solo", skills: skills({ Earth: 3 }) };
+  const farm = { kind: "farm", buildingId: "farmland", buildingName: "Farmland", skill: "Earth", load: 0.1 };
+  const result = { selectedWorkers: [worker], continuousAssignments: [], intermittentAssignments: [{ worker, tasks: [farm] }], skillCoverage: [] };
+  const { lines } = summariseRecommendations(result, [{ ...worker, id: "Solo" }], { skills: DEFAULT_SKILLS });
+  assert.equal(lines.length, 1);
+  assert.deepEqual(lines[0].essential.map((item) => [item.skill, item.level]), [["Earth", 3]]);
+  // The player's RV 9 plan: no farm-step ability is asked for at level 1 when the plan's Aniimo has more.
+  const options = planProcessorOptions({ ...playerInput, capacity: 26, homebuildingReserve: 0 });
+  const plan = options.options[options.selectedIndex].plan.full;
+  const summary = summariseRecommendations(plan, playerInput.aniimo, { skills: playerInput.skills });
+  for (const line of summary.lines) {
+    for (const item of line.essential.filter((entry) => entry.farmSteps)) {
+      assert.ok(line.examples.every((w) => item.level === w.skills[item.skill]), `${item.skill} ${item.level}`);
+    }
+  }
+});
+
 test("choose these: an extra ability an Estimated Require target depends on is a must-have", () => {
   const fireOnly = { ...aniimo("fire_only", "Fireonly", { Fire: 3, Hauling: 3 }), species: "Fireonly" };
   const fireEarth = { ...aniimo("fire_earth", "Fireearth", { Fire: 3, Earth: 2 }), species: "Fireearth" };
