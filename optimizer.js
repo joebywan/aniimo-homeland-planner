@@ -2970,7 +2970,7 @@
   // requirement – the abilities it must have for the plan to stay valid:
   //   • the ability it uses at its full-time building, at the level the plan relies on (its own level,
   //     which the quality pass made the best the pool offers), and each ability its part-time work uses
-  //     (processors at its own level; farm steps at level 1, as a farm action takes the same time at any level);
+  //     (processors and farm steps alike at its own level, as a higher level works faster);
   //   • any extra ability an Estimated Require target leans on: one whose loss – swapping this Aniimo for
   //     one with only its job abilities – would drop a target below what you asked for; and, if the
   //     recommended Aniimo together would still leave a target short, the Aniimo with the most of it keep it;
@@ -3032,7 +3032,7 @@
       for (const task of tasksOf.get(worker.workerId) || []) {
         if (task.kind !== "processor" && !essential.has(task.skill)) farmOnly.add(task.skill);
         if (task.kind === "processor") farmOnly.delete(task.skill);
-        need(task.skill, task.kind === "processor" ? level(worker, task.skill) : Math.max(1, Number(task.minLevel || 1)));
+        need(task.skill, Math.max(level(worker, task.skill), Number(task.minLevel || 1)));
         limit(task.allowedSpecies, task.buildingName);
         addWork(task.buildingName, task.personalityBonus, Number(task.load || 0));
       }

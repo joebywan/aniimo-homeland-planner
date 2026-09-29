@@ -143,6 +143,7 @@ Part-time work (processors and farm steps):
 
 - Farmland and Woodland: load = `plots * action_seconds / cycle_seconds * overhead_multiplier` per step.
 - Processors: load = `count * busy %`. The busy % is the option level (below) unless the building has its own busy % on the Homeland tab.
+- "Choose these" asks for a farm-step ability at the level the planned Aniimo has (higher levels work faster), the same as processors, not at level 1.
 - Part-time work is shared by every Aniimo with the ability and can be split between Aniimo, so it is assigned as a max flow: each Aniimo can take up to a full day of part-time work, of which farm steps may fill at most the "keep farm helpers at most this busy" cap (default 50%). The cap protects farm timing; processor work can fill the rest of a helper's day. With "one farm ability per helper" turned off in Settings, a step-by-step search is used instead.
 - Aniimo in full-time jobs are never given part-time work.
 
