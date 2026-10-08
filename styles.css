@@ -1828,3 +1828,17 @@ kbd {
     height: 30px;
   }
 }
+
+/* E-mode choice on the Homeland tab and the power plan in the results. */
+.busy-control select {
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 4px;
+  font: inherit;
+  background: var(--surface);
+}
+
+#emodePanel .options-max {
+  margin-top: 8px;
+}
