@@ -12,6 +12,7 @@ const {
   describeCapacityPlan,
   optimizeWorkforce,
   personalityRecommendations,
+  planEmode,
   planForCapacity,
   planProcessorOptions,
   planningCopyCap,
@@ -1401,4 +1402,138 @@ test("choose these: an extra ability an Estimated Require target depends on is a
   assert.equal(summary[0].text.abilities, "Fire 3 essential · Hauling 3 bonus");
   assert.deepEqual(summary[0].headline.names, ["Fireonly"]);
   assert.equal(summary[0].text.alsoFine, "Also fine: Fireearth — Fire 3, Earth 2");
+});
+
+// ---- E-mode -------------------------------------------------------------------------------------
+
+function rvState(rv) {
+  const state = {};
+  for (const building of buildingsData.buildings) {
+    const max = buildingMaxForRv(building, rv);
+    state[building.id] = { enabled: true, count: max.limited && max.known ? max.max : building.defaultCount || 0 };
+  }
+  return state;
+}
+
+function emodeInput(extra = {}, rv = 12) {
+  return {
+    buildings: buildingsData.buildings,
+    buildingState: extra.buildingState || rvState(rv),
+    settings: { rvLevel: rv, processorBusyPercent: 50, ...(extra.settings || {}) },
+  };
+}
+
+test("e-mode: a 600 W generator keeps total draw at or under 600 W (100% speed)", () => {
+  const plan = planEmode(emodeInput());
+  assert.equal(plan.available, true);
+  assert.equal(plan.output, 600);
+  assert.ok(plan.draw <= 600, `draw ${plan.draw}`);
+  assert.equal(plan.rate, 1.2 > 600 / plan.draw ? 600 / plan.draw : 1.2);
+  assert.ok(plan.rate >= 1);
+  // Family-only buildings never go in E-mode, and nothing is chosen that isn't in the data.
+  for (const item of plan.selections) {
+    const building = buildingsData.buildings.find((entry) => entry.id === item.buildingId);
+    assert.ok(building.emode, `${item.name} has no E-mode`);
+    assert.ok(!building.allowedSpecies, `${item.name} is family-only`);
+  }
+  assert.ok(plan.selections.length > 0 && plan.freed > 0);
+});
+
+test("e-mode: the 120% target keeps draw at output / 1.2 and the grid at 120%", () => {
+  const plan = planEmode(emodeInput({ settings: { emodeTarget: 120 } }));
+  assert.equal(plan.budget, 500);
+  assert.ok(plan.draw <= 500);
+  assert.equal(plan.rate, 1.2);
+  const standard = planEmode(emodeInput());
+  assert.ok(standard.freed >= plan.freed, "a lower speed target can only free more Aniimo time");
+});
+
+test("e-mode: draw is wattsPerLevel x the facility level the RV level allows (Crafting Table lv 5 = 75 W)", () => {
+  const plan = planEmode(emodeInput({ settings: { emodeTarget: 100 } }));
+  const crafting = buildingsData.buildings.find((entry) => entry.id === "crafting_table");
+  assert.equal(buildingLevelForRv(crafting, 12).level, 5);
+  const forced = planEmode(
+    emodeInput({ buildingState: { ...rvState(12), crafting_table: { enabled: true, count: 1, emode: "on" } } })
+  );
+  const item = forced.selections.find((entry) => entry.buildingId === "crafting_table");
+  assert.equal(item.wattsEach, 75);
+  assert.equal(item.forced, true);
+  // 15 W/level for processors, 30 W/level for Mines, Wells, the Aniipod Maker and the Dance Pad Polisher.
+  const mine = planEmode(emodeInput({ buildingState: { ...rvState(12), mine: { enabled: true, count: 1, emode: "on" } } }));
+  assert.equal(mine.selections.find((entry) => entry.buildingId === "mine").wattsEach, 120);
+});
+
+test("e-mode: 'off' keeps a building out and 'on' forces it in", () => {
+  const base = rvState(12);
+  const off = planEmode(emodeInput({ buildingState: { ...base, chimney_kiln: { ...base.chimney_kiln, emode: "off" } } }));
+  assert.ok(!off.selections.some((entry) => entry.buildingId === "chimney_kiln"));
+  assert.ok(off.left.some((entry) => entry.buildingId === "chimney_kiln" && entry.reason === "off"));
+  const on = planEmode(emodeInput({ buildingState: { ...base, mine: { ...base.mine, emode: "on" } } }));
+  const mines = on.selections.find((entry) => entry.buildingId === "mine");
+  assert.equal(mines.units, base.mine.count);
+  assert.equal(mines.forced, true);
+  // Six Mines at 120 W are 720 W: forced in, the grid is overloaded and runs slower than 100%.
+  assert.ok(on.draw > on.output && on.rate < 1);
+});
+
+test("e-mode: with no generator, no RV level or E-mode turned off, nothing is chosen", () => {
+  const noGen = rvState(12);
+  noGen.crackle_generator = { enabled: true, count: 0 };
+  assert.equal(planEmode(emodeInput({ buildingState: noGen })).available, false);
+  assert.equal(planEmode({ ...emodeInput(), settings: {} }).available, false);
+  assert.equal(planEmode(emodeInput({ settings: { emodeEnabled: false } })).available, false);
+  assert.deepEqual(planEmode(emodeInput({ settings: { emodeEnabled: false } })).selections, []);
+});
+
+test("e-mode: a bigger generator (RV 14, 800 W) frees more", () => {
+  const rv12 = planEmode(emodeInput({}, 12));
+  const rv14 = planEmode(emodeInput({}, 14));
+  assert.equal(rv14.output, 800 * rvState(14).crackle_generator.count);
+  assert.ok(rv14.freed > rv12.freed);
+});
+
+test("e-mode: units in E-mode need no Aniimo, so the workforce shrinks", () => {
+  const miners = [aniimo("m1", "Miner One", { Earth: 3 }), aniimo("m2", "Miner Two", { Earth: 3 })];
+  const mine = buildingsData.buildings.find((entry) => entry.id === "mine");
+  const input = (emodeCount) => ({
+    aniimo: miners,
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings: [mine],
+    buildingState: { mine: { enabled: true, count: 2, emodeCount } },
+    settings: { mode: "pool", beamWidth: 200, maxSearchWorkers: 5 },
+  });
+  assert.equal(optimizeWorkforce(input(0)).selectedWorkers.length, 2);
+  assert.equal(optimizeWorkforce(input(1)).selectedWorkers.length, 1);
+  const all = optimizeWorkforce(input(2));
+  assert.equal(all.selectedWorkers.length, 0);
+  assert.equal(all.feasible, true);
+});
+
+test("e-mode: the busy-level options choose E-mode units for each level and report it", () => {
+  const pool = [
+    aniimo("a1", "Allrounder", { Earth: 3, Hauling: 3, Lightning: 3 }),
+    aniimo("a2", "Allrounder Two", { Earth: 3, Hauling: 3, Lightning: 3 }),
+  ];
+  const buildings = buildingsData.buildings.filter((entry) => ["mine", "crafting_table", "crackle_generator"].includes(entry.id));
+  const result = planProcessorOptions({
+    aniimo: pool,
+    skills: DEFAULT_SKILLS,
+    requirements: skills({}),
+    buildings,
+    buildingState: {
+      mine: { enabled: true, count: 1 },
+      crafting_table: { enabled: true, count: 1 },
+      crackle_generator: { enabled: true, count: 1 },
+    },
+    settings: { mode: "pool", beamWidth: 200, maxSearchWorkers: 5, rvLevel: 12 },
+    capacity: 32,
+  });
+  for (const option of result.options) {
+    assert.equal(option.emode.available, true);
+    assert.ok(option.emode.draw <= 600);
+  }
+  // Both fit in 600 W (120 + 75), so only the generator's Lightning Aniimo is left to staff.
+  assert.equal(result.options[0].emode.selections.length, 2);
+  assert.equal(result.options[0].needed, 1);
 });

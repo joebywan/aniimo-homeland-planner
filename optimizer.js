@@ -260,6 +260,10 @@
       enabled: saved.enabled ?? building.defaultEnabled ?? true,
       count: Math.floor(clampNumber(saved.count ?? building.defaultCount ?? 0, 0, 0, 999)),
       busyPercent: saved.busyPercent ?? null,
+      // How many of the units run in E-mode (set by planEmode, never saved): they need no Aniimo.
+      emodeCount: Math.floor(clampNumber(saved.emodeCount ?? 0, 0, 0, 999)),
+      // The player's choice for this building: "auto" (the planner decides), "on" or "off".
+      emodeChoice: ["on", "off"].includes(saved.emode) ? saved.emode : "auto",
     };
   }
 
@@ -271,9 +275,15 @@
     const overhead = clampNumber(settings.overheadMultiplier, 1, 0.1, 20);
 
     const inactiveBuildings = [];
+    const emodeBuildings = [];
     for (const building of buildings || []) {
       const state = getBuildingState(building, buildingState);
       if (!state.enabled || state.count <= 0) continue;
+      // Units running in E-mode need no Aniimo; only the rest are staffed.
+      const emodeUnits = Math.min(state.count, state.emodeCount);
+      if (emodeUnits > 0) emodeBuildings.push({ buildingId: building.id, name: building.name, units: emodeUnits });
+      state.count -= emodeUnits;
+      if (state.count <= 0) continue;
       // Family-only buildings: only the families of recipes open at the building's assumed level.
       const family = familyEligibility(building, { rvLevel: settings.rvLevel, buildingState, buildings });
       const allowedSpecies = family ? family.species : null;
@@ -350,6 +360,7 @@
       continuousJobs,
       intermittentTasks: [...intermittentByKey.values()].filter((task) => task.load > 0.0001),
       inactiveBuildings,
+      emodeBuildings,
     };
   }
 
@@ -2586,6 +2597,7 @@
       reducedState[building.id] = {
         enabled: state.enabled,
         count: Math.max(0, state.count - (idledByBuilding.get(building.id) || 0)),
+        emodeCount: state.emodeCount,
       };
     }
     const reducedModel = buildWorkModel(input.buildings || [], reducedState, settings);
@@ -2740,6 +2752,189 @@
   }
 
   // ---------------------------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------------------------
+  // E-mode (RV 12+). A building in E-mode needs no Aniimo and runs at the speed of the power grid. The
+  // Crackle Generators make power (powerByLevel, by generator level); every E-mode building draws
+  // emode.wattsPerLevel x its facility level. Grid speed = min(1.2, output / draw): at or under the output
+  // it is 100%, down to output / 1.2 it climbs to 120%, and over the output everything slows down.
+  // planEmode picks which buildings to run in E-mode so as few Aniimo as possible are needed.
+  // ---------------------------------------------------------------------------------------------
+
+  const EMODE_MAX_RATE = 1.2;
+  const EMODE_TARGETS = [100, 120];
+  const WATT_STEP = 5;
+
+  // Total power the built Crackle Generators make, at the generator level the RV level allows.
+  function gridOutput(buildings, buildingState, rvLevel) {
+    let output = 0;
+    let generators = 0;
+    let level = null;
+    for (const building of buildings || []) {
+      if (!Array.isArray(building.powerByLevel)) continue;
+      const state = getBuildingState(building, buildingState);
+      if (!state.enabled || state.count <= 0) continue;
+      const info = buildingLevelForRv(building, rvLevel);
+      if (!info.known || info.level < 1) continue;
+      const watts = Number(building.powerByLevel[Math.min(info.level, building.powerByLevel.length) - 1]) || 0;
+      output += state.count * watts;
+      generators += state.count;
+      level = info.level;
+    }
+    return { output, generators, level };
+  }
+
+  function gridRate(output, draw) {
+    if (draw <= 0) return EMODE_MAX_RATE;
+    return Math.min(EMODE_MAX_RATE, output / draw);
+  }
+
+  // The most draw the grid can take and still run at the target speed (100 or 120).
+  function gridBudget(output, target) {
+    return target >= 120 ? Math.floor(output / EMODE_MAX_RATE + 1e-9) : output;
+  }
+
+  // Picks the units to run in E-mode. input: { buildings, buildingState, settings } (settings.rvLevel,
+  // settings.emodeEnabled (default true), settings.emodeTarget (100 or 120, default 100), the busy %).
+  // Returns { available, reason, output, target, budget, draw, rate, freed, selections, left, buildingState }:
+  // buildingState is the input state with emodeCount set on the buildings chosen.
+  function planEmode(input) {
+    const settings = { ...DEFAULT_SETTINGS, ...(input.settings || {}) };
+    const buildings = input.buildings || [];
+    const savedState = input.buildingState || {};
+    const target = settings.emodeTarget === 120 || settings.emodeTarget === "120" ? 120 : 100;
+    const none = (reason) => ({
+      available: false,
+      reason,
+      output: 0,
+      target,
+      budget: 0,
+      draw: 0,
+      rate: null,
+      freed: 0,
+      selections: [],
+      left: [],
+      buildingState: savedState,
+    });
+    if (settings.emodeEnabled === false) return none("E-mode is turned off in Settings.");
+    const rv = positiveIntegerOrNull(settings.rvLevel);
+    if (rv === null) return none("Choose an RV level to plan E-mode.");
+    const grid = gridOutput(buildings, savedState, rv);
+    if (!grid.output) return none("No Crackle Generator is built, so there is no power for E-mode.");
+
+    // Every unit that could run in E-mode. value = how much Aniimo time it frees (a full-time building
+    // frees one Aniimo per slot, a processor its busy share).
+    const items = [];
+    const forced = [];
+    const left = [];
+    for (const building of buildings) {
+      const per = Number(building.emode?.wattsPerLevel);
+      if (!Number.isFinite(per) || per <= 0) continue;
+      const state = getBuildingState(building, savedState);
+      if (!state.enabled || state.count <= 0) continue;
+      const info = buildingLevelForRv(building, rv);
+      const level = info.known ? info.level : 0;
+      if (level < 1) continue;
+      const slots = Math.max(1, Number(building.slotsPerUnit || 1));
+      const value = isPartTimeProcessor(building) ? slots * busyShare(building, state, settings) : slots;
+      const entry = { building, count: state.count, level, wattsEach: per * level, value, choice: state.emodeChoice };
+      if (state.emodeChoice === "off") left.push({ ...entry, units: state.count, reason: "off" });
+      else if (state.emodeChoice === "on") forced.push(entry);
+      else if (value > 0.0001) for (let unit = 0; unit < state.count; unit += 1) items.push(entry);
+      else left.push({ ...entry, units: state.count, reason: "idle" });
+    }
+
+    const budget = gridBudget(grid.output, target);
+    const forcedWatts = forced.reduce((sum, entry) => sum + entry.count * entry.wattsEach, 0);
+    const room = Math.max(0, budget - forcedWatts);
+
+    // 0/1 knapsack over the units, most freed Aniimo time first, then least power.
+    const capacity = Math.floor(room / WATT_STEP);
+    const SCALE = 10000;
+    const best = new Array(capacity + 1).fill(0);
+    const take = items.map(() => new Array(capacity + 1).fill(false));
+    items.forEach((entry, index) => {
+      const weight = Math.max(1, Math.round(entry.wattsEach / WATT_STEP));
+      const gain = Math.round(entry.value * SCALE) * 100 - weight;
+      for (let c = capacity; c >= weight; c -= 1) {
+        if (best[c - weight] + gain > best[c]) {
+          best[c] = best[c - weight] + gain;
+          take[index][c] = true;
+        }
+      }
+    });
+    const chosen = new Map();
+    let c = capacity;
+    for (let index = items.length - 1; index >= 0; index -= 1) {
+      if (!take[index][c]) continue;
+      const entry = items[index];
+      chosen.set(entry.building.id, (chosen.get(entry.building.id) || 0) + 1);
+      c -= Math.max(1, Math.round(entry.wattsEach / WATT_STEP));
+    }
+
+    const selections = [];
+    const nextState = { ...savedState };
+    let draw = 0;
+    let freed = 0;
+    const record = (entry, units, isForced) => {
+      if (units > 0) {
+        selections.push({
+          buildingId: entry.building.id,
+          name: entry.building.name,
+          units,
+          count: entry.count,
+          level: entry.level,
+          wattsEach: entry.wattsEach,
+          watts: units * entry.wattsEach,
+          freed: units * entry.value,
+          forced: isForced,
+          verified: entry.building.emode?.verified !== false,
+        });
+        draw += units * entry.wattsEach;
+        freed += units * entry.value;
+        nextState[entry.building.id] = { ...(savedState[entry.building.id] || {}), emodeCount: units };
+      }
+    };
+    for (const entry of forced) record(entry, entry.count, true);
+    const seen = new Set();
+    for (const entry of items) {
+      if (seen.has(entry.building.id)) continue;
+      seen.add(entry.building.id);
+      const units = chosen.get(entry.building.id) || 0;
+      record(entry, units, false);
+      if (units < entry.count) {
+        left.push({ ...entry, units: entry.count - units, reason: "power" });
+      }
+    }
+
+    selections.sort((a, b) => b.freed / b.watts - a.freed / a.watts || a.name.localeCompare(b.name));
+    return {
+      available: true,
+      reason: "",
+      output: grid.output,
+      generators: grid.generators,
+      generatorLevel: grid.level,
+      target,
+      budget,
+      draw,
+      rate: gridRate(grid.output, draw),
+      freed,
+      selections,
+      left: left
+        .map((entry) => ({
+          buildingId: entry.building.id,
+          name: entry.building.name,
+          units: entry.units,
+          count: entry.count,
+          level: entry.level,
+          wattsEach: entry.wattsEach,
+          freed: entry.units * entry.value,
+          reason: entry.reason,
+        }))
+        .sort((a, b) => b.freed - a.freed || a.name.localeCompare(b.name)),
+      buildingState: nextState,
+    };
+  }
+
   // Processor busy options. Processors only work while their inputs last, so the plan is worked out at
   // several busy levels (25%, 50%, 75%, 100% of one Aniimo per processor). The highest level that fits
   // the RV spaces is selected, and the most that fits is found to about 5%.
@@ -2782,6 +2977,10 @@
       const key = percent === null ? "own" : String(percent);
       let entry = cache.get(key);
       const levelSettings = percent === null ? settings : { ...settings, processorBusyPercent: percent };
+      // Which units run in E-mode depends on how busy the processors are, so it is chosen for each level.
+      const emode = planEmode({ buildings: input.buildings, buildingState: input.buildingState, settings: levelSettings });
+      const signature = emode.selections.map((item) => `${item.buildingId}:${item.units}`).join(",");
+      const levelInput = emode.selections.length ? { ...input, buildingState: emode.buildingState } : input;
       if (!entry) {
         runs += 1;
         // Reuse the nearest lower level's plan when there is one: only part-time Aniimo need adding.
@@ -2789,23 +2988,28 @@
         if (percent !== null) {
           for (const [otherKey, other] of cache) {
             const otherPercent = Number(otherKey);
-            if (Number.isFinite(otherPercent) && otherPercent < percent && (!lower || otherPercent > lower.percent)) {
+            if (
+              Number.isFinite(otherPercent) &&
+              otherPercent < percent &&
+              other.signature === signature &&
+              (!lower || otherPercent > lower.percent)
+            ) {
               lower = { percent: otherPercent, entry: other };
             }
           }
         }
         if (lower) {
-          const result = extendPlanToLevel({ ...input, aniimo: lower.entry.pool, settings: levelSettings }, lower.entry.result);
-          entry = { result, pool: lower.entry.pool, plan: null, fitted: false };
+          const result = extendPlanToLevel({ ...levelInput, aniimo: lower.entry.pool, settings: levelSettings }, lower.entry.result);
+          entry = { result, pool: lower.entry.pool, plan: null, fitted: false, signature, emode };
           cache.set(key, entry);
         }
       }
       if (!entry) {
         let pool = input.aniimo || [];
-        let result = optimizeWorkforce({ ...input, aniimo: pool, settings: levelSettings });
+        let result = optimizeWorkforce({ ...levelInput, aniimo: pool, settings: levelSettings });
         const fallback = input.fallbackAniimo;
         if (Array.isArray(fallback) && fallback.length && fallback.length < pool.length) {
-          const alternative = optimizeWorkforce({ ...input, aniimo: fallback, settings: levelSettings });
+          const alternative = optimizeWorkforce({ ...levelInput, aniimo: fallback, settings: levelSettings });
           const better =
             (alternative.feasible && !result.feasible) ||
             (alternative.feasible === result.feasible && alternative.selectedWorkers.length < result.selectedWorkers.length);
@@ -2814,12 +3018,12 @@
             pool = fallback;
           }
         }
-        entry = { result, pool, plan: null, fitted: false };
+        entry = { result, pool, plan: null, fitted: false, signature, emode };
         cache.set(key, entry);
       }
       if (!entry.plan || (computeFitted && !entry.fitted && entry.plan.overCapacity)) {
         entry.plan = planForCapacity({
-          ...input,
+          ...levelInput,
           aniimo: entry.pool,
           settings: levelSettings,
           fullResult: entry.result,
@@ -2835,6 +3039,7 @@
       return {
         percent,
         plan,
+        emode: entry.emode,
         needed: plan.needed,
         complete,
         underCapacity,
@@ -3383,8 +3588,10 @@
     poolStatus,
     optimizeWorkforce,
     personalityRecommendations,
+    planEmode,
     planForCapacity,
     planProcessorOptions,
+    EMODE_TARGETS,
     PROCESSOR_LEVELS,
     planningCopyCap,
     recommendSpareSpaces,

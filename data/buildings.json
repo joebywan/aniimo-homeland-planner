@@ -10,7 +10,8 @@
     "role: 'primary' buildings make goods from nothing (aniimo.gg 'Materials Production', recipes say 'No inputs') and are assumed to run full time; Farmland and Woodland keep the shared plot model. 'processor' buildings (aniimo.gg 'Materials Processing' and 'Item Production') turn other goods into products, so they only work while inputs last and the planner counts them as a share of one Aniimo. 'climate' (Cooling Unit, Heat Furnace, Sunlamp) and 'power' (Crackle Generator) each hold an Aniimo that does no other work (Hideout's Homeland Optimizer). Checked 2026-09-28 against aniimo.gg object pages and AniimoTools station recipe tables.",
     "personalityBonus: the personality that works 20% faster at that building (AniimoTools station pages, e.g. 'Aniimo with the Nimble personality work 20 % faster here'; Hideout: 'a matching personality adds a fifth on top'). Farmland, Woodland, Aniipod Maker, Dance Pad Polisher, climate buildings and the Crackle Generator have none. Personalities are random on each Aniimo you catch, not fixed per species (confirmed in-game by a player), so the planner recommends a personality per building and ability, never per species.",
     "allowedSpecies: only Aniimo of these species (any form, including Prismana) can work the building, whatever their level (AniimoTools station recipe tables: 'Family only · …'; Dewy House and Tidewhisper Sandcastle confirmed in-game by a player). The list is every recipe's family together. familyRecipes says which family works which recipe, the facility level that recipe needs (level) and any climate building it relies on (prerequisites: effect 'required' = no work without it, 'slower' = 80% speed without it). With an RV level chosen, the planner assumes each building is at the highest level that RV allows (maxLevelByRv) and only lets the families of recipes at or below that level work there. Only the five Leisure buildings have such limits.",
-    "maxLevelByRv: each {rv, max} step gives the highest facility level (upgrade) you can build from that RV level on, from the 'Unlocks at RV Lv.' column of AniimoTools' station pages, matched by every aniimo.gg level page ('Unlock RV Lv.') and, for the nine production buildings it lists, Hideout's optimiser ('homeLevel'). Checked 2026-09-28. The Crackle Generator's levels follow the Power Module instead (see its maxLevelByRvNotes)."
+    "maxLevelByRv: each {rv, max} step gives the highest facility level (upgrade) you can build from that RV level on, from the 'Unlocks at RV Lv.' column of AniimoTools' station pages, matched by every aniimo.gg level page ('Unlock RV Lv.') and, for the nine production buildings it lists, Hideout's optimiser ('homeLevel'). Checked 2026-09-28. The Crackle Generator's levels follow the Power Module instead (see its maxLevelByRvNotes).",
+    "emode: a building with emode.wattsPerLevel can run in E-mode (RV 12+, Crackle Generator grid): it then needs no Aniimo at all and its speed follows the grid. It draws wattsPerLevel x its facility level in watts (15 per level for processors, 30 per level for Mines, Wells, the Aniipod Maker and the Dance Pad Polisher; the Crafting Table 75 W at level 5, Claw Game Cooker 75 W at level 5, Aniipod Maker 30 W at level 1 and Mines 120 W at level 4 were seen in sources or in game). emode.verified false means the draw is the rule applied, not seen. Family-only buildings have no E-mode (confirmed in game by a player); Farmland and Woodland are too small a share of an Aniimo's time to matter. Grid speed = min(1.2, output / draw) (aniimax PR 31; AniimoTools simulator 'speed follows the grid (production / use)'). The Crackle Generator's powerByLevel gives its output in watts at generator level 1-5 (AniimoTools, Wikily)."
   ],
   "sources": [
     {
@@ -422,7 +423,17 @@
         "https://aniimotools.dev/systems/homeland/stations/carousel-mill/",
         "https://aniimo.gg/homeland/object/carousel-mill-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "dance_pad_polisher",
@@ -477,7 +488,17 @@
         "https://aniimotools.dev/systems/homeland/stations/dance-pad-polisher/",
         "https://aniimo.gg/homeland/object/dance-pad-polisher-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 30,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "mine",
@@ -579,7 +600,17 @@
         "https://aniimotools.dev/systems/homeland/stations/mine/",
         "https://aniimo.gg/homeland/object/mine-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 30,
+        "verified": true,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "crafting_table",
@@ -658,7 +689,17 @@
         "https://aniimotools.dev/systems/homeland/stations/crafting-table/",
         "https://aniimo.gg/homeland/object/crafting-table-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": true,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "aniipod_maker",
@@ -713,7 +754,17 @@
         "https://aniimotools.dev/systems/homeland/stations/aniipod-maker/",
         "https://aniimo.gg/homeland/object/aniipod-maker-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 30,
+        "verified": true,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "well",
@@ -789,7 +840,17 @@
         "https://aniimotools.dev/systems/homeland/stations/well/",
         "https://aniimo.gg/homeland/object/well-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 30,
+        "verified": true,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "claw_game_cooker",
@@ -864,7 +925,17 @@
         "https://aniimotools.dev/systems/homeland/stations/claw-game-cooker/",
         "https://aniimo.gg/homeland/object/claw-game-cooker-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": true,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "jukebox_dryer",
@@ -939,7 +1010,17 @@
         "https://aniimotools.dev/systems/homeland/stations/jukebox-dryer/",
         "https://aniimo.gg/homeland/object/jukebox-dryer-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "simmering_pot",
@@ -1010,7 +1091,17 @@
         "https://aniimotools.dev/systems/homeland/stations/simmering-pot/",
         "https://aniimo.gg/homeland/object/simmering-pot-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "tidewhisper_sandcastle",
@@ -1186,7 +1277,17 @@
         "https://aniimotools.dev/systems/homeland/stations/bouncy-brew-keg/",
         "https://aniimo.gg/homeland/object/bouncy-brew-keg-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "chimney_kiln",
@@ -1257,7 +1358,17 @@
         "https://aniimotools.dev/systems/homeland/stations/chimney-kiln/",
         "https://aniimo.gg/homeland/object/chimney-kiln-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "woodworking_bench",
@@ -1328,7 +1439,17 @@
         "https://aniimotools.dev/systems/homeland/stations/woodworking-bench/",
         "https://aniimo.gg/homeland/object/woodworking-bench-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "phonolfactory_table",
@@ -1399,7 +1520,17 @@
         "https://aniimotools.dev/systems/homeland/stations/phonolfactory-table/",
         "https://aniimo.gg/homeland/object/phonolfactory-table-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "dewy_house",
@@ -1539,7 +1670,17 @@
         "https://aniimotools.dev/systems/homeland/stations/joy-wheel-loom/",
         "https://aniimo.gg/homeland/object/joy-wheel-loom-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "heat_furnace",
@@ -1716,7 +1857,17 @@
         "https://aniimotools.dev/systems/homeland/stations/blazing-stove/",
         "https://aniimo.gg/homeland/object/blazing-stove-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "pickling_jar",
@@ -1783,7 +1934,17 @@
         "https://aniimotools.dev/systems/homeland/stations/pickling-jar/",
         "https://aniimo.gg/homeland/object/pickling-jar-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "emode": {
+        "wattsPerLevel": 15,
+        "verified": false,
+        "sources": [
+          "https://github.com/ae-bii/aniimax/pull/31",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/aniipod-1100011",
+          "https://wikily.gg/aniimo/homeland-crafting/recipes/porcelain-40100791",
+          "https://aniimotools.dev/systems/homeland/production-simulator/"
+        ]
+      }
     },
     {
       "id": "sunlamp",
@@ -2010,7 +2171,19 @@
         "https://aniimotools.dev/systems/homeland/stations/crackle-generator/",
         "https://aniimo.gg/homeland/object/crackle-generator-level-1/"
       ],
-      "verified": true
+      "verified": true,
+      "powerByLevel": [
+        600,
+        800,
+        1000,
+        1200,
+        1500
+      ],
+      "powerSources": [
+        "https://aniimotools.dev/systems/homeland/stations/crackle-generator/",
+        "https://wikily.gg/aniimo/homeland-crafting",
+        "https://github.com/ae-bii/aniimax/pull/31"
+      ]
     },
     {
       "id": "starfall_hammock",

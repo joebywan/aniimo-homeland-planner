@@ -45,6 +45,8 @@
     overheadMultiplier: 1,
     maxUtilizationPercent: 50,
     allowIntermittentMultiSkill: true,
+    emodeEnabled: true,
+    emodeTarget: 100,
     beamWidth: 1000,
     maxSearchWorkers: 30,
   };
@@ -160,6 +162,8 @@
       requirements: defaultRequirements(),
       pool: { ...DEFAULT_POOL, picks: {} },
       buildingState: {},
+      // The player's E-mode choice per building: "on" or "off" (anything else is left to the planner).
+      emodeChoice: {},
       homeland: { ...DEFAULT_HOMELAND },
       settings: { ...DEFAULT_SETTINGS },
     };
@@ -245,6 +249,16 @@
     state.settings.overheadMultiplier = safeNumber(state.settings.overheadMultiplier, 1, 0.1, 20);
     state.settings.maxUtilizationPercent = safeNumber(state.settings.maxUtilizationPercent, 50, 1, 100);
     state.settings.allowIntermittentMultiSkill = state.settings.allowIntermittentMultiSkill !== false;
+    state.settings.emodeEnabled = state.settings.emodeEnabled !== false;
+    state.settings.emodeTarget = Number(state.settings.emodeTarget) === 120 ? 120 : 100;
+
+    const choices = raw.emodeChoice && typeof raw.emodeChoice === "object" ? raw.emodeChoice : {};
+    state.emodeChoice = {};
+    for (const building of app.data.buildings.buildings || []) {
+      if (building.emode && (choices[building.id] === "on" || choices[building.id] === "off")) {
+        state.emodeChoice[building.id] = choices[building.id];
+      }
+    }
 
     return state;
   }
@@ -313,6 +327,16 @@
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return null;
     return Math.round(Math.min(100, Math.max(0, numeric)));
+  }
+
+  // The building state the optimiser sees: counts and busy %, plus each building's E-mode choice.
+  function planBuildingState() {
+    const merged = {};
+    for (const [id, entry] of Object.entries(app.state.buildingState)) {
+      const choice = app.state.emodeChoice?.[id];
+      merged[id] = choice ? { ...entry, emode: choice } : entry;
+    }
+    return merged;
   }
 
   function isProcessor(building) {
@@ -452,6 +476,14 @@
     });
 
     document.getElementById("buildingTable").addEventListener("change", (event) => {
+      const emodeSelect = event.target.closest("[data-building-emode]");
+      if (emodeSelect) {
+        const id = emodeSelect.dataset.buildingEmode;
+        if (emodeSelect.value === "on" || emodeSelect.value === "off") app.state.emodeChoice[id] = emodeSelect.value;
+        else delete app.state.emodeChoice[id];
+        markDirty();
+        return;
+      }
       const busyInput = event.target.closest("[data-building-busy]");
       if (busyInput) {
         const busy = app.state.buildingState[busyInput.dataset.buildingBusy]?.busyPercent;
@@ -557,6 +589,17 @@
 
     document.getElementById("allowIntermittentMultiSkill").addEventListener("change", (event) => {
       app.state.settings.allowIntermittentMultiSkill = event.target.checked;
+      markDirty();
+    });
+
+    document.getElementById("emodeEnabled").addEventListener("change", (event) => {
+      app.state.settings.emodeEnabled = event.target.checked;
+      document.getElementById("emodeTarget").disabled = !event.target.checked;
+      markDirty();
+    });
+
+    document.getElementById("emodeTarget").addEventListener("change", (event) => {
+      app.state.settings.emodeTarget = Number(event.target.value) === 120 ? 120 : 100;
       markDirty();
     });
 
@@ -865,14 +908,33 @@
     if (building.behavior !== "continuous") return "Part-time farm work";
     const role = window.AniimoOptimizer.buildingRole(building);
     const label = escapeHtml(ROLE_LABELS[role] || "Full-time producer");
-    if (!isProcessor(building)) return label;
+    const emode = renderEmodeControl(building);
+    if (!isProcessor(building)) return label + emode;
     const busy = app.state.buildingState[building.id]?.busyPercent;
     return `
       ${label}
+      ${emode}
       <label class="busy-control" title="How much of the time this building is busy. Leave blank to use the option you pick on the Optimise tab.">
         <span>Busy</span>
         <input type="number" min="0" max="100" step="5" placeholder="auto" value="${busy ?? ""}" data-building-busy="${escapeAttr(building.id)}" aria-label="${escapeAttr(building.name)} busy % (blank = auto)" />
         <span>%</span>
+      </label>
+    `;
+  }
+
+  // Auto / On / Off for a building that can run in E-mode.
+  function renderEmodeControl(building) {
+    if (!building.emode) return "";
+    const choice = app.state.emodeChoice?.[building.id] || "auto";
+    const option = (value, text) => `<option value="${value}"${choice === value ? " selected" : ""}>${text}</option>`;
+    const watts = building.emode.wattsPerLevel;
+    const unverified = building.emode.verified === false ? " (draw not confirmed)" : "";
+    return `
+      <label class="busy-control" title="Run this building in E-mode (no Aniimo needed, uses power from the Crackle Generator). Auto lets the planner decide. Draw is ${watts} W per facility level${unverified}.">
+        <span>E-mode</span>
+        <select data-building-emode="${escapeAttr(building.id)}" aria-label="${escapeAttr(building.name)} E-mode">
+          ${option("auto", "Auto")}${option("on", "Always on")}${option("off", "Never")}
+        </select>
       </label>
     `;
   }
@@ -1246,6 +1308,9 @@
 
     document.getElementById("allowIntermittentMultiSkill").checked =
       app.state.settings.allowIntermittentMultiSkill !== false;
+    document.getElementById("emodeEnabled").checked = app.state.settings.emodeEnabled !== false;
+    document.getElementById("emodeTarget").value = String(app.state.settings.emodeTarget === 120 ? 120 : 100);
+    document.getElementById("emodeTarget").disabled = app.state.settings.emodeEnabled === false;
   }
 
   function renderCropNote() {
@@ -1376,7 +1441,7 @@
         skills: app.data.aniimo.skills,
         requirements: app.state.requirements,
         buildings: app.data.buildings.buildings,
-        buildingState: app.state.buildingState,
+        buildingState: planBuildingState(),
         // The RV level sets each building's assumed level, and so which families can work family-only buildings.
         settings: { ...app.state.settings, mode: "pool", actionDurationSeconds: getActionDurationSeconds(), rvLevel: app.state.homeland.rvLevel },
         capacity: capacity.known ? capacity.capacity : null,
@@ -1447,6 +1512,7 @@
         : "The smallest group of Aniimo that covers your requirements and buildings, chosen from your Available Aniimo. Part-time Aniimo move between the buildings listed.";
 
     renderOptions();
+    renderEmode(option);
     renderCapacityNotice(plan, view);
     renderMissing(plan, view);
     renderWorkerResults(result);
@@ -1539,6 +1605,74 @@
     `;
   }
 
+  // The E-mode plan for the shown option: which buildings to power, which to leave to Aniimo, and the grid.
+  function renderEmode(option) {
+    const panel = document.getElementById("emodePanel");
+    const emode = option?.emode;
+    if (!emode || (!emode.available && !emode.reason)) {
+      panel.classList.add("is-hidden");
+      panel.innerHTML = "";
+      return;
+    }
+    panel.classList.remove("is-hidden");
+    if (!emode.available) {
+      // Only worth a line when E-mode is possible at this RV level but something is missing.
+      const rv = app.state.homeland.rvLevel;
+      if (rv === null || rv < 12 || app.state.settings.emodeEnabled === false) {
+        panel.classList.add("is-hidden");
+        panel.innerHTML = "";
+        return;
+      }
+      panel.innerHTML = `<h3 id="emodeTitle">E-mode</h3><p class="panel-help">${escapeHtml(emode.reason)}</p>`;
+      return;
+    }
+    const pct = (value) => `${Math.round(value * 100)}%`;
+    const rate = emode.rate;
+    const speedClass = rate >= 1 ? "ok" : "missing";
+    const rows = emode.selections
+      .map(
+        (item) => `
+          <tr>
+            <td>${escapeHtml(item.name)}${item.units < item.count || item.count > 1 ? ` ×${item.units}` : ""}${item.forced ? " <small>(always on)</small>" : ""}</td>
+            <td>Lv ${item.level}</td>
+            <td>${item.watts} W${item.verified ? "" : ' <small title="Draw is the rule applied (15 or 30 W per level), not seen in game or a source">?</small>'}</td>
+            <td>${Math.round(item.freed * 100) / 100}</td>
+          </tr>`
+      )
+      .join("");
+    const left = emode.left.filter((item) => item.reason !== "idle");
+    const leftText = left.length
+      ? `Left on Aniimo: ${left
+          .map((item) => `${item.name}${item.count > 1 || item.units > 1 ? ` ×${item.units}` : ""}${item.reason === "off" ? " (you chose never)" : ""}`)
+          .join(", ")}.`
+      : "Everything that can run in E-mode is powered.";
+    const targetText = emode.target === 120 ? "120% speed" : "100% speed";
+    let advice = "";
+    if (rate < 1) {
+      advice = `<p class="options-max">The buildings you forced on draw more than the generator makes, so every powered building runs at ${pct(rate)} speed. Set some to Auto or Never, or upgrade the generator.</p>`;
+    }
+    const spare = emode.budget - emode.draw;
+    panel.innerHTML = `
+      <h3 id="emodeTitle">E-mode: what to power</h3>
+      <p class="panel-help">
+        ${emode.selections.length
+          ? `Powering these needs no Aniimo, saving about ${Math.round(emode.freed * 10) / 10} Aniimo's work. They draw ${emode.draw} W of the ${emode.output} W your Crackle Generator${emode.generators > 1 ? "s make" : " makes"} (aiming for ${targetText}), so the grid runs at ${pct(rate)}.`
+          : `No building is worth powering with ${emode.output} W under the ${targetText} setting.`}
+        ${spare > 0 && emode.selections.length ? ` ${spare} W left.` : ""}
+      </p>
+      ${emode.selections.length
+        ? `<div class="table-shell compact">
+            <table class="data-table compact-table">
+              <thead><tr><th>Put on E-mode</th><th>Level</th><th>Draw</th><th>Aniimo work freed</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <p class="options-max"><span class="status-pill ${speedClass}">Grid ${pct(rate)}</span> ${escapeHtml(leftText)}</p>`
+        : `<p class="options-max">${escapeHtml(leftText)}</p>`}
+      ${advice}
+    `;
+  }
+
   function starterNote() {
     if (app.state.pool.starter) return "";
     return `<p class="options-link">You haven't chosen your starter, so neither Lunara nor Helion is used (they are the only common Aniimo with Light). Choose it on the <button type="button" class="link-button" data-goto-tab="roster">Available Aniimo tab</button>.</p>`;
@@ -1574,7 +1708,8 @@
     const container = document.getElementById("personalityResults");
     const list = window.AniimoOptimizer.personalityRecommendations({
       buildings: app.data.buildings.buildings,
-      buildingState: app.state.buildingState,
+      // Buildings running in E-mode need no Aniimo, so no personality helps there.
+      buildingState: option?.emode?.available ? option.emode.buildingState : app.state.buildingState,
       settings: {
         rvLevel: app.state.homeland.rvLevel,
         ...(option && Number.isFinite(option.percent) ? { processorBusyPercent: option.percent } : {}),

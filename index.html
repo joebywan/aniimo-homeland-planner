@@ -223,6 +223,7 @@
               </table>
             </div>
           </section>
+          <section class="result-panel result-panel-wide is-hidden" id="emodePanel" aria-labelledby="emodeTitle"></section>
           <section class="result-panel">
             <h3>Building Jobs</h3>
             <p class="panel-help">
@@ -323,6 +324,31 @@
                 The most of each helper's day the planner fills with farm steps. 50% = half-busy (safe). Raise it to use
                 fewer helpers; lower it if your farm falls behind. Walking time is already covered by the setting above.
                 Processor work can fill the rest of a helper's day, up to 100%.
+              </small>
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>E-mode (power)</legend>
+            <p class="fieldset-intro">
+              From RV 12 a Crackle Generator can power buildings in E-mode: they need no Aniimo and run at the speed of
+              the power grid. The planner picks which ones to power so you need as few Aniimo as possible.
+            </p>
+            <label class="checkbox-row">
+              <input type="checkbox" id="emodeEnabled" />
+              <span>
+                Use E-mode in the plan
+                <small class="setting-help">Only does anything once you have a Crackle Generator. You can also force a building on or off on the Homeland tab.</small>
+              </span>
+            </label>
+            <label class="setting-row" for="emodeTarget">
+              <span>Grid speed to aim for</span>
+              <select id="emodeTarget">
+                <option value="100">100% &ndash; use all the power (needs the fewest Aniimo)</option>
+                <option value="120">120% &ndash; keep draw low for the speed boost (needs more Aniimo)</option>
+              </select>
+              <small class="setting-help">
+                Grid speed is the generator's output divided by what the powered buildings draw, up to 120%. Over the
+                output, every powered building slows down. 120% only needs draw to stay at 5/6 of the output.
               </small>
             </label>
           </fieldset>
